@@ -1,15 +1,21 @@
 package com.lumenaut.poolmanager;
 
+import com.lumenaut.poolmanager.InflationDataFormat.InflationDataEntry;
+import com.lumenaut.poolmanager.InflationDataFormat.InflationDataRoot;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.AnchorPane;
 
+import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.lumenaut.poolmanager.InflationDataFormat.OBJECT_MAPPER;
 
 /**
  * @Author Luca Vignaroli
@@ -20,8 +26,18 @@ public class MainController {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FXML BINDINGS
 
+    ////////////////////////////////////////////////////////
+    // UI
     @FXML
     private AnchorPane primaryStage;
+
+    @FXML
+    private ProgressBar progressBar;
+
+    ////////////////////////////////////////////////////////
+    // BUTTONS
+    @FXML
+    private MenuItem closeButton;
 
     @FXML
     private Button getFederationDataBtn;
@@ -32,20 +48,27 @@ public class MainController {
     @FXML
     private Button payBtn;
 
+    ////////////////////////////////////////////////////////
+    // TEXT FIELDS
     @FXML
     private TextField poolAddressTextField;
 
     @FXML
     private TextField poolSecretTextField;
 
-    @FXML
-    private MenuItem closeButton;
-
+    ////////////////////////////////////////////////////////
+    // TEXT AREAS
     @FXML
     private TextArea inflationPoolDataTextArea;
 
+    ////////////////////////////////////////////////////////
+    // LABELS
     @FXML
-    private ProgressBar progressBar;
+    private Label poolDataVotersLabel;
+
+    @FXML
+    private Label poolDataTotalVotesLabel;
+
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -53,11 +76,14 @@ public class MainController {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FIELDS
 
-    // Spinner task
-    private AtomicBoolean applicationBusy = new AtomicBoolean(false);
+    // Formatter
+    private final DecimalFormat xlmFormatter = new DecimalFormat("#,###,###,###,##0.00");
 
-    // Application stateful buttons
-    private List<Button> statefulButtons = new ArrayList<>();
+    // Busy signal
+    private final AtomicBoolean applicationBusy = new AtomicBoolean(false);
+
+    // Buttons to disable when the application is busy
+    private final List<Button> statefulButtons = new ArrayList<>();
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,6 +145,7 @@ public class MainController {
             } else {
                 // Clear existing data
                 inflationPoolDataTextArea.clear();
+                resetPoolCounters();
 
                 // Start spinning
                 setBusyState(true);
@@ -144,7 +171,10 @@ public class MainController {
                     inflationPoolDataTextArea.setText(inflationPoolData);
 
                     // Cancel applicationBusy state
-                    Platform.runLater(() -> setBusyState(false));
+                    Platform.runLater(() -> {
+                        setBusyState(false);
+                        refreshPoolCounters();
+                    });
                 });
             }
         });
@@ -174,6 +204,34 @@ public class MainController {
     private void showInfo(final String message) {
         final Alert alert = new Alert(AlertType.INFORMATION, message, ButtonType.OK);
         alert.show();
+    }
+
+    /**
+     * Updates the pool data counters
+     */
+    private void refreshPoolCounters() {
+        final String inflationPoolData = inflationPoolDataTextArea.getText();
+        try {
+            final InflationDataRoot inflationDataRoot = OBJECT_MAPPER.readValue(inflationPoolData, InflationDataRoot.class);
+            poolDataVotersLabel.setText(String.valueOf(inflationDataRoot.getEntries().size()));
+
+            Long totalVotes = 0L;
+            for (InflationDataEntry voter : inflationDataRoot.getEntries()) {
+                totalVotes += voter.getBalance();
+            }
+
+            poolDataTotalVotesLabel.setText(xlmFormatter.format(totalVotes / 10000000L) + " XLM");
+        } catch (IOException e) {
+            showError("Cannot compute pool data: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Resets the pool data counters
+     */
+    private void resetPoolCounters() {
+        poolDataVotersLabel.setText("0");
+        poolDataTotalVotesLabel.setText("0 XLM");
     }
 
     /**

@@ -1,12 +1,13 @@
 package com.lumenaut.poolmanager;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
+import static com.lumenaut.poolmanager.InflationDataFormat.OBJECT_MAPPER;
 
 /**
  * @Author Luca Vignaroli
@@ -18,9 +19,6 @@ import java.net.URL;
 public class FederationNetwork {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FIELDS
-
-    // JSON object OBJECT_MAPPER
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
