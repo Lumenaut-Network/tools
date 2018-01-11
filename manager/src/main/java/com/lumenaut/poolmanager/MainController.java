@@ -4,9 +4,15 @@ import com.lumenaut.poolmanager.InflationDataFormat.InflationDataEntry;
 import com.lumenaut.poolmanager.InflationDataFormat.InflationDataRoot;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -16,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.lumenaut.poolmanager.InflationDataFormat.OBJECT_MAPPER;
+import static com.lumenaut.poolmanager.Settings.SETTING_INFLATION_POOL_ADDRESS;
 
 /**
  * @Author Luca Vignaroli
@@ -37,13 +44,13 @@ public class MainController {
     ////////////////////////////////////////////////////////
     // BUTTONS
     @FXML
-    private MenuItem closeButton;
+    private MenuItem settingsBtn;
+
+    @FXML
+    private MenuItem closeBtn;
 
     @FXML
     private Button getFederationDataBtn;
-
-    @FXML
-    private Button compareDataBtn;
 
     @FXML
     private Button payBtn;
@@ -122,14 +129,30 @@ public class MainController {
      */
     @FXML
     private void initialize() {
+        // Load application settings
+        try {
+            Settings.loadSettings();
+        } catch (IOException e) {
+            showError("Error initializing application settings: " + e.getMessage());
+        }
+
+        // Set the default pool address if we have it in the settings
+        if (SETTING_INFLATION_POOL_ADDRESS != null && !SETTING_INFLATION_POOL_ADDRESS.isEmpty()) {
+            poolAddressTextField.setText(SETTING_INFLATION_POOL_ADDRESS);
+        }
+
         // Add all buttons that should react to the application "busy" state
         statefulButtons.add(getFederationDataBtn);
         statefulButtons.add(payBtn);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // CLOSE BUTTON HANDLER
+        // MENU BUTTONS HANDLERS
 
-        closeButton.setOnAction(event -> Platform.exit());
+        // Close
+        closeBtn.setOnAction(event -> Platform.exit());
+
+        // Settings
+        settingsBtn.setOnAction(event -> openSettingsWindow());
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // GET FEDERATION DATA BUTTON HANDLER
@@ -249,6 +272,28 @@ public class MainController {
             for (Button button : statefulButtons) {
                 button.setDisable(newState);
             }
+        }
+    }
+
+    /**
+     * Open the settings panel
+     */
+    private void openSettingsWindow() {
+        // Build root
+        try {
+            // Create new stage
+            final Stage settingsStage = new Stage();
+            final Parent settingsScene = FXMLLoader.load(getClass().getResource("/inflationManagerSettings.fxml"));
+
+            // Initialize the settings stage and show it
+            settingsStage.setTitle("Settings");
+            settingsStage.setScene(new Scene(settingsScene, 600, 400));
+            settingsStage.getIcons().add(new Image(Main.class.getResourceAsStream("/inflationManager.png")));
+            settingsStage.initModality(Modality.WINDOW_MODAL);
+            settingsStage.initOwner(primaryStage.getScene().getWindow());
+            settingsStage.show();
+        } catch (IOException e) {
+            showError(e.getMessage());
         }
     }
 

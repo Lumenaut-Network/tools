@@ -21,7 +21,8 @@
             <menus>
                 <Menu mnemonicParsing="false" text="File">
                     <items>
-                        <MenuItem fx:id="closeButton" mnemonicParsing="false" text="Close"/>
+                        <MenuItem fx:id="settingsBtn" mnemonicParsing="false" text="Settings"/>
+                        <MenuItem fx:id="closeBtn" mnemonicParsing="false" text="Close"/>
                     </items>
                 </Menu>
             </menus>
@@ -68,8 +69,7 @@
                                        AnchorPane.bottomAnchor="46.0"/>
                                 <TextField fx:id="poolAddressTextField" layoutX="91.0" layoutY="629.0" prefHeight="25.0"
                                            prefWidth="789.0" promptText="Account ID of the target inflation pool"
-                                           text="GA3FUYFOPWZ25YXTCA73RK2UGONHCO27OHQRSGV3VCE67UEPEFEDCOPA"
-                                           AnchorPane.bottomAnchor="42.0" AnchorPane.leftAnchor="91.0"
+                                           text="" AnchorPane.bottomAnchor="42.0" AnchorPane.leftAnchor="91.0"
                                            AnchorPane.rightAnchor="200.0"/>
                                 <Label layoutX="20.0" layoutY="661.0" text="Pool Secret:"
                                        AnchorPane.bottomAnchor="18.0"/>

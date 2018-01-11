@@ -19,3 +19,4 @@ out/
 
 # Temporary files
 .*~
+/settings.ini

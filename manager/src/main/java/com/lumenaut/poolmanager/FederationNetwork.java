@@ -8,6 +8,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import static com.lumenaut.poolmanager.InflationDataFormat.OBJECT_MAPPER;
+import static com.lumenaut.poolmanager.Settings.SETTING_FEDERATION_NETWORK_INFLATION_URL;
 
 /**
  * @Author Luca Vignaroli
@@ -47,7 +48,7 @@ public class FederationNetwork {
      */
     public static String getVoters(final String inflationDestinationAccount) throws Exception {
         // HTTP connection
-        final String fedUrl = String.format("https://fed.network/inflation/%s", inflationDestinationAccount);
+        final String fedUrl = String.format(SETTING_FEDERATION_NETWORK_INFLATION_URL + "%s", inflationDestinationAccount);
         final URL url = new URL(fedUrl);
         final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
