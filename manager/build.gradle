@@ -1,0 +1,80 @@
+group 'com.lumenaut'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'idea'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Config
+buildscript {
+    // Extra properties (valid for all projects if defined here)
+    ext {
+        junitPlatformVersion = '1.0.2'
+        junitJupiterVersion = '5.0.2'
+        stellarSdkVersion = '0.1.14'
+        jacksonVersion = '2.9.3'
+    }
+
+    // Repositories for build scripts
+    repositories {
+        // Libraries from extras
+        flatDir dirs: "$rootDir/libs"
+
+        // Maven
+        mavenCentral()
+
+        // Sonatype repositories
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url "https://oss.sonatype.org/content/repositories/releases/" }
+    }
+
+    // Dependencies for build scripts
+    dependencies {
+        classpath "org.junit.platform:junit-platform-gradle-plugin:$junitPlatformVersion"
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Repositories
+
+repositories {
+    // Jars
+    flatDir dirs: "$rootDir/libs"
+
+    // Maven
+    mavenCentral()
+
+    // Sonatype repositories
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    maven { url "https://oss.sonatype.org/content/repositories/releases/" }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Dependencies
+
+dependencies {
+    // Unit tests
+    testCompile "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion"
+
+    // To avoid compiler warnings about @API annotations in JUnit 5
+    testCompileOnly('org.apiguardian:apiguardian-api:1.0.0')
+
+    // JSON parser
+    compile "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"
+    compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+    compile "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
+
+    // Stellar SDK
+    compile "stellar-sdk:stellar-sdk:$stellarSdkVersion"
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Gradle wrapper
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.4'
+}

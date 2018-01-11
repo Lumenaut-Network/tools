@@ -1,0 +1,9 @@
+.text-area {
+    -fx-font-family: Monotype;
+    -fx-text-fill: #BABABA;
+    -fx-display-caret: true;
+}
+
+.text-area .content {
+    -fx-background-color: #2B2B2B;
+}
