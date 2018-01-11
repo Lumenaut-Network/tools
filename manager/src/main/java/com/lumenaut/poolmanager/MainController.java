@@ -126,7 +126,7 @@ public class MainController {
                 // Build and submit async task
                 final CompletableFuture<String> request = CompletableFuture.supplyAsync(() -> {
                     try {
-                        return FederationNetwork.getInflationPoolData(poolAddress);
+                        return FederationNetwork.getVoters(poolAddress);
                     } catch (Exception e) {
                         // Cancel applicationBusy state and show error
                         Platform.runLater(() -> {

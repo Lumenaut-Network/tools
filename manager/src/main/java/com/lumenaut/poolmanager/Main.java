@@ -13,33 +13,56 @@ import javafx.stage.Stage;
  * @Date 10/01/2018 - 2:30 AM
  */
 public class Main extends Application {
-    // Primary stage reference
-    private Stage primaryStage;
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region FIELDS
 
-    public Stage getPrimaryStage() {
-        return primaryStage;
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region ACCESSORS
+
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region CONSTRUCTORS
+
+    /**
+     * Constructor
+     */
+    public Main() {
+
     }
 
-    public void setPrimaryStage(Stage primaryStage) {
-        this.primaryStage = primaryStage;
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region METHOD OVERRIDES
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        // Build root
+        final Parent root = FXMLLoader.load(getClass().getResource("/inflationManagerMain.fxml"));
+
+        // Initialize the primary stage and show it
+        primaryStage.setTitle("Inflation Pool Manager");
+        primaryStage.setScene(new Scene(root, 1080, 750));
+        primaryStage.getIcons().add(new Image(Main.class.getResourceAsStream("/inflationManager.png")));
+        primaryStage.show();
     }
+
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region METHODS
 
     public static void main(String[] args) {
         launch(args);
     }
 
-    @Override
-    public void start(Stage primaryStage) throws Exception {
-        // Store the primary stage reference
-        this.primaryStage = primaryStage;
-
-        // Build root
-        final Parent root = FXMLLoader.load(getClass().getResource("/main.fxml"));
-
-        // Initialize the primary stage and show it
-        primaryStage.setTitle("Lumenaut Pool Manager");
-        primaryStage.setScene(new Scene(root, 1080, 750));
-        primaryStage.getIcons().add(new Image(Main.class.getResourceAsStream("/utils.png")));
-        primaryStage.show();
-    }
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }

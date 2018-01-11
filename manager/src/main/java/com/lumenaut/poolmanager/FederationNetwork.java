@@ -12,6 +12,8 @@ import java.net.URL;
  * @Author Luca Vignaroli
  * @Email luca@burning.it
  * @Date 10/01/2018 - 4:38 PM
+ *
+ * This class exposes simple methods to interact with https://fed.network for data queries
  */
 public class FederationNetwork {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,7 +47,7 @@ public class FederationNetwork {
      * @param inflationDestinationAccount The accountId of the inflation destination
      * @return
      */
-    public static String getInflationPoolData(final String inflationDestinationAccount) throws Exception {
+    public static String getVoters(final String inflationDestinationAccount) throws Exception {
         // HTTP connection
         final String fedUrl = String.format("https://fed.network/inflation/%s", inflationDestinationAccount);
         final URL url = new URL(fedUrl);
