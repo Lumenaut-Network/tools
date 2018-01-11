@@ -16,6 +16,7 @@ buildscript {
         junitJupiterVersion = '5.0.2'
         stellarSdkVersion = '0.1.14'
         jacksonVersion = '2.9.3'
+        pgsqlDriverVersion = '42.1.4'
     }
 
     // Repositories for build scripts
@@ -67,6 +68,9 @@ dependencies {
     compile "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"
     compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
     compile "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
+
+    // PostgreSQL JDBC driver
+    compile "org.postgresql:postgresql:$pgsqlDriverVersion"
 
     // Stellar SDK
     compile "stellar-sdk:stellar-sdk:$stellarSdkVersion"
