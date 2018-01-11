@@ -7,9 +7,7 @@ import javafx.scene.control.Alert.AlertType;
 
 import java.io.IOException;
 
-import static com.lumenaut.poolmanager.Settings.SETTING_FEDERATION_NETWORK_INFLATION_URL;
-import static com.lumenaut.poolmanager.Settings.SETTING_INFLATION_POOL_ADDRESS;
-import static com.lumenaut.poolmanager.Settings.SETTING_OPERATIONS_NETWORK;
+import static com.lumenaut.poolmanager.Settings.*;
 
 /**
  * @Author Luca Vignaroli
@@ -38,6 +36,18 @@ public class SettingsController {
 
     @FXML
     private TextField defaultFedNetworkInflationUrlTextField;
+
+    @FXML
+    private TextField horizonDbAddress;
+
+    @FXML
+    private TextField horizonDbPort;
+
+    @FXML
+    private TextField horizonDbUser;
+
+    @FXML
+    private TextField horizonDbPass;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,6 +99,10 @@ public class SettingsController {
         activeNetworkChoiceBox.setValue(SETTING_OPERATIONS_NETWORK);
         defaultPoolAddressTextField.setText(SETTING_INFLATION_POOL_ADDRESS);
         defaultFedNetworkInflationUrlTextField.setText(SETTING_FEDERATION_NETWORK_INFLATION_URL);
+        horizonDbAddress.setText(SETTING_HORIZON_DB_ADDRESS);
+        horizonDbPort.setText(SETTING_HORIZON_DB_PORT);
+        horizonDbUser.setText(SETTING_HORIZON_DB_USER);
+        horizonDbPass.setText(SETTING_HORIZON_DB_PASS);
 
         // Handle save & closing
         cancelBtn.setOnAction(event -> cancelBtn.getScene().getWindow().hide());
@@ -109,6 +123,10 @@ public class SettingsController {
         SETTING_OPERATIONS_NETWORK = activeNetworkChoiceBox.getValue().toString();
         SETTING_INFLATION_POOL_ADDRESS = defaultPoolAddressTextField.getText();
         SETTING_FEDERATION_NETWORK_INFLATION_URL = defaultFedNetworkInflationUrlTextField.getText();
+        SETTING_HORIZON_DB_ADDRESS = horizonDbAddress.getText();
+        SETTING_HORIZON_DB_PORT = horizonDbPort.getText();
+        SETTING_HORIZON_DB_USER = horizonDbUser.getText();
+        SETTING_HORIZON_DB_PASS = horizonDbPass.getText();
 
         // Trigger settings save
         try {

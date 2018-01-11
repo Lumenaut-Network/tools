@@ -1,16 +1,10 @@
 package com.lumenaut.poolmanager;
 
-import com.lumenaut.poolmanager.HorizonData.AccountCreationResponse;
-import org.stellar.sdk.KeyPair;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Properties;
+
+import static com.lumenaut.poolmanager.Settings.*;
 
 /**
  * @Author Burn
@@ -23,15 +17,12 @@ public class HorizonManager {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FIELDS
 
-    // Horizon node
-    private final String horizonNodeAddress;
-
     // Defaults to 15 seconds
-    private int horizonConnectionTimeout = 15 * 1000;
+    private static final int HORIZON_CONNECTION_TIMEOUT = 15 * 1000;
 
     // Data
-    private Connection horizonConn;
-    private Connection coreConn;
+    private Connection conn;
+    private boolean connected;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,12 +30,13 @@ public class HorizonManager {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region ACCESSORS
 
-    public int getHorizonConnectionTimeout() {
-        return horizonConnectionTimeout;
+
+    public boolean isConnected() {
+        return connected;
     }
 
-    public void setHorizonConnectionTimeout(int horizonConnectionTimeout) {
-        this.horizonConnectionTimeout = horizonConnectionTimeout;
+    public void setConnected(boolean connected) {
+        this.connected = connected;
     }
 
     //endregion
@@ -55,37 +47,9 @@ public class HorizonManager {
 
     /**
      * Constructor
-     *
-     * @param horizonNodeAddress
      */
-    public HorizonManager(final String horizonNodeAddress, final String horizonDatabaseAddress, final String horizonDatabasePort) {
-        // Bind the horizon node address for this manager instance
-        this.horizonNodeAddress = horizonNodeAddress;
+    public HorizonManager() {
 
-        // Build jdbc connection url
-        final StringBuilder horizonNodeDatabaseUrl = new StringBuilder();
-        if (horizonDatabaseAddress != null) {
-            horizonNodeDatabaseUrl.append("jdbc:postgresql://").append(horizonDatabaseAddress);
-
-            // Use custom port if specified
-            if (horizonDatabasePort != null) {
-                horizonNodeDatabaseUrl.append(":").append(horizonDatabasePort);
-            }
-        }
-
-        // Establish connections
-        final Properties props = new Properties();
-        props.setProperty("user", "stellar");
-        props.setProperty("password", "aADgFDGVWAk0Q6hF");
-        try {
-            // Core database connection
-            coreConn = DriverManager.getConnection(horizonNodeDatabaseUrl.toString() + "/core", props);
-
-            // Horizon database connection
-            horizonConn = DriverManager.getConnection(horizonNodeDatabaseUrl.toString() + "/horizon", props);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     //endregion
@@ -107,6 +71,43 @@ public class HorizonManager {
     //region METHODS
 
     /**
+     * Connect to the currently configured horizon database
+     *
+     * @throws SQLException
+     */
+    public void connect() throws SQLException {
+        // Build jdbc connection url
+        final StringBuilder horizonNodeDatabaseUrl = new StringBuilder();
+        if (!SETTING_HORIZON_DB_ADDRESS.isEmpty()) {
+            horizonNodeDatabaseUrl.append("jdbc:postgresql://").append(SETTING_HORIZON_DB_ADDRESS);
+
+            // Use custom port if specified
+            if (!SETTING_HORIZON_DB_PORT.isEmpty()) {
+                horizonNodeDatabaseUrl.append(":").append(SETTING_HORIZON_DB_PORT);
+            }
+        }
+
+        // Establish connections
+        final Properties props = new Properties();
+        props.setProperty("user", SETTING_HORIZON_DB_USER);
+        props.setProperty("password", SETTING_HORIZON_DB_PASS);
+
+        // Core database connection
+        conn = DriverManager.getConnection(horizonNodeDatabaseUrl.toString() + "/core", props);
+        connected = true;
+    }
+
+    /**
+     * Close the database connection
+     *
+     * @throws SQLException
+     */
+    public void disconnect() throws SQLException {
+        conn.close();
+        connected = false;
+    }
+
+    /**
      * Get the votes currently cast to the specified pool
      *
      * @param votesTargetPublicKey The public key of the account receiving the inflation votes
@@ -115,7 +116,7 @@ public class HorizonManager {
      */
     public HashMap<String, Long> getInflationVoters(final String votesTargetPublicKey) throws SQLException {
         // Prepared statement
-        final PreparedStatement inflationStm = coreConn.prepareStatement("SELECT * FROM core.public.accounts WHERE inflationdest = ?");
+        final PreparedStatement inflationStm = conn.prepareStatement("SELECT * FROM core.public.accounts WHERE inflationdest = ?");
         inflationStm.setString(1, votesTargetPublicKey);
         inflationStm.setFetchSize(50);  // Fetch in batches of 50 records
 
@@ -135,40 +136,6 @@ public class HorizonManager {
 
             return votes;
         }
-    }
-
-    /**
-     * Create a new account
-     *
-     * @return
-     */
-    public AccountCreationResponse createNewAccount() throws IOException {
-        // Generate random keys
-        final KeyPair keyPair = KeyPair.random();
-
-        // Use Friendbot to create a new account with the newly generated public key
-        final String friendBotQueryUrl = String.format(horizonNodeAddress + "/friendbot?addr=%s", keyPair.getAccountId());
-        final URL url = new URL(friendBotQueryUrl);
-        final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-        // Attempt connection
-        connection.setRequestMethod("GET");
-        connection.setReadTimeout(horizonConnectionTimeout);
-        connection.connect();
-
-        // Read response body
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        final StringBuilder stringBuilder = new StringBuilder();
-        String responseLine;
-        while ((responseLine = reader.readLine()) != null) {
-            stringBuilder.append(responseLine).append("\n");
-        }
-
-        // Grab the response
-        final String responseBody = stringBuilder.length() > 0 ? stringBuilder.toString() : null;
-
-        // Return the key pair
-        return new AccountCreationResponse(friendBotQueryUrl, responseBody);
     }
 
     //endregion

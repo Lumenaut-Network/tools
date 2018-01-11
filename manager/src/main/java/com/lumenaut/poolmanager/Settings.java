@@ -18,9 +18,13 @@ public class Settings {
     private static final Properties PROPERTIES = new Properties();
 
     // Default Settings
-    public static String SETTING_OPERATIONS_NETWORK = "TEST";
+    public static String SETTING_OPERATIONS_NETWORK = "";
     public static String SETTING_INFLATION_POOL_ADDRESS = "";
     public static String SETTING_FEDERATION_NETWORK_INFLATION_URL = "";
+    public static String SETTING_HORIZON_DB_ADDRESS = "";
+    public static String SETTING_HORIZON_DB_PORT = "";
+    public static String SETTING_HORIZON_DB_USER = "";
+    public static String SETTING_HORIZON_DB_PASS = "";
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,12 +75,19 @@ public class Settings {
             SETTING_OPERATIONS_NETWORK = PROPERTIES.getProperty("operationsNetwork");
             SETTING_INFLATION_POOL_ADDRESS = PROPERTIES.getProperty("inflationPoolAddress");
             SETTING_FEDERATION_NETWORK_INFLATION_URL = PROPERTIES.getProperty("fedNetworkInflationUrl");
-
+            SETTING_HORIZON_DB_ADDRESS = PROPERTIES.getProperty("horizonDbAddress");
+            SETTING_HORIZON_DB_PORT = PROPERTIES.getProperty("horizonDbPort");
+            SETTING_HORIZON_DB_USER = PROPERTIES.getProperty("horizonDbUser");
+            SETTING_HORIZON_DB_PASS = PROPERTIES.getProperty("horizonDbPass");
         } catch (Exception ignore) {
             // Init defaults
             SETTING_OPERATIONS_NETWORK = PROPERTIES.getProperty("operationsNetwork", "TEST");
             SETTING_INFLATION_POOL_ADDRESS = PROPERTIES.getProperty("inflationPoolAddress", "");
             SETTING_FEDERATION_NETWORK_INFLATION_URL = PROPERTIES.getProperty("fedNetworkInflationUrl", "https://fed.network/inflation/");
+            SETTING_HORIZON_DB_ADDRESS = PROPERTIES.getProperty("horizonDbAddress", "");
+            SETTING_HORIZON_DB_PORT = PROPERTIES.getProperty("horizonDbPort", "");
+            SETTING_HORIZON_DB_USER = PROPERTIES.getProperty("horizonDbUser", "");
+            SETTING_HORIZON_DB_PASS = PROPERTIES.getProperty("horizonDbPass", "");
 
             // Save defaults
             saveSettings();
@@ -93,6 +104,10 @@ public class Settings {
         PROPERTIES.setProperty("operationsNetwork", SETTING_OPERATIONS_NETWORK);
         PROPERTIES.setProperty("inflationPoolAddress", SETTING_INFLATION_POOL_ADDRESS);
         PROPERTIES.setProperty("fedNetworkInflationUrl", SETTING_FEDERATION_NETWORK_INFLATION_URL);
+        PROPERTIES.setProperty("horizonDbAddress", SETTING_HORIZON_DB_ADDRESS);
+        PROPERTIES.setProperty("horizonDbPort", SETTING_HORIZON_DB_PORT);
+        PROPERTIES.setProperty("horizonDbUser", SETTING_HORIZON_DB_USER);
+        PROPERTIES.setProperty("horizonDbPass", SETTING_HORIZON_DB_PASS);
 
         // Store
         PROPERTIES.store(new FileOutputStream("settings.ini"), "Settings");

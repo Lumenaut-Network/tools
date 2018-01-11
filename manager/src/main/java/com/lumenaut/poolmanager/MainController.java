@@ -53,6 +53,9 @@ public class MainController {
     private Button getFederationDataBtn;
 
     @FXML
+    private Button getHorizonDataBtn;
+
+    @FXML
     private Button payBtn;
 
     ////////////////////////////////////////////////////////
@@ -91,6 +94,9 @@ public class MainController {
 
     // Buttons to disable when the application is busy
     private final List<Button> statefulButtons = new ArrayList<>();
+
+    // Data sources
+    private HorizonManager horizonManager;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -143,6 +149,7 @@ public class MainController {
 
         // Add all buttons that should react to the application "busy" state
         statefulButtons.add(getFederationDataBtn);
+        statefulButtons.add(getHorizonDataBtn);
         statefulButtons.add(payBtn);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,52 +162,10 @@ public class MainController {
         settingsBtn.setOnAction(event -> openSettingsWindow());
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // GET FEDERATION DATA BUTTON HANDLER
+        // GET DATA BUTTON HANDLERS
 
-        getFederationDataBtn.setOnAction(event -> {
-            // Get the target pool key
-            final String poolAddress = poolAddressTextField.getText();
-
-            // Check if we have an address
-            // TODO Also check if it's a valid hash or let the request fail?
-            if (poolAddress == null || poolAddress.isEmpty()) {
-                showError("You must specify the inflation pool's address below");
-            } else {
-                // Clear existing data
-                inflationPoolDataTextArea.clear();
-                resetPoolCounters();
-
-                // Start spinning
-                setBusyState(true);
-
-                // Build and submit async task
-                final CompletableFuture<String> request = CompletableFuture.supplyAsync(() -> {
-                    try {
-                        return FederationNetwork.getVoters(poolAddress);
-                    } catch (Exception e) {
-                        // Cancel applicationBusy state and show error
-                        Platform.runLater(() -> {
-                            setBusyState(false);
-                            showError(e.getMessage());
-                        });
-                    }
-
-                    return null;
-                });
-
-                // Process task completion
-                request.thenAccept(inflationPoolData -> {
-                    // Update text area
-                    inflationPoolDataTextArea.setText(inflationPoolData);
-
-                    // Cancel applicationBusy state
-                    Platform.runLater(() -> {
-                        setBusyState(false);
-                        refreshPoolCounters();
-                    });
-                });
-            }
-        });
+        getFederationDataBtn.setOnAction(event -> fetchFedNetworkData());
+        getHorizonDataBtn.setOnAction(event -> fetchHorizonData());
     }
 
     //endregion
@@ -276,6 +241,63 @@ public class MainController {
     }
 
     /**
+     * Fetch data from horizon
+     */
+    private void fetchHorizonData() {
+        if (horizonManager == null) {
+            horizonManager = new HorizonManager();
+        }
+    }
+
+    /**
+     * Fetch data from the federation network
+     */
+    private void fetchFedNetworkData() {
+        // Get the target pool key
+        final String poolAddress = poolAddressTextField.getText();
+
+        // Check if we have an address
+        // TODO Also check if it's a valid hash or let the request fail?
+        if (poolAddress == null || poolAddress.isEmpty()) {
+            showError("You must specify the inflation pool's address below");
+        } else {
+            // Clear existing data
+            inflationPoolDataTextArea.clear();
+            resetPoolCounters();
+
+            // Start spinning
+            setBusyState(true);
+
+            // Build and submit async task
+            final CompletableFuture<String> request = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return FederationNetwork.getVoters(poolAddress);
+                } catch (Exception e) {
+                    // Cancel applicationBusy state and show error
+                    Platform.runLater(() -> {
+                        setBusyState(false);
+                        showError(e.getMessage());
+                    });
+                }
+
+                return null;
+            });
+
+            // Process task completion
+            request.thenAccept(inflationPoolData -> {
+                // Update text area
+                inflationPoolDataTextArea.setText(inflationPoolData);
+
+                // Cancel applicationBusy state
+                Platform.runLater(() -> {
+                    setBusyState(false);
+                    refreshPoolCounters();
+                });
+            });
+        }
+    }
+
+    /**
      * Open the settings panel
      */
     private void openSettingsWindow() {
@@ -283,14 +305,20 @@ public class MainController {
         try {
             // Create new stage
             final Stage settingsStage = new Stage();
-            final Parent settingsScene = FXMLLoader.load(getClass().getResource("/inflationManagerSettings.fxml"));
+            final Parent sceneRoot = FXMLLoader.load(getClass().getResource("/inflationManagerSettings.fxml"));
+
+            // Build scene
+            final Scene scene = new Scene(sceneRoot);
 
             // Initialize the settings stage and show it
             settingsStage.setTitle("Settings");
-            settingsStage.setScene(new Scene(settingsScene, 600, 400));
+            settingsStage.setScene(scene);
             settingsStage.getIcons().add(new Image(Main.class.getResourceAsStream("/inflationManager.png")));
             settingsStage.initModality(Modality.WINDOW_MODAL);
             settingsStage.initOwner(primaryStage.getScene().getWindow());
+            settingsStage.setWidth(700);
+            settingsStage.setHeight(400);
+            settingsStage.setResizable(false);
             settingsStage.show();
         } catch (IOException e) {
             showError(e.getMessage());

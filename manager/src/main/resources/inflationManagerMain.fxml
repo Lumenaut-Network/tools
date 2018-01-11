@@ -63,6 +63,10 @@
                                                AnchorPane.leftAnchor="47.0"/>
                                         <Label fx:id="poolDataVotersLabel" layoutX="47.0" layoutY="531.0" text="0"
                                                AnchorPane.bottomAnchor="36.0" AnchorPane.leftAnchor="47.0"/>
+                                        <Button fx:id="getHorizonDataBtn" layoutX="6.0" layoutY="37.0"
+                                                mnemonicParsing="false" text="Get From Horizon DB"
+                                                AnchorPane.leftAnchor="6.0" AnchorPane.rightAnchor="4.0"
+                                                AnchorPane.topAnchor="35.0"/>
                                     </children>
                                 </AnchorPane>
                                 <Label layoutX="10.0" layoutY="633.0" text="Pool Address:"
