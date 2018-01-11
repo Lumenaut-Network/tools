@@ -1,4 +1,4 @@
-# tools
+# Tools
 This repository contains various tools that help in the management process of a Stellar Inflation Pool.
 
 # Manager
