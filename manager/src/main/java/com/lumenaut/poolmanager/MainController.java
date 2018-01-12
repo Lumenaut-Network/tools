@@ -66,21 +66,15 @@ public class MainController {
     private Button getHorizonDataBtn;
 
     @FXML
-    private Button saveTransactionPlanBtn;
-
-    @FXML
     private Button refreshPoolBalanceBtn;
 
     @FXML
-    private Button payBtn;
+    private Button buildTransactionBtn;
 
     ////////////////////////////////////////////////////////
     // TEXT FIELDS
     @FXML
     private TextField poolAddressTextField;
-
-    @FXML
-    private TextField poolSecretTextField;
 
     ////////////////////////////////////////////////////////
     // TEXT AREAS
@@ -175,9 +169,7 @@ public class MainController {
         // Add all buttons that should react to the application "busy" state
         statefulButtons.add(getFederationDataBtn);
         statefulButtons.add(getHorizonDataBtn);
-        statefulButtons.add(payBtn);
         statefulButtons.add(refreshPoolBalanceBtn);
-        statefulButtons.add(saveTransactionPlanBtn);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // MENU BUTTONS HANDLERS
@@ -228,15 +220,11 @@ public class MainController {
     private void refreshNetworkIndicators() {
         switch (SETTING_OPERATIONS_NETWORK) {
             case "TEST":
-                payBtn.getStyleClass().removeAll("redBg");
-                payBtn.getStyleClass().add("greenBg");
                 selectedNetworkRect.setFill(Paint.valueOf("#64EE64"));
                 selectedNetworkLabel.setText("TEST NETWORK");
 
                 break;
             case "LIVE":
-                payBtn.getStyleClass().removeAll("greenBg");
-                payBtn.getStyleClass().add("redBg");
                 selectedNetworkRect.setFill(Paint.valueOf("#EE4B52"));
                 selectedNetworkLabel.setText("LIVE NETWORK");
 
@@ -463,7 +451,6 @@ public class MainController {
 
             // Bind referencein the settings controller, so that we can alter these components in the main scene when
             // settings that affect them are changed
-            settingsController.payBtn = payBtn;
             settingsController.selectedNetworkRect = selectedNetworkRect;
             settingsController.selectedNetworkLabel = selectedNetworkLabel;
 

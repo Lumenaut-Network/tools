@@ -58,7 +58,6 @@ public class SettingsController {
     //region FIELDS
 
     // Component references from other scenes
-    public Button payBtn;
     public Rectangle selectedNetworkRect;
     public Label selectedNetworkLabel;
 
@@ -119,18 +118,14 @@ public class SettingsController {
         activeNetworkChoiceBox.setOnAction(event -> {
             final String selectedValue = activeNetworkChoiceBox.getValue().toString();
 
-            if (payBtn != null) {
+            if (selectedNetworkRect != null && selectedNetworkLabel != null) {
                 switch (selectedValue) {
                     case "TEST":
-                        payBtn.getStyleClass().removeAll("redBg");
-                        payBtn.getStyleClass().add("greenBg");
                         selectedNetworkRect.setFill(Paint.valueOf("#64EE64"));
                         selectedNetworkLabel.setText("TEST NETWORK");
 
                         break;
                     case "LIVE":
-                        payBtn.getStyleClass().removeAll("greenBg");
-                        payBtn.getStyleClass().add("redBg");
                         selectedNetworkRect.setFill(Paint.valueOf("#EE4B52"));
                         selectedNetworkLabel.setText("LIVE NETWORK");
 

@@ -37,97 +37,86 @@
                     <content>
                         <AnchorPane>
                             <children>
-                                <TextArea fx:id="inflationPoolDataTextArea" prefHeight="591.0" prefWidth="874.0"
-                                          promptText="Paste your inflation pool data here or use one of the retrieval methods to the right"
-                                          stylesheets="@inflationManagerMain.css" AnchorPane.bottomAnchor="80.0"
-                                          AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="201.0"
-                                          AnchorPane.topAnchor="5.0"/>
+                                <TextArea fx:id="inflationPoolDataTextArea" editable="false" layoutY="37.0"
+                                          prefHeight="609.0" prefWidth="874.0" stylesheets="@inflationManagerMain.css"
+                                          AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0"
+                                          AnchorPane.rightAnchor="200.0" AnchorPane.topAnchor="37.0"/>
                                 <AnchorPane layoutX="880.0" layoutY="32.0" prefHeight="584.0" prefWidth="185.0"
-                                            AnchorPane.bottomAnchor="80.0" AnchorPane.rightAnchor="9.0"
+                                            AnchorPane.bottomAnchor="5.0" AnchorPane.rightAnchor="9.0"
                                             AnchorPane.topAnchor="32.0">
                                     <children>
                                         <Button fx:id="getFederationDataBtn" layoutX="14.0" layoutY="14.0"
                                                 mnemonicParsing="false" prefHeight="25.0" prefWidth="170.0"
                                                 text="Get From Fed.network" AnchorPane.leftAnchor="5.0"
                                                 AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0"/>
-                                        <Separator layoutY="204.0" prefHeight="0.0" prefWidth="185.0"
-                                                   AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                                                   AnchorPane.topAnchor="204.0"/>
-                                        <Label layoutX="70.0" layoutY="177.0" text="Votes" AnchorPane.topAnchor="177.0">
+                                        <Separator layoutY="534.0" prefHeight="0.0" prefWidth="185.0"
+                                                   AnchorPane.bottomAnchor="122.0" AnchorPane.leftAnchor="0.0"
+                                                   AnchorPane.rightAnchor="0.0"/>
+                                        <Label layoutX="70.0" layoutY="507.0" text="Votes"
+                                               AnchorPane.bottomAnchor="125.0">
                                             <font>
                                                 <Font size="18.0"/>
                                             </font>
                                         </Label>
-                                        <Label layoutX="5.0" layoutY="207.0" text="Voters:" AnchorPane.leftAnchor="5.0"
-                                               AnchorPane.topAnchor="207.0"/>
-                                        <Label layoutX="5.0" layoutY="224.0" text="Votes:" AnchorPane.leftAnchor="5.0"
-                                               AnchorPane.topAnchor="224.0"/>
-                                        <Label fx:id="poolDataTotalVotesLabel" layoutX="45.0" layoutY="224.0"
-                                               text="0 XLM" AnchorPane.leftAnchor="45.0" AnchorPane.topAnchor="224.0"/>
-                                        <Label fx:id="poolDataVotersLabel" layoutX="45.0" layoutY="207.0" text="0"
-                                               AnchorPane.leftAnchor="45.0" AnchorPane.topAnchor="207.0"/>
+                                        <Label layoutX="5.0" layoutY="537.0" text="Voters:"
+                                               AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="5.0"/>
+                                        <Label layoutX="5.0" layoutY="554.0" text="Votes:"
+                                               AnchorPane.bottomAnchor="87.0" AnchorPane.leftAnchor="5.0"/>
+                                        <Label fx:id="poolDataTotalVotesLabel" layoutX="45.0" layoutY="555.0"
+                                               text="0 XLM" AnchorPane.bottomAnchor="87.0"
+                                               AnchorPane.leftAnchor="45.0"/>
+                                        <Label fx:id="poolDataVotersLabel" layoutX="45.0" layoutY="537.0" text="0"
+                                               AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="45.0"/>
                                         <Button fx:id="getHorizonDataBtn" layoutX="6.0" layoutY="37.0"
                                                 mnemonicParsing="false" text="Get From Horizon DB"
                                                 AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0"
                                                 AnchorPane.topAnchor="35.0"/>
-                                        <Label layoutX="42.0" layoutY="257.0" text="Pool Balance"
-                                               AnchorPane.topAnchor="257.0">
+                                        <Label layoutX="42.0" layoutY="587.0" text="Pool Balance"
+                                               AnchorPane.bottomAnchor="45.0">
                                             <font>
                                                 <Font size="18.0"/>
                                             </font>
                                         </Label>
-                                        <Label fx:id="poolDataBalanceLabel" layoutX="5.0" layoutY="295.0" text="0 XLM"
-                                               AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="295.0">
+                                        <Label fx:id="poolDataBalanceLabel" layoutX="5.0" layoutY="625.0" text="0 XLM"
+                                               AnchorPane.bottomAnchor="7.0" AnchorPane.leftAnchor="5.0">
                                             <font>
                                                 <Font size="18.0"/>
                                             </font>
                                         </Label>
-                                        <Button fx:id="saveTransactionPlanBtn" layoutX="9.0" layoutY="545.0"
-                                                mnemonicParsing="false" prefHeight="25.0" prefWidth="167.0"
-                                                text="Save payment plan" AnchorPane.bottomAnchor="5.0"
-                                                AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0"/>
-                                        <Separator layoutY="283.0" prefHeight="0.0" prefWidth="185.0"
-                                                   AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                                                   AnchorPane.topAnchor="283.0"/>
-                                        <Button fx:id="refreshPoolBalanceBtn" layoutX="65.0" layoutY="524.0"
+                                        <Separator layoutY="613.0" prefHeight="0.0" prefWidth="185.0"
+                                                   AnchorPane.bottomAnchor="43.0" AnchorPane.leftAnchor="0.0"
+                                                   AnchorPane.rightAnchor="0.0"/>
+                                        <Button fx:id="refreshPoolBalanceBtn" layoutX="6.0" layoutY="60.0"
                                                 mnemonicParsing="false" text="Refresh Pool Balance"
-                                                AnchorPane.bottomAnchor="35.0" AnchorPane.leftAnchor="5.0"
-                                                AnchorPane.rightAnchor="5.0"/>
+                                                AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0"
+                                                AnchorPane.topAnchor="65.0"/>
                                         <Rectangle fx:id="selectedNetworkRect" arcHeight="5.0" arcWidth="5.0"
-                                                   fill="#cdcdcd" height="59.0" layoutX="7.0" layoutY="70.0"
+                                                   fill="#cdcdcd" height="59.0" layoutX="5.0" layoutY="441.0"
                                                    stroke="BLACK" strokeType="INSIDE" width="175.0"
-                                                   AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0"
-                                                   AnchorPane.topAnchor="70.0"/>
-                                        <Label fx:id="selectedNetworkLabel" layoutX="29.0" layoutY="82.0"
+                                                   AnchorPane.bottomAnchor="159.0" AnchorPane.leftAnchor="5.0"
+                                                   AnchorPane.rightAnchor="5.0"/>
+                                        <Label fx:id="selectedNetworkLabel" layoutX="29.0" layoutY="453.0"
                                                prefHeight="35.0" prefWidth="127.0" textAlignment="CENTER"
-                                               AnchorPane.leftAnchor="29.0" AnchorPane.rightAnchor="29.0"
-                                               AnchorPane.topAnchor="82.0">
+                                               AnchorPane.bottomAnchor="171.0" AnchorPane.leftAnchor="29.0"
+                                               AnchorPane.rightAnchor="29.0">
                                             <font>
                                                 <Font size="18.0"/>
                                             </font>
                                         </Label>
+                                        <Button fx:id="buildTransactionBtn" disable="true" layoutX="6.0" layoutY="322.0"
+                                                mnemonicParsing="false" prefHeight="53.0" prefWidth="174.0"
+                                                stylesheets="@inflationManagerMain.css" text="BUILD TRANSACTION PLAN"
+                                                AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="95.0"/>
                                     </children>
                                 </AnchorPane>
-                                <Label layoutX="10.0" layoutY="633.0" text="Pool Address:"
-                                       AnchorPane.bottomAnchor="46.0"/>
+                                <Label layoutX="10.0" layoutY="633.0" text="Pool Address:" AnchorPane.topAnchor="5.0"/>
                                 <TextField fx:id="poolAddressTextField" layoutX="91.0" layoutY="629.0" prefHeight="25.0"
-                                           prefWidth="789.0" promptText="Account ID of the target inflation pool"
-                                           text="" AnchorPane.bottomAnchor="42.0" AnchorPane.leftAnchor="91.0"
-                                           AnchorPane.rightAnchor="200.0"/>
-                                <Label layoutX="20.0" layoutY="661.0" text="Pool Secret:"
-                                       AnchorPane.bottomAnchor="18.0"/>
-                                <TextField fx:id="poolSecretTextField" layoutX="91.0" layoutY="657.0" prefHeight="25.0"
-                                           prefWidth="789.0"
-                                           promptText="Only needed when you are ready to pay the inflation"
-                                           AnchorPane.bottomAnchor="14.0" AnchorPane.leftAnchor="91.0"
-                                           AnchorPane.rightAnchor="200.0"/>
+                                           prefWidth="787.0" promptText="Account ID of the target inflation pool"
+                                           text="" AnchorPane.leftAnchor="91.0" AnchorPane.rightAnchor="200.0"
+                                           AnchorPane.topAnchor="5.0"/>
                                 <ProgressBar fx:id="progressBar" layoutX="892.0" layoutY="7.0" prefHeight="18.0"
                                              prefWidth="175.0" progress="0.0" AnchorPane.rightAnchor="14.0"
                                              AnchorPane.topAnchor="7.0"/>
-                                <Button fx:id="payBtn" layoutX="892.0" layoutY="628.0" mnemonicParsing="false"
-                                        prefHeight="53.0" prefWidth="174.0" stylesheets="@inflationManagerMain.css"
-                                        text="PAY INFLATION" AnchorPane.bottomAnchor="15.0"
-                                        AnchorPane.rightAnchor="14.0"/>
                             </children>
                         </AnchorPane>
                     </content>
