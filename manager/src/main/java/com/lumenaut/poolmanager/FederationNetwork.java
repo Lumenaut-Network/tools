@@ -3,6 +3,7 @@ package com.lumenaut.poolmanager;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -20,6 +21,9 @@ import static com.lumenaut.poolmanager.Settings.SETTING_FEDERATION_NETWORK_INFLA
 public class FederationNetwork {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FIELDS
+
+    // Connection timeout
+    private static final int HTTP_CONNECTION_TIMEOUT = 15 * 1000;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,7 +50,7 @@ public class FederationNetwork {
      * @param inflationDestinationAccount The accountId of the inflation destination
      * @return
      */
-    public static String getVoters(final String inflationDestinationAccount) throws Exception {
+    public static JsonNode getVoters(final String inflationDestinationAccount) throws IOException {
         // HTTP connection
         final String fedUrl = String.format(SETTING_FEDERATION_NETWORK_INFLATION_URL + "%s", inflationDestinationAccount);
         final URL url = new URL(fedUrl);
@@ -54,7 +58,7 @@ public class FederationNetwork {
 
         // Attempt connection
         connection.setRequestMethod("GET");
-        connection.setReadTimeout(15 * 1000);
+        connection.setReadTimeout(HTTP_CONNECTION_TIMEOUT);
         connection.connect();
 
         // Read response body
@@ -65,13 +69,9 @@ public class FederationNetwork {
             stringBuilder.append(responseLine).append("\n");
         }
 
-        // Json object OBJECT_MAPPER
+        // Attempt to map to a JSON node object and return
         if (stringBuilder.length() > 0) {
-            // Read in the JSON
-            final JsonNode jsonNode = OBJECT_MAPPER.readTree(stringBuilder.toString());
-
-            // Format and return
-            return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(jsonNode);
+            return OBJECT_MAPPER.readTree(stringBuilder.toString());
         }
 
         return null;

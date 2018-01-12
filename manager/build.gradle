@@ -78,6 +78,7 @@ dependencies {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Execution task
+
 task run(dependsOn: classes, type: JavaExec) {
     main = "com.lumenaut.poolmanager.Main"
     classpath = sourceSets.main.runtimeClasspath

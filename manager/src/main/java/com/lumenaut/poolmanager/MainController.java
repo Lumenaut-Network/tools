@@ -1,5 +1,6 @@
 package com.lumenaut.poolmanager;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.lumenaut.poolmanager.InflationDataFormat.InflationDataEntry;
 import com.lumenaut.poolmanager.InflationDataFormat.InflationDataRoot;
 import javafx.application.Platform;
@@ -257,7 +258,6 @@ public class MainController {
         final String poolAddress = poolAddressTextField.getText();
 
         // Check if we have an address
-        // TODO Also check if it's a valid hash or let the request fail?
         if (poolAddress == null || poolAddress.isEmpty()) {
             showError("You must specify the inflation pool's address below");
         } else {
@@ -271,7 +271,11 @@ public class MainController {
             // Build and submit async task
             final CompletableFuture<String> request = CompletableFuture.supplyAsync(() -> {
                 try {
-                    return FederationNetwork.getVoters(poolAddress);
+                    // Fetch the voters from the federation network
+                    final JsonNode voters = FederationNetwork.getVoters(poolAddress);
+
+                    // Format and return
+                    return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(voters);
                 } catch (Exception e) {
                     // Cancel applicationBusy state and show error
                     Platform.runLater(() -> {

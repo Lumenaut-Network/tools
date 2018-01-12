@@ -17,9 +17,6 @@ public class HorizonManager {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FIELDS
 
-    // Defaults to 15 seconds
-    private static final int HORIZON_CONNECTION_TIMEOUT = 15 * 1000;
-
     // Data
     private Connection conn;
     private boolean connected;
@@ -114,7 +111,7 @@ public class HorizonManager {
      * @return A hashmap whose keys are the account ids of the voters and values represent their current balance
      * @throws SQLException
      */
-    public HashMap<String, Long> getInflationVoters(final String votesTargetPublicKey) throws SQLException {
+    public HashMap<String, Long> getVoters(final String votesTargetPublicKey) throws SQLException {
         // Prepared statement
         final PreparedStatement inflationStm = conn.prepareStatement("SELECT * FROM core.public.accounts WHERE inflationdest = ?");
         inflationStm.setString(1, votesTargetPublicKey);
@@ -133,6 +130,8 @@ public class HorizonManager {
                 final long balance = inflationRs.getLong("balance");
                 votes.put(publicKey, balance);
             }
+
+            // TODO Format and return in JSON object, same structure as the fed.network
 
             return votes;
         }
