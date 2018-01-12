@@ -15,6 +15,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -273,7 +274,61 @@ public class MainController {
      */
     private void fetchHorizonData() {
         if (horizonManager == null) {
+            // Create a new horizon manager instance
             horizonManager = new HorizonManager();
+
+            // Connect
+            try {
+                horizonManager.connect();
+            } catch (SQLException e) {
+                showError(e.getMessage());
+            }
+        }
+
+        // Get the target pool key
+        final String poolAddress = poolAddressTextField.getText();
+
+        // Check if we have an address
+        if (poolAddress == null || poolAddress.isEmpty()) {
+            showError("You must specify the inflation pool's address below");
+        } else {
+            // Clear existing data
+            inflationPoolDataTextArea.clear();
+            resetPoolCounters();
+
+            // Start spinning
+            setBusyState(true);
+
+            // Build and submit async task
+            final CompletableFuture<String> request = CompletableFuture.supplyAsync(() -> {
+                try {
+                    // Fetch the voters from the federation network
+                    final JsonNode voters = horizonManager.getVoters(poolAddress);
+
+                    // Format and return
+                    return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(voters);
+                } catch (Exception e) {
+                    // Cancel applicationBusy state and show error
+                    Platform.runLater(() -> {
+                        setBusyState(false);
+                        showError(e.getMessage());
+                    });
+                }
+
+                return null;
+            });
+
+            // Process task completion
+            request.thenAccept(inflationPoolData -> {
+                // Update text area
+                inflationPoolDataTextArea.setText(inflationPoolData);
+
+                // Cancel applicationBusy state
+                Platform.runLater(() -> {
+                    setBusyState(false);
+                    refreshPoolCounters();
+                });
+            });
         }
     }
 

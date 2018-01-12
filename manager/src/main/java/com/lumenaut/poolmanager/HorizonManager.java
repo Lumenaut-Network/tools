@@ -1,9 +1,14 @@
 package com.lumenaut.poolmanager;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Properties;
 
+import static com.lumenaut.poolmanager.InflationDataFormat.OBJECT_MAPPER;
 import static com.lumenaut.poolmanager.Settings.*;
 
 /**
@@ -111,7 +116,7 @@ public class HorizonManager {
      * @return A hashmap whose keys are the account ids of the voters and values represent their current balance
      * @throws SQLException
      */
-    public HashMap<String, Long> getVoters(final String votesTargetPublicKey) throws SQLException {
+    public JsonNode getVoters(final String votesTargetPublicKey) throws SQLException {
         // Prepared statement
         final PreparedStatement inflationStm = conn.prepareStatement("SELECT * FROM core.public.accounts WHERE inflationdest = ?");
         inflationStm.setString(1, votesTargetPublicKey);
@@ -131,9 +136,25 @@ public class HorizonManager {
                 votes.put(publicKey, balance);
             }
 
-            // TODO Format and return in JSON object, same structure as the fed.network
+            // Prepare JSON tree
+            final ObjectNode rootNode = OBJECT_MAPPER.createObjectNode();
+            final ArrayNode entriesNode = OBJECT_MAPPER.createArrayNode();
 
-            return votes;
+            // Append entries
+            votes.forEach((voterAddress, balance) -> {
+                final ObjectNode entryNode = OBJECT_MAPPER.createObjectNode();
+                entryNode.put("balance", balance);
+                entryNode.put("account", voterAddress);
+
+                // Push to the entries array
+                entriesNode.add(entryNode);
+            });
+
+            // Add root nodes
+            rootNode.put("inflationdest", votesTargetPublicKey);
+            rootNode.set("entries", entriesNode);
+
+            return rootNode;
         }
     }
 

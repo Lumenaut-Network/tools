@@ -103,7 +103,8 @@
                                 <Label layoutX="20.0" layoutY="661.0" text="Pool Secret:"
                                        AnchorPane.bottomAnchor="18.0"/>
                                 <TextField fx:id="poolSecretTextField" layoutX="91.0" layoutY="657.0" prefHeight="25.0"
-                                           prefWidth="789.0" promptText="Only needed when signing transactions"
+                                           prefWidth="789.0"
+                                           promptText="Only needed when you are ready to pay the inflation"
                                            AnchorPane.bottomAnchor="14.0" AnchorPane.leftAnchor="91.0"
                                            AnchorPane.rightAnchor="200.0"/>
                                 <ProgressBar fx:id="progressBar" layoutX="892.0" layoutY="7.0" prefHeight="18.0"
