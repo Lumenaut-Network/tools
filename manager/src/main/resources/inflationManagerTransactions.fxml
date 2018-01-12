@@ -8,7 +8,8 @@
 <?import javafx.scene.layout.AnchorPane?>
 
 
-<AnchorPane prefHeight="700.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/8.0.111"
+<AnchorPane minHeight="700.0" minWidth="900.0" prefHeight="700.0" prefWidth="900.0"
+            xmlns="http://javafx.com/javafx/8.0.111"
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.lumenaut.poolmanager.TransactionsController">
     <children>
         <TabPane layoutX="24.0" layoutY="26.0" prefHeight="682.0" prefWidth="1080.0" tabClosingPolicy="UNAVAILABLE"

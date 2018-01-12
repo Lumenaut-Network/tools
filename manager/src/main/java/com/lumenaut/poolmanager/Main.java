@@ -48,10 +48,10 @@ public class Main extends Application {
 
         // Initialize the primary stage and show it
         primaryStage.setTitle("Inflation Pool Manager");
-        primaryStage.setScene(new Scene(root, 900, 700));
+        primaryStage.setScene(new Scene(root, 1000, 800));
         primaryStage.getIcons().add(new Image(Main.class.getResourceAsStream("/inflationManager.png")));
-        primaryStage.setMinWidth(900);
-        primaryStage.setMinHeight(700);
+        primaryStage.setMinWidth(1000);
+        primaryStage.setMinHeight(800);
         primaryStage.show();
     }
 

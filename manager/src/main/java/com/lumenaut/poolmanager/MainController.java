@@ -174,6 +174,7 @@ public class MainController {
         statefulButtons.add(getFederationDataBtn);
         statefulButtons.add(getHorizonDataBtn);
         statefulButtons.add(refreshPoolBalanceBtn);
+        statefulButtons.add(buildTransactionBtn);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // MENU BUTTONS HANDLERS
@@ -185,11 +186,18 @@ public class MainController {
         settingsBtn.setOnAction(event -> openSettingsWindow());
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // GET DATA BUTTON HANDLERS
+        // BUTTON HANDLERS
 
         getFederationDataBtn.setOnAction(event -> fetchFedNetworkData());
         getHorizonDataBtn.setOnAction(event -> fetchHorizonData());
         refreshPoolBalanceBtn.setOnAction(event -> fetchPoolBalanceViaStellar());
+        buildTransactionBtn.setOnAction(event -> {
+            if (currentVotersData != null && currentPoolBalance != null) {
+                openTransactionBuilderWindow();
+            } else {
+                showError("You must first fetch the voters data and the pool balance");
+            }
+        });
     }
 
     //endregion
@@ -562,7 +570,7 @@ public class MainController {
             // Create new stage
             final Stage transactionsBuilderStage = new Stage();
             final FXMLLoader fxmlLoader = new FXMLLoader();
-            fxmlLoader.setLocation(getClass().getResource("/inflationManagerTransactionBuilder.fxml"));
+            fxmlLoader.setLocation(getClass().getResource("/inflationManagerTransactions.fxml"));
             final AnchorPane transactionsBuilderFrame = fxmlLoader.load();
             final TransactionsController transactionsController = fxmlLoader.getController();
 

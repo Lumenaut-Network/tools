@@ -15,8 +15,8 @@
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="primaryStage" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
-            prefHeight="700.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/8.0.111"
+<AnchorPane fx:id="primaryStage" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="900.0" minWidth="1000.0"
+            prefHeight="900.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/8.0.111"
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.lumenaut.poolmanager.MainController">
     <children>
         <MenuBar layoutY="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -103,7 +103,7 @@
                                                 <Font size="18.0"/>
                                             </font>
                                         </Label>
-                                        <Button fx:id="buildTransactionBtn" disable="true" layoutX="6.0" layoutY="322.0"
+                                        <Button fx:id="buildTransactionBtn" layoutX="6.0" layoutY="322.0"
                                                 mnemonicParsing="false" prefHeight="53.0" prefWidth="174.0"
                                                 stylesheets="@inflationManagerMain.css" text="BUILD TRANSACTION PLAN"
                                                 AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="95.0"/>
