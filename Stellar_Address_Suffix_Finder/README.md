@@ -13,12 +13,16 @@ Assuming you already have a working Python environment set up, open up a termina
 
 Now that you have the sourced the environment, run the following to install the dependencies:
 
-`pip install -r requirements.txt`
+```
+pip install -r requirements.txt
+```
 
 ### Using the tool
 
 It's pretty straightforward, you only need to provide the suffix you want as a positional argument. For example if you want to find `ABC`, you'll need to type:
 
-`python sasf.py ABC`
+```
+python sasf.py ABC
+```
 
 [virtualenv rtd]: <https://virtualenv.pypa.io/en/stable/>
