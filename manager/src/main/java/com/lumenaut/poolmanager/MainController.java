@@ -111,8 +111,12 @@ public class MainController {
     // Buttons to disable when the application is busy
     private final List<Button> statefulButtons = new ArrayList<>();
 
-    // Data sources
+    // Horizon gateway instance
     private HorizonGateway horizonGateway;
+
+    // Current voters data
+    private JsonNode currentVotersData;
+    private BigDecimal currentPoolBalance;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -296,6 +300,8 @@ public class MainController {
         } else {
             // Clear existing data
             inflationPoolDataTextArea.clear();
+            poolDataBalanceLabel.setText("0 XLM");
+            currentVotersData = null;
             resetPoolCounters();
 
             // Start spinning
@@ -306,6 +312,9 @@ public class MainController {
                 try {
                     // Fetch the voters from the federation network
                     final JsonNode voters = horizonGateway.getVoters(poolAddress);
+
+                    // Update the current voters data
+                    currentVotersData = voters;
 
                     // Format and return
                     return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(voters);
@@ -349,6 +358,7 @@ public class MainController {
             // Clear existing data
             inflationPoolDataTextArea.clear();
             poolDataBalanceLabel.setText("0 XLM");
+            currentVotersData = null;
             resetPoolCounters();
 
             // Start spinning
@@ -359,6 +369,9 @@ public class MainController {
                 try {
                     // Fetch the voters from the federation network
                     final JsonNode voters = FederationGateway.getVoters(poolAddress);
+
+                    // Update the current voters data
+                    currentVotersData = voters;
 
                     // Format and return
                     return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(voters);
@@ -399,8 +412,9 @@ public class MainController {
         if (poolAddress == null || poolAddress.isEmpty()) {
             showError("You must specify the inflation pool's address below");
         } else {
-            // Reset balance label
+            // Reset balance
             poolDataBalanceLabel.setText("0 XLM");
+            currentPoolBalance = null;
 
             // Start spinning
             setBusyState(true);
@@ -408,7 +422,12 @@ public class MainController {
             // Build and submit async task
             final CompletableFuture<BigDecimal> request = CompletableFuture.supplyAsync(() -> {
                 try {
-                    return StellarGateway.getBalance(poolAddress);
+                    final BigDecimal balance = StellarGateway.getBalance(poolAddress);
+
+                    // Update current balance
+                    currentPoolBalance = balance;
+
+                    return balance;
                 } catch (Exception e) {
                     Platform.runLater(() -> {
                         // Return to normal operation
@@ -440,6 +459,17 @@ public class MainController {
      * Fetch the pool balance and update the counter
      */
     private void fetchPoolBalanceViaHorizon() {
+        // Check that the horizon gateway is connected
+        if (!horizonGateway.isConnected()) {
+            try {
+                horizonGateway.connect();
+            } catch (SQLException e) {
+                showError("Cannot fetch pool balance, unable to establish horizon database connection: " + e.getMessage());
+
+                return;
+            }
+        }
+
         // Get the target pool key
         final String poolAddress = poolAddressTextField.getText();
 
@@ -447,8 +477,9 @@ public class MainController {
         if (poolAddress == null || poolAddress.isEmpty()) {
             showError("You must specify the inflation pool's address below");
         } else {
-            // Reset balance label
+            // Reset balance
             poolDataBalanceLabel.setText("0 XLM");
+            currentPoolBalance = null;
 
             // Start spinning
             setBusyState(true);
@@ -456,7 +487,12 @@ public class MainController {
             // Build and submit async task
             final CompletableFuture<BigDecimal> request = CompletableFuture.supplyAsync(() -> {
                 try {
-                    return horizonGateway.getBalance(poolAddress);
+                    final BigDecimal balance = horizonGateway.getBalance(poolAddress);
+
+                    // Update current balance
+                    currentPoolBalance = balance;
+
+                    return balance;
                 } catch (Exception e) {
                     Platform.runLater(() -> {
                         // Return to normal operation

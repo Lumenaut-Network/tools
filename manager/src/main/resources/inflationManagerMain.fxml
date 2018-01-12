@@ -109,7 +109,8 @@
                                                 AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="95.0"/>
                                     </children>
                                 </AnchorPane>
-                                <Label layoutX="10.0" layoutY="633.0" text="Pool Address:" AnchorPane.topAnchor="5.0"/>
+                                <Label layoutX="14.0" layoutY="9.0" text="Pool Address:" AnchorPane.leftAnchor="14.0"
+                                       AnchorPane.topAnchor="9.0"/>
                                 <TextField fx:id="poolAddressTextField" layoutX="91.0" layoutY="629.0" prefHeight="25.0"
                                            prefWidth="787.0" promptText="Account ID of the target inflation pool"
                                            text="" AnchorPane.leftAnchor="91.0" AnchorPane.rightAnchor="200.0"
