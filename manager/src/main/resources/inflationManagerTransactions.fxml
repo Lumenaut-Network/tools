@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.AnchorPane?>
+
+
+<AnchorPane prefHeight="700.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/8.0.111"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.lumenaut.poolmanager.TransactionsController">
+    <children>
+        <TabPane layoutX="24.0" layoutY="26.0" prefHeight="682.0" prefWidth="1080.0" tabClosingPolicy="UNAVAILABLE"
+                 AnchorPane.bottomAnchor="68.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                 AnchorPane.topAnchor="0.0">
+            <tabs>
+                <Tab text="Planned Transactions">
+                    <content>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="612.0" prefWidth="842.0">
+                            <children>
+                                <TextArea editable="false" layoutX="58.0" layoutY="103.0" prefHeight="200.0"
+                                          prefWidth="200.0" stylesheets="@inflationManagerMain.css"
+                                          AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                            </children>
+                        </AnchorPane>
+                    </content>
+                </Tab>
+                <Tab text="Exclusions List">
+                    <content>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                            <children>
+                                <TextArea layoutX="340.0" layoutY="167.0" prefHeight="200.0" prefWidth="200.0"
+                                          promptText="Paste a partial transaction history, or compile an exclusion list manually. The addresses contained here will be excluded from the transaction"
+                                          stylesheets="@inflationManagerMain.css" AnchorPane.bottomAnchor="0.0"
+                                          AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                                          AnchorPane.topAnchor="0.0"/>
+                            </children>
+                        </AnchorPane>
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
+        <Button disable="true" layoutX="876.0" layoutY="687.0" mnemonicParsing="false" prefHeight="58.0"
+                prefWidth="198.0" text="EXECUTE TRANSACTIONS" AnchorPane.bottomAnchor="5.0"
+                AnchorPane.rightAnchor="5.0"/>
+        <Button layoutX="5.0" layoutY="686.0" mnemonicParsing="false" prefHeight="27.0" prefWidth="141.0" text="Rebuild"
+                AnchorPane.bottomAnchor="37.0" AnchorPane.leftAnchor="5.0"/>
+        <Label layoutX="578.0" layoutY="696.0" text="Total transactions planned:" AnchorPane.bottomAnchor="37.0"
+               AnchorPane.rightAnchor="359.0"/>
+        <Label layoutX="729.0" layoutY="696.0" text="0" AnchorPane.bottomAnchor="37.0" AnchorPane.rightAnchor="344.0"/>
+        <Label layoutX="596.0" layoutY="713.0" text="Total payment planned:" AnchorPane.bottomAnchor="20.0"
+               AnchorPane.rightAnchor="359.0"/>
+        <Label layoutX="729.0" layoutY="713.0" text="0 XLM" AnchorPane.bottomAnchor="20.0"
+               AnchorPane.rightAnchor="317.0"/>
+        <Button layoutX="14.0" layoutY="713.0" mnemonicParsing="false" prefHeight="27.0" prefWidth="141.0"
+                text="Save transaction plan" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0"/>
+        <Button layoutX="153.0" layoutY="719.0" mnemonicParsing="false" prefHeight="27.0" prefWidth="231.0"
+                text="Load partial transaction as exclusion list" AnchorPane.bottomAnchor="5.0"
+                AnchorPane.leftAnchor="153.0"/>
+    </children>
+</AnchorPane>

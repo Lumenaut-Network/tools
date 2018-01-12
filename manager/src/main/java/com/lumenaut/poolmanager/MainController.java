@@ -533,7 +533,7 @@ public class MainController {
             final AnchorPane settingsFrame = fxmlLoader.load();
             final SettingsController settingsController = fxmlLoader.getController();
 
-            // Bind referencein the settings controller, so that we can alter these components in the main scene when
+            // Bind references in the settings controller, so that we can alter these components in the main scene when
             // settings that affect them are changed
             settingsController.selectedNetworkRect = selectedNetworkRect;
             settingsController.selectedNetworkLabel = selectedNetworkLabel;
@@ -548,6 +548,35 @@ public class MainController {
             settingsStage.setHeight(400);
             settingsStage.setResizable(false);
             settingsStage.show();
+        } catch (IOException e) {
+            showError(e.getMessage());
+        }
+    }
+
+    /**
+     * Open the settings panel
+     */
+    private void openTransactionBuilderWindow() {
+        // Build root
+        try {
+            // Create new stage
+            final Stage transactionsBuilderStage = new Stage();
+            final FXMLLoader fxmlLoader = new FXMLLoader();
+            fxmlLoader.setLocation(getClass().getResource("/inflationManagerTransactionBuilder.fxml"));
+            final AnchorPane transactionsBuilderFrame = fxmlLoader.load();
+            final TransactionsController transactionsController = fxmlLoader.getController();
+
+            // Initialize the transactions stage and show it
+            transactionsBuilderStage.setTitle("Transactions Builder");
+            transactionsBuilderStage.setScene(new Scene(transactionsBuilderFrame));
+            transactionsBuilderStage.getIcons().add(new Image(Main.class.getResourceAsStream("/inflationManager.png")));
+            transactionsBuilderStage.initModality(Modality.WINDOW_MODAL);
+            transactionsBuilderStage.initOwner(primaryStage.getScene().getWindow());
+            transactionsBuilderStage.setWidth(900);
+            transactionsBuilderStage.setHeight(700);
+            transactionsBuilderStage.setMinWidth(900);
+            transactionsBuilderStage.setMinHeight(700);
+            transactionsBuilderStage.show();
         } catch (IOException e) {
             showError(e.getMessage());
         }

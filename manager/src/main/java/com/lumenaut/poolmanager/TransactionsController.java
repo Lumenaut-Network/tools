@@ -1,18 +1,11 @@
 package com.lumenaut.poolmanager;
 
-import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.image.Image;
-import javafx.stage.Stage;
-
 /**
  * @Author Luca Vignaroli
  * @Email luca@burning.it
- * @Date 10/01/2018 - 2:30 AM
+ * @Date 12/01/2018 - 6:46 PM
  */
-public class Main extends Application {
+public class TransactionsController {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FIELDS
 
@@ -31,9 +24,15 @@ public class Main extends Application {
     /**
      * Constructor
      */
-    public Main() {
+    public TransactionsController() {
 
     }
+
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region INTERFACES IMPLEMENTATIONS
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -41,30 +40,13 @@ public class Main extends Application {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region METHOD OVERRIDES
 
-    @Override
-    public void start(Stage primaryStage) throws Exception {
-        // Build root
-        final Parent root = FXMLLoader.load(getClass().getResource("/inflationManagerMain.fxml"));
-
-        // Initialize the primary stage and show it
-        primaryStage.setTitle("Inflation Pool Manager");
-        primaryStage.setScene(new Scene(root, 900, 700));
-        primaryStage.getIcons().add(new Image(Main.class.getResourceAsStream("/inflationManager.png")));
-        primaryStage.setMinWidth(900);
-        primaryStage.setMinHeight(700);
-        primaryStage.show();
-    }
-
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region METHODS
 
-    public static void main(String[] args) {
-        launch(args);
-    }
-
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
+
