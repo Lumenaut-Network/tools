@@ -57,6 +57,12 @@ public class MainController {
     private Button getHorizonDataBtn;
 
     @FXML
+    private Button saveTransactionPlanBtn;
+
+    @FXML
+    private Button refreshPoolBalanceBtn;
+
+    @FXML
     private Button payBtn;
 
     ////////////////////////////////////////////////////////
@@ -80,6 +86,8 @@ public class MainController {
     @FXML
     private Label poolDataTotalVotesLabel;
 
+    @FXML
+    private Label poolDataBalanceLabel;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -169,6 +177,8 @@ public class MainController {
         statefulButtons.add(getFederationDataBtn);
         statefulButtons.add(getHorizonDataBtn);
         statefulButtons.add(payBtn);
+        statefulButtons.add(refreshPoolBalanceBtn);
+        statefulButtons.add(saveTransactionPlanBtn);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // MENU BUTTONS HANDLERS

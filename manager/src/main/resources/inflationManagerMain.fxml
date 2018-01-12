@@ -12,6 +12,7 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
 
 <AnchorPane fx:id="primaryStage" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
             prefHeight="750.0" prefWidth="1080.0" xmlns="http://javafx.com/javafx/8.0.111"
@@ -48,25 +49,49 @@
                                                 mnemonicParsing="false" prefHeight="25.0" prefWidth="170.0"
                                                 text="Get From Fed.network" AnchorPane.leftAnchor="5.0"
                                                 AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0"/>
-                                        <Separator prefHeight="0.0" prefWidth="185.0" AnchorPane.bottomAnchor="60.0"
-                                                   AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"/>
-                                        <Label layoutX="68.0" layoutY="505.0" text="Pool data"
-                                               AnchorPane.bottomAnchor="62.0" AnchorPane.rightAnchor="66.0"/>
-                                        <Label layoutX="5.0" layoutY="530.0" text="Voters:"
-                                               AnchorPane.bottomAnchor="37.0" AnchorPane.leftAnchor="5.0"/>
-                                        <Label layoutX="5.0" layoutY="547.0" text="Total:"
-                                               AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="5.0"/>
-                                        <Separator prefHeight="0.0" prefWidth="185.0" AnchorPane.bottomAnchor="78.0"
-                                                   AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"/>
-                                        <Label fx:id="poolDataTotalVotesLabel" layoutX="47.0" layoutY="548.0"
-                                               text="0 XLM" AnchorPane.bottomAnchor="19.0"
-                                               AnchorPane.leftAnchor="47.0"/>
-                                        <Label fx:id="poolDataVotersLabel" layoutX="47.0" layoutY="531.0" text="0"
-                                               AnchorPane.bottomAnchor="36.0" AnchorPane.leftAnchor="47.0"/>
+                                        <Separator layoutY="156.0" prefHeight="0.0" prefWidth="185.0"
+                                                   AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                                                   AnchorPane.topAnchor="156.0"/>
+                                        <Label layoutX="70.0" layoutY="129.0" text="Votes" AnchorPane.topAnchor="129.0">
+                                            <font>
+                                                <Font size="18.0"/>
+                                            </font>
+                                        </Label>
+                                        <Label layoutX="5.0" layoutY="158.0" text="Voters:" AnchorPane.leftAnchor="5.0"
+                                               AnchorPane.topAnchor="159.0"/>
+                                        <Label layoutX="5.0" layoutY="176.0" text="Votes:" AnchorPane.leftAnchor="5.0"
+                                               AnchorPane.topAnchor="176.0"/>
+                                        <Label fx:id="poolDataTotalVotesLabel" layoutX="45.0" layoutY="176.0"
+                                               text="0 XLM" AnchorPane.leftAnchor="45.0" AnchorPane.topAnchor="176.0"/>
+                                        <Label fx:id="poolDataVotersLabel" layoutX="45.0" layoutY="159.0" text="0"
+                                               AnchorPane.leftAnchor="45.0" AnchorPane.topAnchor="159.0"/>
                                         <Button fx:id="getHorizonDataBtn" layoutX="6.0" layoutY="37.0"
                                                 mnemonicParsing="false" text="Get From Horizon DB"
-                                                AnchorPane.leftAnchor="6.0" AnchorPane.rightAnchor="4.0"
+                                                AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0"
                                                 AnchorPane.topAnchor="35.0"/>
+                                        <Label layoutX="42.0" layoutY="209.0" text="Pool Balance"
+                                               AnchorPane.topAnchor="209.0">
+                                            <font>
+                                                <Font size="18.0"/>
+                                            </font>
+                                        </Label>
+                                        <Label fx:id="poolDataBalanceLabel" layoutX="5.0" layoutY="247.0" text="0 XLM"
+                                               AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="247.0">
+                                            <font>
+                                                <Font size="18.0"/>
+                                            </font>
+                                        </Label>
+                                        <Button fx:id="saveTransactionPlanBtn" layoutX="9.0" layoutY="545.0"
+                                                mnemonicParsing="false" prefHeight="25.0" prefWidth="167.0"
+                                                text="Save payment plan" AnchorPane.bottomAnchor="5.0"
+                                                AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0"/>
+                                        <Separator layoutY="235.0" prefHeight="0.0" prefWidth="185.0"
+                                                   AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                                                   AnchorPane.topAnchor="235.0"/>
+                                        <Button fx:id="refreshPoolBalanceBtn" layoutX="65.0" layoutY="524.0"
+                                                mnemonicParsing="false" text="Refresh Pool Balance"
+                                                AnchorPane.bottomAnchor="35.0" AnchorPane.leftAnchor="5.0"
+                                                AnchorPane.rightAnchor="5.0"/>
                                     </children>
                                 </AnchorPane>
                                 <Label layoutX="10.0" layoutY="633.0" text="Pool Address:"
