@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Properties;
@@ -122,16 +123,16 @@ public class HorizonGateway {
     }
 
     /**
-     * Get the votes currently cast to the specified pool
+     * Get the inflation votes currently cast to the specified accountId
      *
-     * @param votesTargetPublicKey The public key of the account receiving the inflation votes
+     * @param accountId The public key of the account receiving the inflation votes
      * @return A hashmap whose keys are the account ids of the voters and values represent their current balance
      * @throws SQLException
      */
-    public JsonNode getVoters(final String votesTargetPublicKey) throws SQLException {
+    public JsonNode getVoters(final String accountId) throws SQLException {
         // Prepared statement
         final PreparedStatement inflationStm = conn.prepareStatement("SELECT * FROM core.public.accounts WHERE inflationdest = ?");
-        inflationStm.setString(1, votesTargetPublicKey);
+        inflationStm.setString(1, accountId);
         inflationStm.setFetchSize(50);  // Fetch in batches of 50 records
 
         // Extract results
@@ -163,11 +164,37 @@ public class HorizonGateway {
             });
 
             // Add root nodes
-            rootNode.put("inflationdest", votesTargetPublicKey);
+            rootNode.put("inflationdest", accountId);
             rootNode.set("entries", entriesNode);
 
             // Return generated structure
             return rootNode;
+        }
+    }
+
+    /**
+     * Get the account balance of the specified accountId
+     *
+     * @param accountId The public key of the account
+     * @return
+     * @throws SQLException
+     */
+    public BigDecimal getBalance(final String accountId) throws SQLException {
+        // Prepared statement
+        final PreparedStatement inflationStm = conn.prepareStatement("SELECT * FROM core.public.accounts WHERE accountid = ? LIMIT 1");
+        inflationStm.setString(1, accountId);
+
+        // Extract results
+        final ResultSet inflationRs = inflationStm.executeQuery();
+        if (!inflationRs.isBeforeFirst()) {
+            // No records found
+            return null;
+        } else {
+            // Move cursor to the first record
+            inflationRs.next();
+
+            // Return balance in XLM
+            return new BigDecimal(inflationRs.getLong("balance") / 10000000);
         }
     }
 

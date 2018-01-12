@@ -185,7 +185,7 @@ public class MainController {
 
         getFederationDataBtn.setOnAction(event -> fetchFedNetworkData());
         getHorizonDataBtn.setOnAction(event -> fetchHorizonData());
-        refreshPoolBalanceBtn.setOnAction(event -> fetchPoolBalance());
+        refreshPoolBalanceBtn.setOnAction(event -> fetchPoolBalanceViaStellar());
     }
 
     //endregion
@@ -329,7 +329,7 @@ public class MainController {
                 Platform.runLater(() -> {
                     setBusyState(false);
                     refreshPoolCounters();
-                    fetchPoolBalance();
+                    fetchPoolBalanceViaHorizon();
                 });
             });
         }
@@ -382,7 +382,7 @@ public class MainController {
                 Platform.runLater(() -> {
                     setBusyState(false);
                     refreshPoolCounters();
-                    fetchPoolBalance();
+                    fetchPoolBalanceViaStellar();
                 });
             });
         }
@@ -391,7 +391,7 @@ public class MainController {
     /**
      * Fetch the pool balance and update the counter
      */
-    private void fetchPoolBalance() {
+    private void fetchPoolBalanceViaStellar() {
         // Get the target pool key
         final String poolAddress = poolAddressTextField.getText();
 
@@ -409,6 +409,54 @@ public class MainController {
             final CompletableFuture<BigDecimal> request = CompletableFuture.supplyAsync(() -> {
                 try {
                     return StellarGateway.getBalance(poolAddress);
+                } catch (Exception e) {
+                    Platform.runLater(() -> {
+                        // Return to normal operation
+                        setBusyState(false);
+
+                        // Show the error
+                        showError(e.getMessage());
+                    });
+                }
+
+                return null;
+            });
+
+            // Process task completion
+            request.thenAccept(poolBalance -> {
+                // Cancel applicationBusy state
+                Platform.runLater(() -> {
+                    // Return to normal operation
+                    setBusyState(false);
+
+                    // Update label
+                    poolDataBalanceLabel.setText(xlmFormatter.format(poolBalance) + " XLM");
+                });
+            });
+        }
+    }
+
+    /**
+     * Fetch the pool balance and update the counter
+     */
+    private void fetchPoolBalanceViaHorizon() {
+        // Get the target pool key
+        final String poolAddress = poolAddressTextField.getText();
+
+        // Check if we have an address
+        if (poolAddress == null || poolAddress.isEmpty()) {
+            showError("You must specify the inflation pool's address below");
+        } else {
+            // Reset balance label
+            poolDataBalanceLabel.setText("0 XLM");
+
+            // Start spinning
+            setBusyState(true);
+
+            // Build and submit async task
+            final CompletableFuture<BigDecimal> request = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return horizonGateway.getBalance(poolAddress);
                 } catch (Exception e) {
                     Platform.runLater(() -> {
                         // Return to normal operation

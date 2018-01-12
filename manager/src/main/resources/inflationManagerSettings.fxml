@@ -39,7 +39,7 @@
         <Separator layoutY="131.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"/>
         <Label layoutX="309.0" layoutY="215.0" text="!!! WARNING !!!" textFill="RED"/>
         <Label layoutX="58.0" layoutY="232.0" prefHeight="55.0" prefWidth="585.0"
-               text="When using your own horizon node to retrieve inflation votes make sure that it is operating on the same network (TEST/LIVE) as the one you have selected above. The pool balance might otherwise not reflect the actual balance of your pool, since it's not retrieved from the horizon database."
+               text="When using your own horizon node to retrieve inflation votes make sure that it is operating on the same network (TEST/LIVE) as the one you have selected above, transactions are executed on the network configured in these settings. Only use this feature if you know what you are doing!"
                textFill="RED" wrapText="true"/>
     </children>
 </AnchorPane>
