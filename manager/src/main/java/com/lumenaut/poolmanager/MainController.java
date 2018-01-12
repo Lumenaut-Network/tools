@@ -6,7 +6,6 @@ import com.lumenaut.poolmanager.InflationDataFormat.InflationDataRoot;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
@@ -24,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.lumenaut.poolmanager.InflationDataFormat.OBJECT_MAPPER;
 import static com.lumenaut.poolmanager.Settings.SETTING_INFLATION_POOL_ADDRESS;
+import static com.lumenaut.poolmanager.Settings.SETTING_OPERATIONS_NETWORK;
 
 /**
  * @Author Luca Vignaroli
@@ -147,6 +147,23 @@ public class MainController {
         if (SETTING_INFLATION_POOL_ADDRESS != null && !SETTING_INFLATION_POOL_ADDRESS.isEmpty()) {
             poolAddressTextField.setText(SETTING_INFLATION_POOL_ADDRESS);
         }
+
+        // Set the pay button color based on the target network
+        switch (SETTING_OPERATIONS_NETWORK) {
+            case "TEST":
+                payBtn.getStyleClass().removeAll("redBg");
+                payBtn.getStyleClass().add("greenBg");
+                payBtn.setText("PAY INFLATION (TEST)");
+
+                break;
+            case "LIVE":
+                payBtn.getStyleClass().removeAll("greenBg");
+                payBtn.getStyleClass().add("redBg");
+                payBtn.setText("PAY INFLATION");
+
+                break;
+        }
+
 
         // Add all buttons that should react to the application "busy" state
         statefulButtons.add(getFederationDataBtn);
@@ -309,14 +326,18 @@ public class MainController {
         try {
             // Create new stage
             final Stage settingsStage = new Stage();
-            final Parent sceneRoot = FXMLLoader.load(getClass().getResource("/inflationManagerSettings.fxml"));
+            final FXMLLoader fxmlLoader = new FXMLLoader();
+            fxmlLoader.setLocation(getClass().getResource("/inflationManagerSettings.fxml"));
+            final AnchorPane settingsFrame = fxmlLoader.load();
+            final SettingsController settingsController = fxmlLoader.getController();
 
-            // Build scene
-            final Scene scene = new Scene(sceneRoot);
+            // Bind reference in to the pay button in the settings controller, it will change the pay button color
+            // based on the currently selected network (TEST/LIVE) to indicate the operation destination
+            settingsController.payBtn = payBtn;
 
             // Initialize the settings stage and show it
             settingsStage.setTitle("Settings");
-            settingsStage.setScene(scene);
+            settingsStage.setScene(new Scene(settingsFrame));
             settingsStage.getIcons().add(new Image(Main.class.getResourceAsStream("/inflationManager.png")));
             settingsStage.initModality(Modality.WINDOW_MODAL);
             settingsStage.initOwner(primaryStage.getScene().getWindow());

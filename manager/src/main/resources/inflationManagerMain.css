@@ -7,3 +7,33 @@
 .text-area .content {
     -fx-background-color: #2B2B2B;
 }
+
+.greenBg {
+    -fx-background-color: #90EE90;
+}
+
+.greenBg:hover {
+    -fx-background-color: #64EE64;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.4), 5, 0.0, 0, 1);
+    -fx-text-alignment: center;
+}
+
+.redBg {
+    -fx-background-color: #EE4B52;
+}
+
+.redBg:hover {
+    -fx-background-color: #EE4B52;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.4), 5, 0.0, 0, 1);
+    -fx-text-alignment: center;
+}
+
+.busy {
+    -fx-background-color: #B3B3B3;
+    -fx-text-alignment: center;
+}
+
+.busy:hover {
+    -fx-background-color: #cdcbcb;
+    -fx-text-alignment: center;
+}

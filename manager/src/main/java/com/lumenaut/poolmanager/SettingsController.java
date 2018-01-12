@@ -55,6 +55,9 @@ public class SettingsController {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FIELDS
 
+    // Pay button reference
+    public Button payBtn;
+
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -107,6 +110,28 @@ public class SettingsController {
         // Handle save & closing
         cancelBtn.setOnAction(event -> cancelBtn.getScene().getWindow().hide());
         saveBtn.setOnAction(event -> saveSettings());
+
+        // Handle pay button color based on the network choice
+        activeNetworkChoiceBox.setOnAction(event -> {
+            final String selectedValue = activeNetworkChoiceBox.getValue().toString();
+
+            if (payBtn != null) {
+                switch (selectedValue) {
+                    case "TEST":
+                        payBtn.getStyleClass().removeAll("redBg");
+                        payBtn.getStyleClass().add("greenBg");
+                        payBtn.setText("PAY INFLATION (TEST)");
+
+                        break;
+                    case "LIVE":
+                        payBtn.getStyleClass().removeAll("greenBg");
+                        payBtn.getStyleClass().add("redBg");
+                        payBtn.setText("PAY INFLATION");
+
+                        break;
+                }
+            }
+        });
     }
 
     //endregion

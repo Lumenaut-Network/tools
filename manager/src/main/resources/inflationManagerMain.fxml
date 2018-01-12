@@ -85,8 +85,9 @@
                                              prefWidth="175.0" progress="0.0" AnchorPane.rightAnchor="14.0"
                                              AnchorPane.topAnchor="7.0"/>
                                 <Button fx:id="payBtn" layoutX="892.0" layoutY="628.0" mnemonicParsing="false"
-                                        prefHeight="53.0" prefWidth="174.0" text="PAY INFLATION"
-                                        AnchorPane.bottomAnchor="15.0" AnchorPane.rightAnchor="14.0"/>
+                                        prefHeight="53.0" prefWidth="174.0" stylesheets="@inflationManagerMain.css"
+                                        text="PAY INFLATION" AnchorPane.bottomAnchor="15.0"
+                                        AnchorPane.rightAnchor="14.0"/>
                             </children>
                         </AnchorPane>
                     </content>
