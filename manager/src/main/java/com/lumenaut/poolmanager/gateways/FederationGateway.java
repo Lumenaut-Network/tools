@@ -1,4 +1,4 @@
-package com.lumenaut.poolmanager;
+package com.lumenaut.poolmanager.gateways;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -16,9 +16,9 @@ import static com.lumenaut.poolmanager.Settings.SETTING_FEDERATION_NETWORK_INFLA
  * @Email luca@burning.it
  * @Date 10/01/2018 - 4:38 PM
  *
- * This class exposes simple methods to interact with https://fed.network for data queries
+ * Stateless class, exposes quick methods to accomplish operations on "https://fed.network"
  */
-public class FederationNetwork {
+public class FederationGateway {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FIELDS
 
@@ -34,7 +34,7 @@ public class FederationNetwork {
     /**
      * Constructor
      */
-    private FederationNetwork() {
+    private FederationGateway() {
 
     }
 

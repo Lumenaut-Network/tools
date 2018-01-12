@@ -4,6 +4,8 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.Rectangle;
 
 import java.io.IOException;
 
@@ -55,8 +57,10 @@ public class SettingsController {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FIELDS
 
-    // Pay button reference
+    // Component references from other scenes
     public Button payBtn;
+    public Rectangle selectedNetworkRect;
+    public Label selectedNetworkLabel;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -120,13 +124,15 @@ public class SettingsController {
                     case "TEST":
                         payBtn.getStyleClass().removeAll("redBg");
                         payBtn.getStyleClass().add("greenBg");
-                        payBtn.setText("PAY INFLATION (TEST)");
+                        selectedNetworkRect.setFill(Paint.valueOf("#64EE64"));
+                        selectedNetworkLabel.setText("TEST NETWORK");
 
                         break;
                     case "LIVE":
                         payBtn.getStyleClass().removeAll("greenBg");
                         payBtn.getStyleClass().add("redBg");
-                        payBtn.setText("PAY INFLATION");
+                        selectedNetworkRect.setFill(Paint.valueOf("#EE4B52"));
+                        selectedNetworkLabel.setText("LIVE NETWORK");
 
                         break;
                 }

@@ -2,7 +2,7 @@
   <configuration default="false" name="Start" type="Application" factoryName="Application">
     <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea">
       <pattern>
-        <option name="PATTERN" value="com.lumenaut.poolmanager.*" />
+        <option name="PATTERN" value="com.lumenaut.poolmanager.gateways.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>

@@ -1,4 +1,4 @@
-package com.lumenaut.poolmanager;
+package com.lumenaut.poolmanager.gateways;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -16,9 +16,9 @@ import static com.lumenaut.poolmanager.Settings.*;
  * @Date 09/01/2018 - 5:45 PM
  * @Copyright 2012-2017 Turgid Studios LTD, All rights reserved.
  * <p>
- * This class exposes simple methods to interact with a Horizon and Stellar Core database
+ * This class manages the connection to a custom Horizon Node database
  */
-public class HorizonManager {
+public class HorizonGateway {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FIELDS
 
@@ -50,7 +50,7 @@ public class HorizonManager {
     /**
      * Constructor
      */
-    public HorizonManager() {
+    public HorizonGateway() {
 
     }
 
@@ -105,8 +105,20 @@ public class HorizonManager {
      * @throws SQLException
      */
     public void disconnect() throws SQLException {
-        conn.close();
-        connected = false;
+        if (connected) {
+            conn.close();
+            connected = false;
+        }
+    }
+
+    /**
+     * Force a disconnection and reconnection, useful when changing parameter settings
+     *
+     * @throws SQLException
+     */
+    public void reconnect() throws SQLException {
+        disconnect();
+        connect();
     }
 
     /**
@@ -154,6 +166,7 @@ public class HorizonManager {
             rootNode.put("inflationdest", votesTargetPublicKey);
             rootNode.set("entries", entriesNode);
 
+            // Return generated structure
             return rootNode;
         }
     }

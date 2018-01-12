@@ -3,6 +3,9 @@ package com.lumenaut.poolmanager;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lumenaut.poolmanager.InflationDataFormat.InflationDataEntry;
 import com.lumenaut.poolmanager.InflationDataFormat.InflationDataRoot;
+import com.lumenaut.poolmanager.gateways.FederationGateway;
+import com.lumenaut.poolmanager.gateways.HorizonGateway;
+import com.lumenaut.poolmanager.gateways.StellarGateway;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -11,10 +14,13 @@ import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -23,8 +29,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.lumenaut.poolmanager.InflationDataFormat.OBJECT_MAPPER;
-import static com.lumenaut.poolmanager.Settings.SETTING_INFLATION_POOL_ADDRESS;
-import static com.lumenaut.poolmanager.Settings.SETTING_OPERATIONS_NETWORK;
+import static com.lumenaut.poolmanager.Settings.*;
 
 /**
  * @Author Luca Vignaroli
@@ -42,6 +47,9 @@ public class MainController {
 
     @FXML
     private ProgressBar progressBar;
+
+    @FXML
+    private Rectangle selectedNetworkRect;
 
     ////////////////////////////////////////////////////////
     // BUTTONS
@@ -90,6 +98,9 @@ public class MainController {
     @FXML
     private Label poolDataBalanceLabel;
 
+    @FXML
+    private Label selectedNetworkLabel;
+
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -98,6 +109,7 @@ public class MainController {
 
     // Formatter
     private final DecimalFormat xlmFormatter = new DecimalFormat("#,###,###,###,##0.00");
+    private final DecimalFormat xlmPrecisionFormatter = new DecimalFormat("#,###,###,###,##0.0000000");
 
     // Busy signal
     private final AtomicBoolean applicationBusy = new AtomicBoolean(false);
@@ -106,7 +118,7 @@ public class MainController {
     private final List<Button> statefulButtons = new ArrayList<>();
 
     // Data sources
-    private HorizonManager horizonManager;
+    private HorizonGateway horizonGateway;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -157,22 +169,8 @@ public class MainController {
             poolAddressTextField.setText(SETTING_INFLATION_POOL_ADDRESS);
         }
 
-        // Set the pay button color based on the target network
-        switch (SETTING_OPERATIONS_NETWORK) {
-            case "TEST":
-                payBtn.getStyleClass().removeAll("redBg");
-                payBtn.getStyleClass().add("greenBg");
-                payBtn.setText("PAY INFLATION (TEST)");
-
-                break;
-            case "LIVE":
-                payBtn.getStyleClass().removeAll("greenBg");
-                payBtn.getStyleClass().add("redBg");
-                payBtn.setText("PAY INFLATION");
-
-                break;
-        }
-
+        // Update visual clues for the selected network
+        refreshNetworkIndicators();
 
         // Add all buttons that should react to the application "busy" state
         statefulButtons.add(getFederationDataBtn);
@@ -195,6 +193,7 @@ public class MainController {
 
         getFederationDataBtn.setOnAction(event -> fetchFedNetworkData());
         getHorizonDataBtn.setOnAction(event -> fetchHorizonData());
+        refreshPoolBalanceBtn.setOnAction(event -> fetchPoolBalance());
     }
 
     //endregion
@@ -221,6 +220,28 @@ public class MainController {
     private void showInfo(final String message) {
         final Alert alert = new Alert(AlertType.INFORMATION, message, ButtonType.OK);
         alert.show();
+    }
+
+    /**
+     * Refresh visual clues about the currently selected network
+     */
+    private void refreshNetworkIndicators() {
+        switch (SETTING_OPERATIONS_NETWORK) {
+            case "TEST":
+                payBtn.getStyleClass().removeAll("redBg");
+                payBtn.getStyleClass().add("greenBg");
+                selectedNetworkRect.setFill(Paint.valueOf("#64EE64"));
+                selectedNetworkLabel.setText("TEST NETWORK");
+
+                break;
+            case "LIVE":
+                payBtn.getStyleClass().removeAll("greenBg");
+                payBtn.getStyleClass().add("redBg");
+                selectedNetworkRect.setFill(Paint.valueOf("#EE4B52"));
+                selectedNetworkLabel.setText("LIVE NETWORK");
+
+                break;
+        }
     }
 
     /**
@@ -273,16 +294,9 @@ public class MainController {
      * Fetch data from horizon
      */
     private void fetchHorizonData() {
-        if (horizonManager == null) {
-            // Create a new horizon manager instance
-            horizonManager = new HorizonManager();
-
-            // Connect
-            try {
-                horizonManager.connect();
-            } catch (SQLException e) {
-                showError(e.getMessage());
-            }
+        // Initialize horizon manager
+        if (!initHorizonDatabaseConnection()) {
+            return;
         }
 
         // Get the target pool key
@@ -303,7 +317,7 @@ public class MainController {
             final CompletableFuture<String> request = CompletableFuture.supplyAsync(() -> {
                 try {
                     // Fetch the voters from the federation network
-                    final JsonNode voters = horizonManager.getVoters(poolAddress);
+                    final JsonNode voters = horizonGateway.getVoters(poolAddress);
 
                     // Format and return
                     return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(voters);
@@ -327,6 +341,7 @@ public class MainController {
                 Platform.runLater(() -> {
                     setBusyState(false);
                     refreshPoolCounters();
+                    fetchPoolBalance();
                 });
             });
         }
@@ -345,6 +360,7 @@ public class MainController {
         } else {
             // Clear existing data
             inflationPoolDataTextArea.clear();
+            poolDataBalanceLabel.setText("0 XLM");
             resetPoolCounters();
 
             // Start spinning
@@ -354,7 +370,7 @@ public class MainController {
             final CompletableFuture<String> request = CompletableFuture.supplyAsync(() -> {
                 try {
                     // Fetch the voters from the federation network
-                    final JsonNode voters = FederationNetwork.getVoters(poolAddress);
+                    final JsonNode voters = FederationGateway.getVoters(poolAddress);
 
                     // Format and return
                     return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(voters);
@@ -378,6 +394,55 @@ public class MainController {
                 Platform.runLater(() -> {
                     setBusyState(false);
                     refreshPoolCounters();
+                    fetchPoolBalance();
+                });
+            });
+        }
+    }
+
+    /**
+     * Fetch the pool balance and update the counter
+     */
+    private void fetchPoolBalance() {
+        // Get the target pool key
+        final String poolAddress = poolAddressTextField.getText();
+
+        // Check if we have an address
+        if (poolAddress == null || poolAddress.isEmpty()) {
+            showError("You must specify the inflation pool's address below");
+        } else {
+            // Reset balance label
+            poolDataBalanceLabel.setText("0 XLM");
+
+            // Start spinning
+            setBusyState(true);
+
+            // Build and submit async task
+            final CompletableFuture<BigDecimal> request = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return StellarGateway.getBalance(poolAddress);
+                } catch (Exception e) {
+                    Platform.runLater(() -> {
+                        // Return to normal operation
+                        setBusyState(false);
+
+                        // Show the error
+                        showError(e.getMessage());
+                    });
+                }
+
+                return null;
+            });
+
+            // Process task completion
+            request.thenAccept(poolBalance -> {
+                // Cancel applicationBusy state
+                Platform.runLater(() -> {
+                    // Return to normal operation
+                    setBusyState(false);
+
+                    // Update label
+                    poolDataBalanceLabel.setText(xlmFormatter.format(poolBalance) + " XLM");
                 });
             });
         }
@@ -396,9 +461,11 @@ public class MainController {
             final AnchorPane settingsFrame = fxmlLoader.load();
             final SettingsController settingsController = fxmlLoader.getController();
 
-            // Bind reference in to the pay button in the settings controller, it will change the pay button color
-            // based on the currently selected network (TEST/LIVE) to indicate the operation destination
+            // Bind referencein the settings controller, so that we can alter these components in the main scene when
+            // settings that affect them are changed
             settingsController.payBtn = payBtn;
+            settingsController.selectedNetworkRect = selectedNetworkRect;
+            settingsController.selectedNetworkLabel = selectedNetworkLabel;
 
             // Initialize the settings stage and show it
             settingsStage.setTitle("Settings");
@@ -413,6 +480,43 @@ public class MainController {
         } catch (IOException e) {
             showError(e.getMessage());
         }
+    }
+
+    /**
+     * Initialize the horizon manager instance for database operations
+     */
+    private boolean initHorizonDatabaseConnection() {
+        // Check if we have all the settings required
+        if (SETTING_HORIZON_DB_ADDRESS.isEmpty() ||
+            SETTING_HORIZON_DB_PORT.isEmpty() ||
+            SETTING_HORIZON_DB_USER.isEmpty() ||
+            SETTING_HORIZON_DB_PASS.isEmpty()) {
+            showError("You must specify all required connection settings in order to use a Horizon node database.");
+
+            return false;
+        }
+
+        if (horizonGateway == null) {
+            // Create a new horizon manager instance
+            horizonGateway = new HorizonGateway();
+
+            // Connect
+            try {
+                horizonGateway.connect();
+            } catch (SQLException e) {
+                showError(e.getMessage());
+            }
+        } else {
+            // Reconnect, the settings might have changed
+            try {
+                horizonGateway.reconnect();
+            } catch (SQLException e) {
+                showError(e.getMessage());
+            }
+        }
+
+        // Instance ready
+        return true;
     }
 
     //endregion
