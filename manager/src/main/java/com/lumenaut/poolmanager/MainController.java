@@ -22,7 +22,6 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -105,10 +104,6 @@ public class MainController {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FIELDS
 
-    // Formatter
-    private final DecimalFormat xlmFormatter = new DecimalFormat("#,###,###,###,##0.00");
-    private final DecimalFormat xlmPrecisionFormatter = new DecimalFormat("#,###,###,###,##0.0000000");
-
     // Busy signal
     private final AtomicBoolean applicationBusy = new AtomicBoolean(false);
 
@@ -160,7 +155,18 @@ public class MainController {
         }
 
         // Update visual clues for the selected network
-        refreshNetworkIndicators();
+        switch (SETTING_OPERATIONS_NETWORK) {
+            case "TEST":
+                selectedNetworkRect.setFill(Paint.valueOf("#64EE64"));
+                selectedNetworkLabel.setText("TEST NETWORK");
+
+                break;
+            case "LIVE":
+                selectedNetworkRect.setFill(Paint.valueOf("#EE4B52"));
+                selectedNetworkLabel.setText("LIVE NETWORK");
+
+                break;
+        }
 
         // Add all buttons that should react to the application "busy" state
         statefulButtons.add(getFederationDataBtn);
@@ -213,24 +219,6 @@ public class MainController {
     }
 
     /**
-     * Refresh visual clues about the currently selected network
-     */
-    private void refreshNetworkIndicators() {
-        switch (SETTING_OPERATIONS_NETWORK) {
-            case "TEST":
-                selectedNetworkRect.setFill(Paint.valueOf("#64EE64"));
-                selectedNetworkLabel.setText("TEST NETWORK");
-
-                break;
-            case "LIVE":
-                selectedNetworkRect.setFill(Paint.valueOf("#EE4B52"));
-                selectedNetworkLabel.setText("LIVE NETWORK");
-
-                break;
-        }
-    }
-
-    /**
      * Updates the pool data counters
      */
     private void refreshPoolCounters() {
@@ -244,7 +232,7 @@ public class MainController {
                 totalVotes += voter.getBalance();
             }
 
-            poolDataTotalVotesLabel.setText(xlmFormatter.format(totalVotes / 10000000L) + " XLM");
+            poolDataTotalVotesLabel.setText(XLMUtils.formatBalanceFullPrecision(totalVotes) + " XLM");
         } catch (IOException e) {
             showError("Cannot compute pool data: " + e.getMessage());
         }
@@ -443,7 +431,7 @@ public class MainController {
                     setBusyState(false);
 
                     // Update label
-                    poolDataBalanceLabel.setText(xlmFormatter.format(poolBalance) + " XLM");
+                    poolDataBalanceLabel.setText(XLMUtils.formatBalance(poolBalance) + " XLM");
                 });
             });
         }
@@ -508,7 +496,7 @@ public class MainController {
                     setBusyState(false);
 
                     // Update label
-                    poolDataBalanceLabel.setText(xlmFormatter.format(poolBalance) + " XLM");
+                    poolDataBalanceLabel.setText(XLMUtils.formatBalance(poolBalance) + " XLM");
                 });
             });
         }

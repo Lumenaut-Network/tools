@@ -3,6 +3,7 @@ package com.lumenaut.poolmanager.gateways;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.lumenaut.poolmanager.XLMUtils;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -194,7 +195,7 @@ public class HorizonGateway {
             inflationRs.next();
 
             // Return balance in XLM
-            return new BigDecimal(inflationRs.getLong("balance") / 10000000);
+            return XLMUtils.balanceToBigDecimal(inflationRs.getLong("balance"));
         }
     }
 

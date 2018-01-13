@@ -60,8 +60,8 @@
             </tabs>
         </TabPane>
         <Button fx:id="executeTransactionBtn" disable="true" layoutX="695.0" layoutY="629.0" mnemonicParsing="false"
-                prefHeight="74.0" prefWidth="200.0" text="EXECUTE TRANSACTIONS" AnchorPane.bottomAnchor="5.0"
-                AnchorPane.leftAnchor="695.0" AnchorPane.rightAnchor="5.0"/>
+                prefHeight="39.0" prefWidth="200.0" stylesheets="@inflationManagerMain.css" text="EXECUTE TRANSACTIONS"
+                AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="695.0" AnchorPane.rightAnchor="5.0"/>
         <Button fx:id="rebuildTransactionPlanBtn" layoutX="5.0" layoutY="609.0" mnemonicParsing="false"
                 prefHeight="47.0" prefWidth="140.0" text="Rebuild" AnchorPane.bottomAnchor="63.0"
                 AnchorPane.leftAnchor="5.0"/>
@@ -72,14 +72,14 @@
                AnchorPane.leftAnchor="318.0"/>
         <Label fx:id="plannedTransactionsLabel" layoutX="377.0" layoutY="647.0" text="0" AnchorPane.bottomAnchor="36.0"
                AnchorPane.leftAnchor="377.0"/>
-        <Label layoutX="423.0" layoutY="610.0" text="To be paid:" AnchorPane.bottomAnchor="63.0"
-               AnchorPane.leftAnchor="423.0">
+        <Label layoutX="458.0" layoutY="597.0" text="Transactions total" AnchorPane.bottomAnchor="76.0"
+               AnchorPane.leftAnchor="458.0">
             <font>
                 <Font size="18.0"/>
             </font>
         </Label>
-        <Label fx:id="toBePaidLabel" layoutX="518.0" layoutY="611.0" text="0 XLM" AnchorPane.bottomAnchor="62.0"
-               AnchorPane.leftAnchor="518.0">
+        <Label fx:id="toBePaidLabel" layoutX="458.0" layoutY="636.0" text="0 XLM" AnchorPane.bottomAnchor="37.0"
+               AnchorPane.leftAnchor="458.0">
             <font>
                 <Font size="18.0"/>
             </font>
@@ -103,20 +103,11 @@
                AnchorPane.leftAnchor="318.0"/>
         <Label fx:id="executedTransactionsLabel" layoutX="377.0" layoutY="670.0" text="0" AnchorPane.bottomAnchor="13.0"
                AnchorPane.leftAnchor="377.0"/>
-        <Label layoutX="473.0" layoutY="647.0" text="Paid:" AnchorPane.bottomAnchor="26.0"
-               AnchorPane.leftAnchor="473.0">
-            <font>
-                <Font size="18.0"/>
-            </font>
-        </Label>
-        <Label fx:id="paidLabel" layoutX="518.0" layoutY="647.0" text="0 XLM" AnchorPane.bottomAnchor="26.0"
-               AnchorPane.leftAnchor="518.0">
-            <font>
-                <Font size="18.0"/>
-            </font>
-        </Label>
         <TextField fx:id="signingKeyTextField" layoutX="695.0" layoutY="590.0" prefHeight="25.0" prefWidth="200.0"
                    promptText="Signing Key" AnchorPane.bottomAnchor="85.0" AnchorPane.leftAnchor="695.0"
+                   AnchorPane.rightAnchor="5.0"/>
+        <TextField fx:id="inflationAmountTextField" layoutX="695.0" layoutY="621.0" prefHeight="25.0" prefWidth="200.0"
+                   promptText="Inflation amount" AnchorPane.bottomAnchor="54.0" AnchorPane.leftAnchor="695.0"
                    AnchorPane.rightAnchor="5.0"/>
     </children>
 </AnchorPane>

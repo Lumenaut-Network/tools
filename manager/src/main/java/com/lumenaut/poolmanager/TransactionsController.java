@@ -4,16 +4,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.UUID;
 
 import static com.lumenaut.poolmanager.DataFormats.OBJECT_MAPPER;
+import static com.lumenaut.poolmanager.Settings.SETTING_OPERATIONS_NETWORK;
 
 /**
  * @Author Luca Vignaroli
@@ -38,6 +40,9 @@ public class TransactionsController {
 
     @FXML
     private TextField signingKeyTextField;
+
+    @FXML
+    private TextField inflationAmountTextField;
 
     ////////////////////////////////////////////////////////
     // BUTTONS
@@ -118,6 +123,37 @@ public class TransactionsController {
      */
     @FXML
     private void initialize() {
+        // Update visual clues for the selected network
+        switch (SETTING_OPERATIONS_NETWORK) {
+            case "TEST":
+                executeTransactionBtn.getStyleClass().removeAll("redBg");
+                executeTransactionBtn.getStyleClass().add("greenBg");
+
+                break;
+            case "LIVE":
+                executeTransactionBtn.getStyleClass().removeAll("greenBg");
+                executeTransactionBtn.getStyleClass().add("redBg");
+
+                break;
+        }
+
+        // TEXTFIELD HANDLERS
+        inflationAmountTextField.focusedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                final String amountText = inflationAmountTextField.getText();
+                if (!newValue && !amountText.isEmpty()) {
+                    // Check if the amount has been expressed in a format we understand
+                    if (!XLMUtils.isPositiveBalanceFormat(amountText) && !XLMUtils.isPositiveDecimalFormat(amountText)) {
+                        showError("Invalid payment amount. Please make sure you enter a positive value in either decimal (1234.1234567) or long (1234567890123456789) format");
+                    }
+                }
+            }
+        });
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // BUTTON HANDLERS
+
         rebuildTransactionPlanBtn.setOnAction(event -> {
             if (buildTransactionPlan()) {
                 try {
@@ -125,21 +161,16 @@ public class TransactionsController {
                     transactionPlanTextArea.setText(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(transactionPlan));
 
                     // Compute total payment required
-                    long toBePaidTotal = 0;
+                    long requiredTotalPaymentBalance = 0;
                     for (long amount : votesAndPayments.values()) {
-                        toBePaidTotal += amount;
+                        requiredTotalPaymentBalance += amount;
                     }
 
-                    // Round to the lumen
-                    BigDecimal toBePaidFormatted = new BigDecimal(toBePaidTotal);
-                    toBePaidFormatted.setScale(7, RoundingMode.CEILING);
-                    toBePaidFormatted = toBePaidFormatted.divide(new BigDecimal(10000000), RoundingMode.CEILING);
-
-                    // Update planned transactions total
+                    // Update planned total operations
                     plannedTransactionsLabel.setText(String.valueOf(votesAndBalances.size()));
 
                     // Update total amount to pay
-                    toBePaidLabel.setText("~" + toBePaidFormatted.toString() + " XLM");
+                    toBePaidLabel.setText(XLMUtils.formatBalanceFullPrecision(requiredTotalPaymentBalance) + " XLM");
                 } catch (JsonProcessingException e) {
                     showError(e.getMessage());
                 }
@@ -151,7 +182,13 @@ public class TransactionsController {
      * Build a new transactions plan
      */
     private boolean buildTransactionPlan() {
-        if (currentPoolBalance == null || currentVotersData == null) {
+        if (inflationAmountTextField.getText().isEmpty()) {
+            showError("Cannot build transaction plan without previously specifying the amount that you wish to be distributed. " +
+                      "This should match the last inflation deposit, expressed in 1/10.000.000ths of XLM. " +
+                      "If you only have the amount expressed in XLM don't forget to multiply that by 10.000.000");
+
+            return false;
+        } else if (currentPoolBalance == null || currentVotersData == null) {
             showError("Cannot build transaction plan, voters data or pool balance missing, close this transaction planner and fetch new data");
 
             return false;
@@ -182,10 +219,20 @@ public class TransactionsController {
             // Total votes
             final int totalVotes = votesAndBalances.size();
 
-            // Total payout
-            long cumulativeVotersBalances = 0L;
+            // Total votes balance
+            long cumulativeVotesBalance = 0L;
             for (long voterBalance : votesAndBalances.values()) {
-                cumulativeVotersBalances += voterBalance;
+                cumulativeVotesBalance += voterBalance;
+            }
+
+            // Amount to be paid
+            long inflationAmount;
+            try {
+                inflationAmount = Long.parseLong(inflationAmountTextField.getText());
+            } catch (NumberFormatException e) {
+                showError("The value specified is not valid, min: " + Long.MIN_VALUE + " max: " + Long.MAX_VALUE);
+
+                return false;
             }
 
             // Reset voters and payments data
@@ -197,7 +244,8 @@ public class TransactionsController {
 
             // Populate it
             for (HashMap.Entry<String, Long> voter : votesAndBalances.entrySet()) {
-                votesAndPayments.put(voter.getKey(), computeVoterPayout(totalVotes, voter.getValue(), cumulativeVotersBalances));
+                final long voterBalance = voter.getValue();
+                votesAndPayments.put(voter.getKey(), computeVoterPayout(inflationAmount, cumulativeVotesBalance, voterBalance));
             }
 
             // Generate UUID
@@ -231,15 +279,15 @@ public class TransactionsController {
     }
 
     /**
-     * Compute the amount this account should be sent
+     * Compute the amount of inflation this account should be sent
      *
-     * @param totalVotes
+     * @param totalInflation
+     * @param cumulativeVotersBalance
      * @param voterBalance
-     * @param totalAmountToPay
      * @return
      */
-    private long computeVoterPayout(final int totalVotes, final long voterBalance, final long totalAmountToPay) {
-        return 10000000L;
+    private long computeVoterPayout(final long totalInflation, final long cumulativeVotersBalance, final long voterBalance) {
+        return 1L;
     }
 
     /**

@@ -58,15 +58,15 @@
                                                 <Font size="18.0"/>
                                             </font>
                                         </Label>
-                                        <Label layoutX="5.0" layoutY="537.0" text="Voters:"
-                                               AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="5.0"/>
-                                        <Label layoutX="5.0" layoutY="554.0" text="Votes:"
-                                               AnchorPane.bottomAnchor="87.0" AnchorPane.leftAnchor="5.0"/>
-                                        <Label fx:id="poolDataTotalVotesLabel" layoutX="45.0" layoutY="555.0"
+                                        <Label layoutX="-5.0" layoutY="687.0" text="Voters:"
+                                               AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="0.0"/>
+                                        <Label layoutX="-5.0" layoutY="705.0" text="Votes:"
+                                               AnchorPane.bottomAnchor="87.0" AnchorPane.leftAnchor="0.0"/>
+                                        <Label fx:id="poolDataTotalVotesLabel" layoutX="36.0" layoutY="705.0"
                                                text="0 XLM" AnchorPane.bottomAnchor="87.0"
-                                               AnchorPane.leftAnchor="45.0"/>
-                                        <Label fx:id="poolDataVotersLabel" layoutX="45.0" layoutY="537.0" text="0"
-                                               AnchorPane.bottomAnchor="105.0" AnchorPane.leftAnchor="45.0"/>
+                                               AnchorPane.leftAnchor="36.0"/>
+                                        <Label fx:id="poolDataVotersLabel" layoutX="39.0" layoutY="688.0" text="0"
+                                               AnchorPane.bottomAnchor="104.0" AnchorPane.leftAnchor="39.0"/>
                                         <Button fx:id="getHorizonDataBtn" layoutX="6.0" layoutY="37.0"
                                                 mnemonicParsing="false" text="Get From Horizon DB"
                                                 AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0"
@@ -77,8 +77,8 @@
                                                 <Font size="18.0"/>
                                             </font>
                                         </Label>
-                                        <Label fx:id="poolDataBalanceLabel" layoutX="5.0" layoutY="625.0" text="0 XLM"
-                                               AnchorPane.bottomAnchor="7.0" AnchorPane.leftAnchor="5.0">
+                                        <Label fx:id="poolDataBalanceLabel" layoutY="773.0" text="0 XLM"
+                                               AnchorPane.bottomAnchor="9.0" AnchorPane.leftAnchor="0.0">
                                             <font>
                                                 <Font size="18.0"/>
                                             </font>
