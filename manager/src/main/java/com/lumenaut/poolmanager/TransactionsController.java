@@ -183,9 +183,7 @@ public class TransactionsController {
      */
     private boolean buildTransactionPlan() {
         if (inflationAmountTextField.getText().isEmpty()) {
-            showError("Cannot build transaction plan without previously specifying the amount that you wish to be distributed. " +
-                      "This should match the last inflation deposit, expressed in 1/10.000.000ths of XLM. " +
-                      "If you only have the amount expressed in XLM don't forget to multiply that by 10.000.000");
+            showError("Cannot build transaction plan without specifying the amount that you wish to be distributed. Please fill in the \"Inflation Amount\" field.");
 
             return false;
         } else if (currentPoolBalance == null || currentVotersData == null) {
@@ -226,11 +224,14 @@ public class TransactionsController {
             }
 
             // Amount to be paid
+            final String inflationAmountString = inflationAmountTextField.getText();
             long inflationAmount;
-            try {
-                inflationAmount = Long.parseLong(inflationAmountTextField.getText());
-            } catch (NumberFormatException e) {
-                showError("The value specified is not valid, min: " + Long.MIN_VALUE + " max: " + Long.MAX_VALUE);
+            if (XLMUtils.isBalanceFormat(inflationAmountString)) {
+                inflationAmount = Long.parseLong(inflationAmountString);
+            } else if (XLMUtils.isDecimalFormat(inflationAmountString)) {
+                inflationAmount = Long.parseLong(inflationAmountString.replace(".", ""));
+            } else {
+                showError("Invalid inflation amount: " + inflationAmountString);
 
                 return false;
             }
