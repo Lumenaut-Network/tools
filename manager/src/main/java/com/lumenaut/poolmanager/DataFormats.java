@@ -38,6 +38,12 @@ public class DataFormats {
         OBJECT_MAPPER.configure(Feature.ALLOW_COMMENTS, true);
     }
 
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region INFLATION POOL VOTERS DATA STRUCTURE
+
     // Inflation data root
     public static class InflationDataRoot {
         private String inflationdest;
@@ -71,6 +77,120 @@ public class DataFormats {
 
         public void setBalance(Long balance) {
             this.balance = balance;
+        }
+
+        public String getAccount() {
+            return account;
+        }
+
+        public void setAccount(String account) {
+            this.account = account;
+        }
+    }
+
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region TRANSACTIONS PLAN DATA STRUCTURE
+
+    public static class TransactionPlanRoot {
+        private Long transactionUuid;
+        private List<InflationDataEntry> entries;
+
+        public Long getTransactionUuid() {
+            return transactionUuid;
+        }
+
+        public void setTransactionUuid(Long transactionUuid) {
+            this.transactionUuid = transactionUuid;
+        }
+
+        public List<InflationDataEntry> getEntries() {
+            return entries;
+        }
+
+        public void setEntries(List<InflationDataEntry> entries) {
+            this.entries = entries;
+        }
+    }
+
+    public static class TransactionPlanEntry {
+        private Long amount;
+        private String account;
+
+        public Long getAmount() {
+            return amount;
+        }
+
+        public void setAmount(Long amount) {
+            this.amount = amount;
+        }
+
+        public String getAccount() {
+            return account;
+        }
+
+        public void setAccount(String account) {
+            this.account = account;
+        }
+    }
+
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region TRANSACTIONS RESULT DATA STRUCTURE
+
+    public static class TransactionResultRoot {
+        private Long transactionUuid;
+        private Long timestamp;
+        private List<InflationDataEntry> results;
+
+        public Long getTransactionUuid() {
+            return transactionUuid;
+        }
+
+        public void setTransactionUuid(Long transactionUuid) {
+            this.transactionUuid = transactionUuid;
+        }
+
+        public Long getTimestamp() {
+            return timestamp;
+        }
+
+        public void setTimestamp(Long timestamp) {
+            this.timestamp = timestamp;
+        }
+
+        public List<InflationDataEntry> getResults() {
+            return results;
+        }
+
+        public void setResults(List<InflationDataEntry> results) {
+            this.results = results;
+        }
+    }
+
+    public static class TransactionResultEntry {
+        private Long paid;
+        private Long timestamp;
+        private String account;
+
+        public Long getPaid() {
+            return paid;
+        }
+
+        public void setPaid(Long paid) {
+            this.paid = paid;
+        }
+
+        public Long getTimestamp() {
+            return timestamp;
+        }
+
+        public void setTimestamp(Long timestamp) {
+            this.timestamp = timestamp;
         }
 
         public String getAccount() {
