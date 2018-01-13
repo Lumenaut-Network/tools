@@ -6,6 +6,6 @@ The manager folder contains a JavaFX application to manually manage fetching cur
 
 The tool is currently under development, and a detailed manual will be written here as soon as the tool is ready to be used.
 
-# Stellar Address Suffix Finder
-
-SASF is a small tool to find the suffix you want for your public address.
+# Scripts
+* **Stellar Address Suffix Finder** sasf.py helps in searching of vanity addresses.
+* **Testnet Inflation** is a collection of scripts to setup an inflation pool in the horizon test network.
