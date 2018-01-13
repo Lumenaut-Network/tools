@@ -5,6 +5,7 @@
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
@@ -58,9 +59,9 @@
                 </Tab>
             </tabs>
         </TabPane>
-        <Button fx:id="executeTransactionBtn" disable="true" layoutX="698.0" layoutY="603.0" mnemonicParsing="false"
-                prefHeight="46.0" prefWidth="191.0" text="EXECUTE TRANSACTIONS" AnchorPane.bottomAnchor="36.0"
-                AnchorPane.leftAnchor="698.0"/>
+        <Button fx:id="executeTransactionBtn" disable="true" layoutX="695.0" layoutY="629.0" mnemonicParsing="false"
+                prefHeight="74.0" prefWidth="200.0" text="EXECUTE TRANSACTIONS" AnchorPane.bottomAnchor="5.0"
+                AnchorPane.leftAnchor="695.0" AnchorPane.rightAnchor="5.0"/>
         <Button fx:id="rebuildTransactionPlanBtn" layoutX="5.0" layoutY="609.0" mnemonicParsing="false"
                 prefHeight="47.0" prefWidth="140.0" text="Rebuild" AnchorPane.bottomAnchor="63.0"
                 AnchorPane.leftAnchor="5.0"/>
@@ -114,5 +115,8 @@
                 <Font size="18.0"/>
             </font>
         </Label>
+        <TextField fx:id="signingKeyTextField" layoutX="695.0" layoutY="590.0" prefHeight="25.0" prefWidth="200.0"
+                   promptText="Signing Key" AnchorPane.bottomAnchor="85.0" AnchorPane.leftAnchor="695.0"
+                   AnchorPane.rightAnchor="5.0"/>
     </children>
 </AnchorPane>
