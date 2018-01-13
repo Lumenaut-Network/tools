@@ -42,6 +42,7 @@ public class MainController {
 
     ////////////////////////////////////////////////////////
     // UI
+
     @FXML
     private AnchorPane primaryStage;
 
@@ -53,6 +54,7 @@ public class MainController {
 
     ////////////////////////////////////////////////////////
     // BUTTONS
+
     @FXML
     private MenuItem settingsBtn;
 
@@ -73,6 +75,7 @@ public class MainController {
 
     ////////////////////////////////////////////////////////
     // TEXT FIELDS
+
     @FXML
     private TextField poolAddressTextField;
 
@@ -83,6 +86,7 @@ public class MainController {
 
     ////////////////////////////////////////////////////////
     // LABELS
+
     @FXML
     private Label poolDataVotersLabel;
 
@@ -122,12 +126,6 @@ public class MainController {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //region ACCESSORS
-
-    //endregion
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region CONSTRUCTORS
 
     /**
@@ -141,13 +139,7 @@ public class MainController {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //region INTERFACES IMPLEMENTATIONS
-
-    //endregion
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //region METHOD OVERRIDES
+    //region METHODS
 
     /**
      * Initializes the controller class. This method is automatically called
@@ -199,12 +191,6 @@ public class MainController {
             }
         });
     }
-
-    //endregion
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //region METHODS
 
     /**
      * Shows an error dialog
@@ -541,8 +527,7 @@ public class MainController {
             final AnchorPane settingsFrame = fxmlLoader.load();
             final SettingsController settingsController = fxmlLoader.getController();
 
-            // Bind references in the settings controller, so that we can alter these components in the main scene when
-            // settings that affect them are changed
+            // Bind references in the settings controller
             settingsController.selectedNetworkRect = selectedNetworkRect;
             settingsController.selectedNetworkLabel = selectedNetworkLabel;
 
@@ -574,15 +559,19 @@ public class MainController {
             final AnchorPane transactionsBuilderFrame = fxmlLoader.load();
             final TransactionsController transactionsController = fxmlLoader.getController();
 
+            // Bind references in the settings controller
+            transactionsController.currentVotersData = currentVotersData;
+            transactionsController.currentPoolBalance = currentPoolBalance;
+
             // Initialize the transactions stage and show it
             transactionsBuilderStage.setTitle("Transactions Builder");
             transactionsBuilderStage.setScene(new Scene(transactionsBuilderFrame));
             transactionsBuilderStage.getIcons().add(new Image(Main.class.getResourceAsStream("/inflationManager.png")));
             transactionsBuilderStage.initModality(Modality.WINDOW_MODAL);
             transactionsBuilderStage.initOwner(primaryStage.getScene().getWindow());
-            transactionsBuilderStage.setWidth(900);
+            transactionsBuilderStage.setWidth(918);
             transactionsBuilderStage.setHeight(700);
-            transactionsBuilderStage.setMinWidth(900);
+            transactionsBuilderStage.setMinWidth(918);
             transactionsBuilderStage.setMinHeight(700);
             transactionsBuilderStage.show();
         } catch (IOException e) {

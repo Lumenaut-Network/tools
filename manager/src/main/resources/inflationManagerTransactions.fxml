@@ -6,23 +6,26 @@
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
 
 <AnchorPane minHeight="700.0" minWidth="900.0" prefHeight="700.0" prefWidth="900.0"
             xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.lumenaut.poolmanager.TransactionsController">
     <children>
-        <TabPane layoutX="24.0" layoutY="26.0" prefHeight="682.0" prefWidth="1080.0" tabClosingPolicy="UNAVAILABLE"
-                 AnchorPane.bottomAnchor="68.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+        <TabPane layoutX="24.0" layoutY="26.0" prefHeight="586.0" prefWidth="900.0" tabClosingPolicy="UNAVAILABLE"
+                 AnchorPane.bottomAnchor="114.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                  AnchorPane.topAnchor="0.0">
             <tabs>
                 <Tab text="Planned Transactions">
                     <content>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="612.0" prefWidth="842.0">
                             <children>
-                                <TextArea editable="false" layoutX="58.0" layoutY="103.0" prefHeight="200.0"
-                                          prefWidth="200.0" stylesheets="@inflationManagerMain.css"
-                                          AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                                          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                                <TextArea fx:id="transactionPlanTextArea" editable="false" layoutX="58.0"
+                                          layoutY="103.0" prefHeight="200.0" prefWidth="200.0"
+                                          stylesheets="@inflationManagerMain.css" AnchorPane.bottomAnchor="0.0"
+                                          AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                                          AnchorPane.topAnchor="0.0"/>
                             </children>
                         </AnchorPane>
                     </content>
@@ -31,8 +34,8 @@
                     <content>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                             <children>
-                                <TextArea layoutX="340.0" layoutY="167.0" prefHeight="200.0" prefWidth="200.0"
-                                          stylesheets="@inflationManagerMain.css"
+                                <TextArea fx:id="exclusionsTextArea" layoutX="340.0" layoutY="167.0" prefHeight="200.0"
+                                          prefWidth="200.0" stylesheets="@inflationManagerMain.css"
                                           text="{&#10;&#9;&quot;uuid&quot;: 32,&#10;&#9;&quot;timestamp&quot; 56465156454,&#10;&#9;&quot;results&quot;: [&#10;&#9;&#9;// Example exclusion. If the target address and the pay amount match they will be excluded from the transaction plan&#10;&#9;&#9;{ &#10;&#9;&#9;&#9;&quot;timestamp&quot;: 12321331239,&#10;&#9;&#9;&#9;&quot;paid&quot; : 5178586,&#10;    &#9;&#9;&#9;&quot;account&quot; : &quot;GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&quot;&#10;&#9;&#9;}&#10;&#9;]&#10;}"
                                           AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                                           AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
@@ -44,8 +47,8 @@
                     <content>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                             <children>
-                                <TextArea layoutX="281.0" layoutY="136.0" prefHeight="200.0" prefWidth="200.0"
-                                          stylesheets="@inflationManagerMain.css"
+                                <TextArea fx:id="reroutingTextArea" layoutX="281.0" layoutY="136.0" prefHeight="200.0"
+                                          prefWidth="200.0" stylesheets="@inflationManagerMain.css"
                                           text="{&#10;&#9;&quot;reroute&quot;: [&#10;&#9;&#9;// Example reroute entry&#10;&#9;&#9;{ &#10;&#9;&#9;&#9;&quot;originaldest&quot;: &quot;GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&quot;,&#10;&#9;&#9;&#9;&quot;newdest&quot;: &quot;GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&quot;&#10;&#9;&#9;}&#10;&#9;]&#10;}"
                                           AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                                           AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
@@ -55,19 +58,61 @@
                 </Tab>
             </tabs>
         </TabPane>
-        <Button disable="true" layoutX="876.0" layoutY="687.0" mnemonicParsing="false" prefHeight="58.0"
-                prefWidth="198.0" text="EXECUTE TRANSACTIONS" AnchorPane.bottomAnchor="5.0"
-                AnchorPane.rightAnchor="5.0"/>
-        <Button layoutX="5.0" layoutY="686.0" mnemonicParsing="false" prefHeight="27.0" prefWidth="141.0" text="Rebuild"
-                AnchorPane.bottomAnchor="37.0" AnchorPane.leftAnchor="5.0"/>
-        <Label layoutX="578.0" layoutY="696.0" text="Total transactions planned:" AnchorPane.bottomAnchor="37.0"
-               AnchorPane.rightAnchor="359.0"/>
-        <Label layoutX="729.0" layoutY="696.0" text="0" AnchorPane.bottomAnchor="37.0" AnchorPane.rightAnchor="344.0"/>
-        <Label layoutX="596.0" layoutY="713.0" text="Total payment planned:" AnchorPane.bottomAnchor="20.0"
-               AnchorPane.rightAnchor="359.0"/>
-        <Label layoutX="729.0" layoutY="713.0" text="0 XLM" AnchorPane.bottomAnchor="20.0"
-               AnchorPane.rightAnchor="317.0"/>
-        <Button layoutX="14.0" layoutY="713.0" mnemonicParsing="false" prefHeight="27.0" prefWidth="141.0"
-                text="Save transaction plan" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0"/>
+        <Button fx:id="executeTransactionBtn" disable="true" layoutX="698.0" layoutY="603.0" mnemonicParsing="false"
+                prefHeight="46.0" prefWidth="191.0" text="EXECUTE TRANSACTIONS" AnchorPane.bottomAnchor="36.0"
+                AnchorPane.leftAnchor="698.0"/>
+        <Button fx:id="rebuildTransactionPlanBtn" layoutX="5.0" layoutY="609.0" mnemonicParsing="false"
+                prefHeight="47.0" prefWidth="140.0" text="Rebuild" AnchorPane.bottomAnchor="63.0"
+                AnchorPane.leftAnchor="5.0"/>
+        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#e8e8e8" height="105.0" layoutX="303.0" layoutY="590.0"
+                   stroke="BLACK" strokeType="INSIDE" width="385.0" AnchorPane.bottomAnchor="5.0"
+                   AnchorPane.leftAnchor="303.0"/>
+        <Label layoutX="318.0" layoutY="647.0" text="planned:" AnchorPane.bottomAnchor="36.0"
+               AnchorPane.leftAnchor="318.0"/>
+        <Label fx:id="plannedTransactionsLabel" layoutX="377.0" layoutY="647.0" text="0" AnchorPane.bottomAnchor="36.0"
+               AnchorPane.leftAnchor="377.0"/>
+        <Label layoutX="423.0" layoutY="610.0" text="To be paid:" AnchorPane.bottomAnchor="63.0"
+               AnchorPane.leftAnchor="423.0">
+            <font>
+                <Font size="18.0"/>
+            </font>
+        </Label>
+        <Label fx:id="toBePaidLabel" layoutX="518.0" layoutY="611.0" text="0 XLM" AnchorPane.bottomAnchor="62.0"
+               AnchorPane.leftAnchor="518.0">
+            <font>
+                <Font size="18.0"/>
+            </font>
+        </Label>
+        <Button fx:id="saveTransactionPlanBtn" layoutX="5.0" layoutY="666.0" mnemonicParsing="false" prefHeight="46.0"
+                prefWidth="140.0" text="Save transaction plan" AnchorPane.bottomAnchor="5.0"
+                AnchorPane.leftAnchor="5.0"/>
+        <Label layoutX="317.0" layoutY="602.0" text="excluded:" AnchorPane.bottomAnchor="81.0"
+               AnchorPane.leftAnchor="317.0"/>
+        <Label fx:id="excludedTransactionsLabel" layoutX="377.0" layoutY="602.0" text="0" AnchorPane.bottomAnchor="81.0"
+               AnchorPane.leftAnchor="377.0"/>
+        <Button fx:id="saveExclusionsBtn" layoutX="155.0" layoutY="647.0" mnemonicParsing="false" prefHeight="46.0"
+                prefWidth="140.0" text="Save exclusions" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="155.0"/>
+        <Button fx:id="saveReroutingBtn" layoutX="155.0" layoutY="609.0" mnemonicParsing="false" prefHeight="47.0"
+                prefWidth="140.0" text="Save Rerouting" AnchorPane.bottomAnchor="63.0" AnchorPane.leftAnchor="155.0"/>
+        <Label layoutX="318.0" layoutY="625.0" text="rerouted:" AnchorPane.bottomAnchor="58.0"
+               AnchorPane.leftAnchor="318.0"/>
+        <Label fx:id="reroutedTransactionsLabel" layoutX="377.0" layoutY="625.0" text="0" AnchorPane.bottomAnchor="58.0"
+               AnchorPane.leftAnchor="377.0"/>
+        <Label layoutX="318.0" layoutY="670.0" text="executed:" AnchorPane.bottomAnchor="13.0"
+               AnchorPane.leftAnchor="318.0"/>
+        <Label fx:id="executedTransactionsLabel" layoutX="377.0" layoutY="670.0" text="0" AnchorPane.bottomAnchor="13.0"
+               AnchorPane.leftAnchor="377.0"/>
+        <Label layoutX="473.0" layoutY="647.0" text="Paid:" AnchorPane.bottomAnchor="26.0"
+               AnchorPane.leftAnchor="473.0">
+            <font>
+                <Font size="18.0"/>
+            </font>
+        </Label>
+        <Label fx:id="paidLabel" layoutX="518.0" layoutY="647.0" text="0 XLM" AnchorPane.bottomAnchor="26.0"
+               AnchorPane.leftAnchor="518.0">
+            <font>
+                <Font size="18.0"/>
+            </font>
+        </Label>
     </children>
 </AnchorPane>
