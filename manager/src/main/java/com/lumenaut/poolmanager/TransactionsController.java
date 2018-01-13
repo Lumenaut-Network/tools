@@ -144,7 +144,7 @@ public class TransactionsController {
                 final String amountText = inflationAmountTextField.getText();
                 if (!newValue && !amountText.isEmpty()) {
                     // Check if the amount has been expressed in a format we understand
-                    if (!XLMUtils.isPositiveBalanceFormat(amountText) && !XLMUtils.isPositiveDecimalFormat(amountText)) {
+                    if (!XLMUtils.isPositiveStroopFormat(amountText) && !XLMUtils.isPositiveDecimalFormat(amountText)) {
                         showError("Invalid payment amount. Please make sure you enter a positive value in either decimal (1234.1234567) or long (1234567890123456789) format");
                     }
                 }
@@ -223,15 +223,24 @@ public class TransactionsController {
                 cumulativeVotesBalance += voterBalance;
             }
 
-            // Amount to be paid
+            // Parse inflation amount
             final String inflationAmountString = inflationAmountTextField.getText();
             long inflationAmount;
-            if (XLMUtils.isBalanceFormat(inflationAmountString)) {
+            if (XLMUtils.isStroopFormat(inflationAmountString)) {
                 inflationAmount = Long.parseLong(inflationAmountString);
             } else if (XLMUtils.isDecimalFormat(inflationAmountString)) {
-                inflationAmount = Long.parseLong(inflationAmountString.replace(".", ""));
+                inflationAmount = XLMUtils.XLMToStroop(XLMUtils.decimalStringToXLM(inflationAmountString));
             } else {
                 showError("Invalid inflation amount: " + inflationAmountString);
+
+                return false;
+            }
+
+            // Check if the pool's balance is enough to cover the payment
+            if (inflationAmount > XLMUtils.XLMToStroop(currentPoolBalance)) {
+                showError("The pool does not have enough balance to pay the inflation amount you specified. "
+                          + "Pool balance: " + XLMUtils.formatBalanceFullPrecision(currentPoolBalance) + " XLM, "
+                          + "Inflation payment requires: " + XLMUtils.formatBalanceFullPrecision(inflationAmount) + " XLM");
 
                 return false;
             }

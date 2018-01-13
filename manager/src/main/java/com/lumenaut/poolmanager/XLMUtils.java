@@ -18,13 +18,15 @@ public class XLMUtils {
     private static final DecimalFormat XLM_PRECISION_FORMATTER = new DecimalFormat("#,###,###,###,##0.0000000");
 
     // Regex patterns
-    private static final String positiveDecimalNumber = "^\\d+(\\.\\d{1,7})?$";
-    private static final String negativeDecimalNumber = "^-\\d+(\\.\\d{1,7})?$";
-    private static final String decimalNumber = "^[-]?\\d+(\\.\\d{1,7})?$";
+    private static final String positiveDecimalNumberPattern = "^\\d+(\\.\\d{1,7})?$";
+    private static final String negativeDecimalNumberPattern = "^-\\d+(\\.\\d{1,7})?$";
+    private static final String decimalNumberPattern = "^[-]?\\d+(\\.\\d{1,7})?$";
+    private static final String positiveStroopFormatPattern = "^\\d{1,19}$";
+    private static final String negativeStroopFormatPattern = "^-\\d{1,19}$";
+    private static final String stroopFormatPattern = "^[-]?\\d{1,19}$";
 
-    private static final String positivedatabaseBalanceFormat = "^\\d{1,19}$";
-    private static final String negativedatabaseBalanceFormat = "^-\\d{1,19}$";
-    private static final String databaseBalanceFormat = "^[-]?\\d{1,19}$";
+    // Constants
+    public static final BigDecimal STROOPS_IN_XLM = new BigDecimal("10000000");
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,15 +48,28 @@ public class XLMUtils {
     //region METHODS
 
     /**
+     * Convert a decimal formatted string to a bigdecimal with scale 7 which represents a value in XLM
+     *
+     * @param amount
+     * @return
+     */
+    public static BigDecimal decimalStringToXLM(final String amount) {
+        BigDecimal bd = new BigDecimal(amount);
+        bd = bd.setScale(7, RoundingMode.HALF_EVEN);
+
+        return bd;
+    }
+
+    /**
      * Transforms the given amount in 1/10.000.000ths of XLM to a correctly scaled BigDecimal without rounding
      *
      * @param amount
      * @return
      */
-    public static BigDecimal balanceToBigDecimal(final long amount) {
+    public static BigDecimal stroopToXLM(final long amount) {
         BigDecimal bd = new BigDecimal(amount);
-        bd = bd.setScale(7, RoundingMode.HALF_EVEN);
-        bd = bd.divide(new BigDecimal(10000000), RoundingMode.HALF_EVEN);
+        bd = bd.setScale(7, RoundingMode.HALF_EVEN);       // Push it to the new scale
+        bd = bd.divide(STROOPS_IN_XLM, RoundingMode.HALF_EVEN);     // We can now safely convert stroops to XLM
 
         return bd;
     }
@@ -65,8 +80,8 @@ public class XLMUtils {
      * @param amount
      * @return
      */
-    public static long bigDecimalToBalance(final BigDecimal amount) {
-        return amount.setScale(0, BigDecimal.ROUND_HALF_EVEN).longValue();
+    public static long XLMToStroop(final BigDecimal amount) {
+        return amount.setScale(7, RoundingMode.HALF_EVEN).multiply(STROOPS_IN_XLM).longValue();
     }
 
     /**
@@ -76,7 +91,7 @@ public class XLMUtils {
      * @return
      */
     public static String formatBalance(final long amount) {
-        return XLM_FORMATTER.format(balanceToBigDecimal(amount));
+        return XLM_FORMATTER.format(stroopToXLM(amount));
     }
 
     /**
@@ -96,7 +111,7 @@ public class XLMUtils {
      * @return
      */
     public static String formatBalanceFullPrecision(final long amount) {
-        return XLM_PRECISION_FORMATTER.format(balanceToBigDecimal(amount));
+        return XLM_PRECISION_FORMATTER.format(stroopToXLM(amount));
     }
 
     /**
@@ -115,8 +130,8 @@ public class XLMUtils {
      * @param amount
      * @return
      */
-    public static boolean isBalanceFormat(final String amount) {
-        return amount.matches(databaseBalanceFormat);
+    public static boolean isStroopFormat(final String amount) {
+        return amount.matches(stroopFormatPattern);
     }
 
     /**
@@ -125,8 +140,8 @@ public class XLMUtils {
      * @param amount
      * @return
      */
-    public static boolean isPositiveBalanceFormat(final String amount) {
-        return amount.matches(positivedatabaseBalanceFormat);
+    public static boolean isPositiveStroopFormat(final String amount) {
+        return amount.matches(positiveStroopFormatPattern);
     }
 
     /**
@@ -135,8 +150,8 @@ public class XLMUtils {
      * @param amount
      * @return
      */
-    public static boolean isNegativeBalanceFormat(final String amount) {
-        return amount.matches(negativedatabaseBalanceFormat);
+    public static boolean isNegativeStroopFormat(final String amount) {
+        return amount.matches(negativeStroopFormatPattern);
     }
 
     /**
@@ -146,7 +161,7 @@ public class XLMUtils {
      * @return
      */
     public static boolean isDecimalFormat(final String amount) {
-        return amount.matches(decimalNumber);
+        return amount.matches(decimalNumberPattern);
     }
 
     /**
@@ -156,7 +171,7 @@ public class XLMUtils {
      * @return
      */
     public static boolean isPositiveDecimalFormat(final String amount) {
-        return amount.matches(positiveDecimalNumber);
+        return amount.matches(positiveDecimalNumberPattern);
     }
 
     /**
@@ -166,7 +181,7 @@ public class XLMUtils {
      * @return
      */
     public static boolean isNegativeDecimalFormat(final String amount) {
-        return amount.matches(negativeDecimalNumber);
+        return amount.matches(negativeDecimalNumberPattern);
     }
 
     //endregion

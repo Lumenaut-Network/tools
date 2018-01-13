@@ -195,7 +195,7 @@ public class HorizonGateway {
             inflationRs.next();
 
             // Return balance in XLM
-            return XLMUtils.balanceToBigDecimal(inflationRs.getLong("balance"));
+            return XLMUtils.stroopToXLM(inflationRs.getLong("balance"));
         }
     }
 
