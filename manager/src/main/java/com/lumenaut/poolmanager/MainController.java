@@ -1,8 +1,8 @@
 package com.lumenaut.poolmanager;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lumenaut.poolmanager.InflationDataFormat.InflationDataEntry;
-import com.lumenaut.poolmanager.InflationDataFormat.InflationDataRoot;
+import com.lumenaut.poolmanager.DataFormats.InflationDataEntry;
+import com.lumenaut.poolmanager.DataFormats.InflationDataRoot;
 import com.lumenaut.poolmanager.gateways.FederationGateway;
 import com.lumenaut.poolmanager.gateways.HorizonGateway;
 import com.lumenaut.poolmanager.gateways.StellarGateway;
@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.lumenaut.poolmanager.InflationDataFormat.OBJECT_MAPPER;
+import static com.lumenaut.poolmanager.DataFormats.OBJECT_MAPPER;
 import static com.lumenaut.poolmanager.Settings.*;
 
 /**

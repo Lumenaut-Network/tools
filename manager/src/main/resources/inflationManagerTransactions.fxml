@@ -7,10 +7,9 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.AnchorPane?>
 
-
 <AnchorPane minHeight="700.0" minWidth="900.0" prefHeight="700.0" prefWidth="900.0"
-            xmlns="http://javafx.com/javafx/8.0.111"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.lumenaut.poolmanager.TransactionsController">
+            xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.lumenaut.poolmanager.TransactionsController">
     <children>
         <TabPane layoutX="24.0" layoutY="26.0" prefHeight="682.0" prefWidth="1080.0" tabClosingPolicy="UNAVAILABLE"
                  AnchorPane.bottomAnchor="68.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
@@ -28,15 +27,28 @@
                         </AnchorPane>
                     </content>
                 </Tab>
-                <Tab text="Exclusions List">
+                <Tab text="Exclusions">
                     <content>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                             <children>
                                 <TextArea layoutX="340.0" layoutY="167.0" prefHeight="200.0" prefWidth="200.0"
-                                          promptText="Paste a partial transaction history, or compile an exclusion list manually. The addresses contained here will be excluded from the transaction"
-                                          stylesheets="@inflationManagerMain.css" AnchorPane.bottomAnchor="0.0"
-                                          AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                                          AnchorPane.topAnchor="0.0"/>
+                                          stylesheets="@inflationManagerMain.css"
+                                          text="{&#10;&#9;&quot;uuid&quot;: 32,&#10;&#9;&quot;timestamp&quot; 56465156454,&#10;&#9;&quot;results&quot;: [&#10;&#9;&#9;// Example exclusion. If the target address and the pay amount match they will be excluded from the transaction plan&#10;&#9;&#9;{ &#10;&#9;&#9;&#9;&quot;timestamp&quot;: 12321331239,&#10;&#9;&#9;&#9;&quot;paid&quot; : 5178586,&#10;    &#9;&#9;&#9;&quot;account&quot; : &quot;GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&quot;&#10;&#9;&#9;}&#10;&#9;]&#10;}"
+                                          AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                            </children>
+                        </AnchorPane>
+                    </content>
+                </Tab>
+                <Tab text="Rerouting">
+                    <content>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                            <children>
+                                <TextArea layoutX="281.0" layoutY="136.0" prefHeight="200.0" prefWidth="200.0"
+                                          stylesheets="@inflationManagerMain.css"
+                                          text="{&#10;&#9;&quot;reroute&quot;: [&#10;&#9;&#9;// Example reroute entry&#10;&#9;&#9;{ &#10;&#9;&#9;&#9;&quot;originaldest&quot;: &quot;GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&quot;,&#10;&#9;&#9;&#9;&quot;newdest&quot;: &quot;GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&quot;&#10;&#9;&#9;}&#10;&#9;]&#10;}"
+                                          AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
                             </children>
                         </AnchorPane>
                     </content>
@@ -57,8 +69,5 @@
                AnchorPane.rightAnchor="317.0"/>
         <Button layoutX="14.0" layoutY="713.0" mnemonicParsing="false" prefHeight="27.0" prefWidth="141.0"
                 text="Save transaction plan" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0"/>
-        <Button layoutX="153.0" layoutY="719.0" mnemonicParsing="false" prefHeight="27.0" prefWidth="231.0"
-                text="Load partial transaction as exclusion list" AnchorPane.bottomAnchor="5.0"
-                AnchorPane.leftAnchor="153.0"/>
     </children>
 </AnchorPane>

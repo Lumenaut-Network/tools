@@ -8,7 +8,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import static com.lumenaut.poolmanager.InflationDataFormat.OBJECT_MAPPER;
+import static com.lumenaut.poolmanager.DataFormats.OBJECT_MAPPER;
 import static com.lumenaut.poolmanager.Settings.SETTING_FEDERATION_NETWORK_INFLATION_URL;
 
 /**

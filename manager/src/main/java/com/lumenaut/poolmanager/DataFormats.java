@@ -1,5 +1,6 @@
 package com.lumenaut.poolmanager;
 
+import com.fasterxml.jackson.core.JsonParser.Feature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
@@ -25,12 +26,17 @@ import java.util.List;
  * ]
  * }
  */
-public class InflationDataFormat {
+public class DataFormats {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FIELDS
 
     // JSON object OBJECT_MAPPER
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    // Object mapper configuration
+    static {
+        OBJECT_MAPPER.configure(Feature.ALLOW_COMMENTS, true);
+    }
 
     // Inflation data root
     public static class InflationDataRoot {
@@ -91,7 +97,7 @@ public class InflationDataFormat {
     /**
      * Constructor
      */
-    private InflationDataFormat() {
+    private DataFormats() {
 
     }
 

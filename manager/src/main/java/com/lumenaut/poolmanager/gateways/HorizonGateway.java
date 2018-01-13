@@ -9,7 +9,7 @@ import java.sql.*;
 import java.util.HashMap;
 import java.util.Properties;
 
-import static com.lumenaut.poolmanager.InflationDataFormat.OBJECT_MAPPER;
+import static com.lumenaut.poolmanager.DataFormats.OBJECT_MAPPER;
 import static com.lumenaut.poolmanager.Settings.*;
 
 /**
