@@ -26,15 +26,7 @@ class XLMUtilsTest {
     }
 
     @Test
-    void formatBalance1() {
-    }
-
-    @Test
     void formatBalanceFullPrecision() {
-    }
-
-    @Test
-    void formatBalanceFullPrecision1() {
     }
 
     @Test
