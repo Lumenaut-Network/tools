@@ -1,5 +1,6 @@
 package com.lumenaut.poolmanager;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonParser.Feature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -36,7 +37,6 @@ public class DataFormats {
     // Object mapper configuration
     static {
         OBJECT_MAPPER.configure(Feature.ALLOW_COMMENTS, true);
-        OBJECT_MAPPER.configure(Feature.IGNORE_UNDEFINED, true);
     }
 
     //endregion
@@ -45,7 +45,7 @@ public class DataFormats {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region INFLATION POOL VOTERS DATA STRUCTURE
 
-    // Inflation data root
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class InflationData {
         private String inflationdest;
         private List<InflationDataEntry> entries;
@@ -67,7 +67,7 @@ public class DataFormats {
         }
     }
 
-    // Inflation data entry
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class InflationDataEntry {
         private Long balance;
         private String account;
@@ -95,16 +95,17 @@ public class DataFormats {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region TRANSACTIONS PLAN DATA STRUCTURE
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class TransactionPlan {
-        private Long transactionUuid;
+        private Long uuid;
         private List<TransactionPlanEntry> entries;
 
-        public Long getTransactionUuid() {
-            return transactionUuid;
+        public Long getUuid() {
+            return uuid;
         }
 
-        public void setTransactionUuid(Long transactionUuid) {
-            this.transactionUuid = transactionUuid;
+        public void setUuid(Long uuid) {
+            this.uuid = uuid;
         }
 
         public List<TransactionPlanEntry> getEntries() {
@@ -116,6 +117,7 @@ public class DataFormats {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class TransactionPlanEntry {
         private Long amount;
         private String destination;
@@ -143,6 +145,7 @@ public class DataFormats {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region TRANSACTIONS RESULT DATA STRUCTURE
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class TransactionResult {
         private Long transactionUuid;
         private Long timestamp;
@@ -173,6 +176,7 @@ public class DataFormats {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class TransactionResultEntry {
         private Long amount;
         private Long timestamp;
@@ -218,6 +222,7 @@ public class DataFormats {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region EXCLUSIONS DATA STRUCTURE (MUST BE COMPATIBLE WITH TRANSACTION RESULTS)
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ExclusionData {
         private List<ExclusionEntry> entries;
 
@@ -230,6 +235,7 @@ public class DataFormats {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ExclusionEntry {
         private String destination;
 
@@ -248,6 +254,7 @@ public class DataFormats {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region EXCLUSIONS DATA STRUCTURE (MUST BE COMPATIBLE WITH TRANSACTION RESULTS)
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ReroutingData {
         private List<ReroutingDataEntry> entries;
 
@@ -260,6 +267,7 @@ public class DataFormats {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ReroutingDataEntry {
         private String account;
         private String reroute;

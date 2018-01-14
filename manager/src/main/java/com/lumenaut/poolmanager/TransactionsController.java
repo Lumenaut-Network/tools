@@ -6,16 +6,18 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.lumenaut.poolmanager.DataFormats.ExclusionData;
 import com.lumenaut.poolmanager.DataFormats.ReroutingData;
+import com.lumenaut.poolmanager.DataFormats.TransactionPlan;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -93,6 +95,12 @@ public class TransactionsController {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FIELDS
+
+    // File names
+    public static final String DATA_EXCLUSIONS_JSON_PATH = "data/exclusions.json";
+    public static final String DATA_REROUTING_JSON_PATH = "data/rerouting.json";
+    public static final String TRANSACTION_PLAN_JSON_SUFFIX = "transaction_plan.json";
+    public static final DateFormat FILE_DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss_");
 
     // Data bindings from the MainController
     public JsonNode currentVotersData;
@@ -189,6 +197,10 @@ public class TransactionsController {
                 }
             }
         });
+
+        saveExclusionsBtn.setOnAction(event -> saveExclusionsData());
+        saveReroutingBtn.setOnAction(event -> saveReroutingData());
+        saveTransactionPlanBtn.setOnAction(event -> saveTransactionPlan());
     }
 
     /**
@@ -318,7 +330,7 @@ public class TransactionsController {
      */
     private boolean loadExclusionsData() {
         final StringBuilder contents = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new FileReader("data/exclusions.json"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(DATA_EXCLUSIONS_JSON_PATH))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 contents.append(line).append("\n");
@@ -340,11 +352,38 @@ public class TransactionsController {
     }
 
     /**
+     * Saves the exclusions data currently present in the text area
+     */
+    private void saveExclusionsData() {
+        // Read the current contents of the text area
+        final String contents = exclusionsTextArea.getText();
+
+        // Try to decode them to see if they are in a valid format
+        try {
+            OBJECT_MAPPER.readValue(contents, ExclusionData.class);
+        } catch (IOException e) {
+            showError("Exclusions list format error: " + e.getMessage());
+
+            return;
+        }
+
+        // Save to file
+        try (
+        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(DATA_EXCLUSIONS_JSON_PATH), "UTF-8");
+        BufferedWriter bufWriter = new BufferedWriter(writer)
+        ) {
+            bufWriter.write(contents);
+        } catch (IOException e) {
+            showError("Cannot write exclusions list file [" + System.getProperty("user.dir") + "/" + DATA_EXCLUSIONS_JSON_PATH + "]: " + e.getMessage());
+        }
+    }
+
+    /**
      * Load the existing exclusions file
      */
     private boolean loadReroutingData() {
         final StringBuilder contents = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new FileReader("data/rerouting.json"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(DATA_REROUTING_JSON_PATH))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 contents.append(line).append("\n");
@@ -363,6 +402,72 @@ public class TransactionsController {
         }
 
         return true;
+    }
+
+    /**
+     * Saves the rerouting data currently present in the text area
+     */
+    private void saveReroutingData() {
+        // Read the current contents of the text area
+        final String contents = reroutingTextArea.getText();
+
+        // Try to decode them to see if they are in a valid format
+        try {
+            OBJECT_MAPPER.readValue(contents, ReroutingData.class);
+        } catch (IOException e) {
+            showError("Rerouting list format error: " + e.getMessage());
+
+            return;
+        }
+
+        // Save to file
+        try (
+        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(DATA_REROUTING_JSON_PATH), "UTF-8");
+        BufferedWriter bufWriter = new BufferedWriter(writer)
+        ) {
+            bufWriter.write(contents);
+        } catch (IOException e) {
+            showError("Cannot write Rerouting list file [" + System.getProperty("user.dir") + "/" + DATA_REROUTING_JSON_PATH + "]: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Saves the current transaction plan
+     */
+    private void saveTransactionPlan() {
+        // Read the current contents of the text area
+        final String contents = transactionPlanTextArea.getText();
+
+        if (contents.isEmpty()) {
+            showInfo("Nothing to save. Build a transaction plan first!");
+
+            return;
+        }
+
+        // Try to decode them to see if they are in a valid format
+        try {
+            OBJECT_MAPPER.readValue(contents, TransactionPlan.class);
+        } catch (IOException e) {
+            showError("Transaction plan format error: " + e.getMessage());
+
+            return;
+        }
+
+        // Save to file
+        final String outPutFilePath = "data/" + FILE_DATE_FORMATTER.format(new Date()) + TRANSACTION_PLAN_JSON_SUFFIX;
+        try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(outPutFilePath), "UTF-8");
+             BufferedWriter bufWriter = new BufferedWriter(writer)
+        ) {
+            bufWriter.write(contents);
+        } catch (IOException e) {
+            showError("Cannot write transaction plan file [" + outPutFilePath + "]: " + e.getMessage());
+
+            return;
+        }
+
+        // Show info
+        showInfo("The current transaction plan has been saved in the following file: " + outPutFilePath);
+
     }
 
     /**
