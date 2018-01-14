@@ -121,6 +121,7 @@ public class DataFormats {
     public static class TransactionPlanEntry {
         private Long amount;
         private String destination;
+        private String reroutedfrom;        // Optional
 
         public Long getAmount() {
             return amount;
@@ -136,6 +137,14 @@ public class DataFormats {
 
         public void setDestination(String destination) {
             this.destination = destination;
+        }
+
+        public String getReroutedfrom() {
+            return reroutedfrom;
+        }
+
+        public void setReroutedfrom(String reroutedfrom) {
+            this.reroutedfrom = reroutedfrom;
         }
     }
 

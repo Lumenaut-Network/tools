@@ -22,10 +22,11 @@
                     <content>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="612.0" prefWidth="842.0">
                             <children>
-                                <TextArea fx:id="transactionPlanTextArea" layoutX="58.0" layoutY="103.0"
-                                          prefHeight="200.0" prefWidth="200.0" stylesheets="@inflationManagerMain.css"
-                                          AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                                          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                                <TextArea fx:id="transactionPlanTextArea" editable="false" layoutX="58.0"
+                                          layoutY="103.0" prefHeight="200.0" prefWidth="200.0"
+                                          stylesheets="@inflationManagerMain.css" AnchorPane.bottomAnchor="0.0"
+                                          AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                                          AnchorPane.topAnchor="0.0"/>
                             </children>
                         </AnchorPane>
                     </content>

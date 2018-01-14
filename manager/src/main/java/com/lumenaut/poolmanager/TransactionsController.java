@@ -2,10 +2,7 @@ package com.lumenaut.poolmanager;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lumenaut.poolmanager.DataFormats.ExclusionData;
-import com.lumenaut.poolmanager.DataFormats.ReroutingData;
-import com.lumenaut.poolmanager.DataFormats.TransactionPlan;
-import com.lumenaut.poolmanager.DataFormats.TransactionPlanEntry;
+import com.lumenaut.poolmanager.DataFormats.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
@@ -20,8 +17,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.lumenaut.poolmanager.DataFormats.OBJECT_MAPPER;
+import static com.lumenaut.poolmanager.DataFormats.*;
 import static com.lumenaut.poolmanager.Settings.SETTING_OPERATIONS_NETWORK;
 
 /**
@@ -187,7 +185,7 @@ public class TransactionsController {
                     }
 
                     // Update planned total operations
-                    plannedTransactionsLabel.setText(String.valueOf(votesAndBalances.size()));
+                    plannedTransactionsLabel.setText(String.valueOf(transactionPlan.getEntries().size()));
 
                     // Update total amount to pay
                     toBePaidLabel.setText(XLMUtils.formatBalanceFullPrecision(requiredTotalPaymentBalance) + " XLM");
@@ -238,9 +236,6 @@ public class TransactionsController {
                 return false;
             }
 
-            // Total votes
-            final int totalVotes = votesAndBalances.size();
-
             // Total votes balance
             long cumulativeVotesBalance = 0L;
             for (long voterBalance : votesAndBalances.values()) {
@@ -282,12 +277,37 @@ public class TransactionsController {
                 votesAndPayments.put(voter.getKey(), computeVoterPayout(inflationAmount, cumulativeVotesBalance, voterBalance));
             }
 
+            // Get exclusion data
+            ExclusionData exclusionData;
+            try {
+                exclusionData = OBJECT_MAPPER.readValue(exclusionsTextArea.getText(), ExclusionData.class);
+            } catch (IOException e) {
+                showError("Cannot parse exclusion data: " + e.getMessage());
+
+                return false;
+            }
+
+            // Get rerouting data
+            ReroutingData reroutingData;
+            try {
+                reroutingData = OBJECT_MAPPER.readValue(reroutingTextArea.getText(), ReroutingData.class);
+            } catch (IOException e) {
+                showError("Cannot parse rerouting data: " + e.getMessage());
+
+                return false;
+            }
+
             // Generate UUID
             final String uuid = UUID.randomUUID().toString();
 
+            // Build new transaction plan
             final TransactionPlan newPlan = new TransactionPlan();
             newPlan.setEntries(new LinkedList<>());
             newPlan.setUuid(uuid);
+
+            // Init rerouting and exclusion counters
+            final AtomicInteger rerouted = new AtomicInteger(0);
+            final AtomicInteger excluded = new AtomicInteger(0);
 
             // Compute plan entries
             votesAndPayments.forEach((voterAccount, voterAmount) -> {
@@ -296,12 +316,45 @@ public class TransactionsController {
                 entry.setAmount(voterAmount);
                 entry.setDestination(voterAccount);
 
+                // Reroute if needed
+                for (ReroutingDataEntry reroutingDataEntry : reroutingData.getEntries()) {
+                    if (voterAccount.equals(reroutingDataEntry.getAccount())) {
+                        // Reroute
+                        entry.setDestination(reroutingDataEntry.getReroute());
+                        entry.setReroutedfrom(voterAccount);
+
+                        // Update rerouted counter
+                        rerouted.getAndIncrement();
+                    }
+                }
+
+                // If this account (or its rerouted address) is in the exclusion list skip appending it
+                for (ExclusionEntry exclusionEntry : exclusionData.getEntries()) {
+                    if (exclusionEntry.getDestination().equals(entry.getReroutedfrom())) {
+                        excluded.getAndIncrement();
+
+                        // Return immediately without appending the entry
+                        return;
+                    }
+
+                    if (exclusionEntry.getDestination().equals(entry.getDestination())) {
+                        excluded.getAndIncrement();
+
+                        // Return immediately without appending the entry
+                        return;
+                    }
+                }
+
                 // Append to the entries
                 newPlan.getEntries().add(entry);
             });
 
             // Update the transaction plan
             transactionPlan = newPlan;
+
+            // Update the rerouting and exclusion labels
+            reroutedTransactionsLabel.setText(String.valueOf(rerouted.get()));
+            excludedTransactionsLabel.setText(String.valueOf(excluded.get()));
 
             // success
             return true;
