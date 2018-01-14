@@ -97,14 +97,14 @@ public class DataFormats {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class TransactionPlan {
-        private Long uuid;
+        private String uuid;
         private List<TransactionPlanEntry> entries;
 
-        public Long getUuid() {
+        public String getUuid() {
             return uuid;
         }
 
-        public void setUuid(Long uuid) {
+        public void setUuid(String uuid) {
             this.uuid = uuid;
         }
 
@@ -147,24 +147,15 @@ public class DataFormats {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class TransactionResult {
-        private Long transactionUuid;
-        private Long timestamp;
+        private String uuid;
         private List<TransactionResultEntry> entries;
 
-        public Long getTransactionUuid() {
-            return transactionUuid;
+        public String getUuid() {
+            return uuid;
         }
 
-        public void setTransactionUuid(Long transactionUuid) {
-            this.transactionUuid = transactionUuid;
-        }
-
-        public Long getTimestamp() {
-            return timestamp;
-        }
-
-        public void setTimestamp(Long timestamp) {
-            this.timestamp = timestamp;
+        public void setUuid(String uuid) {
+            this.uuid = uuid;
         }
 
         public List<TransactionResultEntry> getEntries() {
@@ -178,18 +169,10 @@ public class DataFormats {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class TransactionResultEntry {
-        private Long amount;
         private Long timestamp;
+        private Long amount;
         private String destination;
         private String reroutedfrom;        // Optional
-
-        public Long getAmount() {
-            return amount;
-        }
-
-        public void setAmount(Long amount) {
-            this.amount = amount;
-        }
 
         public Long getTimestamp() {
             return timestamp;
@@ -197,6 +180,14 @@ public class DataFormats {
 
         public void setTimestamp(Long timestamp) {
             this.timestamp = timestamp;
+        }
+
+        public Long getAmount() {
+            return amount;
+        }
+
+        public void setAmount(Long amount) {
+            this.amount = amount;
         }
 
         public String getDestination() {

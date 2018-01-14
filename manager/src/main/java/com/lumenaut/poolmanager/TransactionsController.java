@@ -2,11 +2,10 @@ package com.lumenaut.poolmanager;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.lumenaut.poolmanager.DataFormats.ExclusionData;
 import com.lumenaut.poolmanager.DataFormats.ReroutingData;
 import com.lumenaut.poolmanager.DataFormats.TransactionPlan;
+import com.lumenaut.poolmanager.DataFormats.TransactionPlanEntry;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
@@ -19,6 +18,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.UUID;
 
 import static com.lumenaut.poolmanager.DataFormats.OBJECT_MAPPER;
@@ -106,12 +106,11 @@ public class TransactionsController {
     public JsonNode currentVotersData;
     public BigDecimal currentPoolBalance;
 
-    // Transaction plan data
+    // Data
     private HashMap<String, Long> votesAndBalances;
     private HashMap<String, Long> votesAndPayments;
-    private JsonNode transactionPlan;
 
-    // Exclusions data
+    private TransactionPlan transactionPlan;
     private ExclusionData exclusionDataData;
     private ReroutingData reroutingData;
 
@@ -286,27 +285,23 @@ public class TransactionsController {
             // Generate UUID
             final String uuid = UUID.randomUUID().toString();
 
-            // Prepare transaction plan JSON tree
-            final ObjectNode transactionPlanRootNode = OBJECT_MAPPER.createObjectNode();
-            final ArrayNode transactionPlanEntriesNode = OBJECT_MAPPER.createArrayNode();
+            final TransactionPlan newPlan = new TransactionPlan();
+            newPlan.setEntries(new LinkedList<>());
+            newPlan.setUuid(uuid);
 
             // Compute plan entries
             votesAndPayments.forEach((voterAccount, voterAmount) -> {
                 // Create new entry node
-                final ObjectNode transactionPlanEntry = OBJECT_MAPPER.createObjectNode();
-                transactionPlanEntry.put("account", voterAccount);
-                transactionPlanEntry.put("amount", voterAmount);
+                final TransactionPlanEntry entry = new TransactionPlanEntry();
+                entry.setAmount(voterAmount);
+                entry.setDestination(voterAccount);
 
                 // Append to the entries
-                transactionPlanEntriesNode.add(transactionPlanEntry);
+                newPlan.getEntries().add(entry);
             });
 
-            // Append uuid and entries to the plan
-            transactionPlanRootNode.put("uuid", uuid);
-            transactionPlanRootNode.set("entries", transactionPlanEntriesNode);
-
             // Update the transaction plan
-            transactionPlan = transactionPlanRootNode;
+            transactionPlan = newPlan;
 
             // success
             return true;
