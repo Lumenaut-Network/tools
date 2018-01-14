@@ -69,7 +69,7 @@ public class Settings {
     public static void loadSettings() throws IOException {
         try {
             // Attempt to load the file
-            PROPERTIES.load(new FileInputStream("settings.ini"));
+            PROPERTIES.load(new FileInputStream("data/settings.ini"));
 
             // Bring the settings in the runtime
             SETTING_OPERATIONS_NETWORK = PROPERTIES.getProperty("operationsNetwork");
@@ -110,7 +110,7 @@ public class Settings {
         PROPERTIES.setProperty("horizonDbPass", SETTING_HORIZON_DB_PASS);
 
         // Store
-        PROPERTIES.store(new FileOutputStream("settings.ini"), "Settings");
+        PROPERTIES.store(new FileOutputStream("data/settings.ini"), "Settings");
     }
 
     //endregion

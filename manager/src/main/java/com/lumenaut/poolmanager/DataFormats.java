@@ -16,10 +16,10 @@ import java.util.List;
  * {
  * "inflationdest": "POOL_ADDRESS",
  * "entries": [
- * {"balance": BALANCE, "account": "VOTER_ADDRESS"},
- * {"balance": BALANCE, "account": "VOTER_ADDRESS"},
- * {"balance": BALANCE, "account": "VOTER_ADDRESS"},
- * {"balance": BALANCE, "account": "VOTER_ADDRESS"},
+ * {"balance": BALANCE, "destination": "VOTER_ADDRESS"},
+ * {"balance": BALANCE, "destination": "VOTER_ADDRESS"},
+ * {"balance": BALANCE, "destination": "VOTER_ADDRESS"},
+ * {"balance": BALANCE, "destination": "VOTER_ADDRESS"},
  * ...
  * ...
  * ...
@@ -36,6 +36,7 @@ public class DataFormats {
     // Object mapper configuration
     static {
         OBJECT_MAPPER.configure(Feature.ALLOW_COMMENTS, true);
+        OBJECT_MAPPER.configure(Feature.IGNORE_UNDEFINED, true);
     }
 
     //endregion
@@ -45,7 +46,7 @@ public class DataFormats {
     //region INFLATION POOL VOTERS DATA STRUCTURE
 
     // Inflation data root
-    public static class InflationDataRoot {
+    public static class InflationData {
         private String inflationdest;
         private List<InflationDataEntry> entries;
 
@@ -94,9 +95,9 @@ public class DataFormats {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region TRANSACTIONS PLAN DATA STRUCTURE
 
-    public static class TransactionPlanRoot {
+    public static class TransactionPlan {
         private Long transactionUuid;
-        private List<InflationDataEntry> entries;
+        private List<TransactionPlanEntry> entries;
 
         public Long getTransactionUuid() {
             return transactionUuid;
@@ -106,18 +107,18 @@ public class DataFormats {
             this.transactionUuid = transactionUuid;
         }
 
-        public List<InflationDataEntry> getEntries() {
+        public List<TransactionPlanEntry> getEntries() {
             return entries;
         }
 
-        public void setEntries(List<InflationDataEntry> entries) {
+        public void setEntries(List<TransactionPlanEntry> entries) {
             this.entries = entries;
         }
     }
 
     public static class TransactionPlanEntry {
         private Long amount;
-        private String account;
+        private String destination;
 
         public Long getAmount() {
             return amount;
@@ -127,12 +128,12 @@ public class DataFormats {
             this.amount = amount;
         }
 
-        public String getAccount() {
-            return account;
+        public String getDestination() {
+            return destination;
         }
 
-        public void setAccount(String account) {
-            this.account = account;
+        public void setDestination(String destination) {
+            this.destination = destination;
         }
     }
 
@@ -142,10 +143,10 @@ public class DataFormats {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region TRANSACTIONS RESULT DATA STRUCTURE
 
-    public static class TransactionResultRoot {
+    public static class TransactionResult {
         private Long transactionUuid;
         private Long timestamp;
-        private List<InflationDataEntry> results;
+        private List<TransactionResultEntry> entries;
 
         public Long getTransactionUuid() {
             return transactionUuid;
@@ -163,26 +164,27 @@ public class DataFormats {
             this.timestamp = timestamp;
         }
 
-        public List<InflationDataEntry> getResults() {
-            return results;
+        public List<TransactionResultEntry> getEntries() {
+            return entries;
         }
 
-        public void setResults(List<InflationDataEntry> results) {
-            this.results = results;
+        public void setEntries(List<TransactionResultEntry> entries) {
+            this.entries = entries;
         }
     }
 
     public static class TransactionResultEntry {
-        private Long paid;
+        private Long amount;
         private Long timestamp;
-        private String account;
+        private String destination;
+        private String reroutedfrom;        // Optional
 
-        public Long getPaid() {
-            return paid;
+        public Long getAmount() {
+            return amount;
         }
 
-        public void setPaid(Long paid) {
-            this.paid = paid;
+        public void setAmount(Long amount) {
+            this.amount = amount;
         }
 
         public Long getTimestamp() {
@@ -193,12 +195,20 @@ public class DataFormats {
             this.timestamp = timestamp;
         }
 
-        public String getAccount() {
-            return account;
+        public String getDestination() {
+            return destination;
         }
 
-        public void setAccount(String account) {
-            this.account = account;
+        public void setDestination(String destination) {
+            this.destination = destination;
+        }
+
+        public String getReroutedfrom() {
+            return reroutedfrom;
+        }
+
+        public void setReroutedfrom(String reroutedfrom) {
+            this.reroutedfrom = reroutedfrom;
         }
     }
 
@@ -206,7 +216,70 @@ public class DataFormats {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //region ACCESSORS
+    //region EXCLUSIONS DATA STRUCTURE (MUST BE COMPATIBLE WITH TRANSACTION RESULTS)
+
+    public static class ExclusionData {
+        private List<ExclusionEntry> entries;
+
+        public List<ExclusionEntry> getEntries() {
+            return entries;
+        }
+
+        public void setEntries(List<ExclusionEntry> entries) {
+            this.entries = entries;
+        }
+    }
+
+    public static class ExclusionEntry {
+        private String destination;
+
+        public String getDestination() {
+            return destination;
+        }
+
+        public void setDestination(String destination) {
+            this.destination = destination;
+        }
+    }
+
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region EXCLUSIONS DATA STRUCTURE (MUST BE COMPATIBLE WITH TRANSACTION RESULTS)
+
+    public static class ReroutingData {
+        private List<ReroutingDataEntry> entries;
+
+        public List<ReroutingDataEntry> getEntries() {
+            return entries;
+        }
+
+        public void setEntries(List<ReroutingDataEntry> entries) {
+            this.entries = entries;
+        }
+    }
+
+    public static class ReroutingDataEntry {
+        private String account;
+        private String reroute;
+
+        public String getAccount() {
+            return account;
+        }
+
+        public void setAccount(String account) {
+            this.account = account;
+        }
+
+        public String getReroute() {
+            return reroute;
+        }
+
+        public void setReroute(String reroute) {
+            this.reroute = reroute;
+        }
+    }
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

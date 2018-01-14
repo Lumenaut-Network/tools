@@ -4,12 +4,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.lumenaut.poolmanager.DataFormats.ExclusionData;
+import com.lumenaut.poolmanager.DataFormats.ReroutingData;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.UUID;
@@ -98,6 +103,10 @@ public class TransactionsController {
     private HashMap<String, Long> votesAndPayments;
     private JsonNode transactionPlan;
 
+    // Exclusions data
+    private ExclusionData exclusionDataData;
+    private ReroutingData reroutingData;
+
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -136,6 +145,10 @@ public class TransactionsController {
 
                 break;
         }
+
+        // Load default data for exclusions and rerouting
+        loadExclusionsData();
+        loadReroutingData();
 
         // TEXTFIELD HANDLERS
         inflationAmountTextField.focusedProperty().addListener(new ChangeListener<Boolean>() {
@@ -298,6 +311,58 @@ public class TransactionsController {
      */
     private long computeVoterPayout(final long totalInflation, final long cumulativeVotersBalance, final long voterBalance) {
         return 1L;
+    }
+
+    /**
+     * Load the existing exclusions file
+     */
+    private boolean loadExclusionsData() {
+        final StringBuilder contents = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new FileReader("data/exclusions.json"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                contents.append(line).append("\n");
+            }
+        } catch (IOException ignore) {
+            return false;
+        }
+
+        // Update the runtime json object
+        try {
+            exclusionDataData = OBJECT_MAPPER.readValue(contents.toString(), ExclusionData.class);
+            exclusionsTextArea.setText(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(exclusionDataData));
+        } catch (IOException e) {
+            showError("Exclusions list format error: " + e.getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Load the existing exclusions file
+     */
+    private boolean loadReroutingData() {
+        final StringBuilder contents = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new FileReader("data/rerouting.json"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                contents.append(line).append("\n");
+            }
+        } catch (IOException ignore) {
+            return false;
+        }
+
+        // Update the runtime json object
+        try {
+            reroutingData = OBJECT_MAPPER.readValue(contents.toString(), ReroutingData.class);
+            reroutingTextArea.setText(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(reroutingData));
+        } catch (IOException e) {
+            showError("Exclusions list format error: " + e.getMessage());
+            return false;
+        }
+
+        return true;
     }
 
     /**

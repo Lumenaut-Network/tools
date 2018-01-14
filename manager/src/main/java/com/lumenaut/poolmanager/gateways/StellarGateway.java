@@ -1,6 +1,13 @@
 package com.lumenaut.poolmanager.gateways;
 
-import static com.lumenaut.poolmanager.Settings.SETTING_OPERATIONS_NETWORK;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.lumenaut.poolmanager.DataFormats;
+import javafx.scene.control.Label;
+import org.stellar.sdk.*;
+import org.stellar.sdk.responses.AccountResponse;
+import org.stellar.sdk.responses.SubmitTransactionResponse;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,21 +15,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.stellar.sdk.AssetTypeNative;
-import org.stellar.sdk.KeyPair;
-import org.stellar.sdk.Memo;
-import org.stellar.sdk.PaymentOperation;
-import org.stellar.sdk.Server;
-import org.stellar.sdk.Transaction;
-import org.stellar.sdk.responses.AccountResponse;
-import org.stellar.sdk.responses.SubmitTransactionResponse;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.lumenaut.poolmanager.DataFormats;
-
-import javafx.scene.control.Label;
+import static com.lumenaut.poolmanager.Settings.SETTING_OPERATIONS_NETWORK;
 
 /**
  * @Author Luca Vignaroli
@@ -131,7 +124,7 @@ public class StellarGateway {
 			for (JsonNode entry : transactions.get("entries")) {
 				if (operationsCount < 100) {
 					String amount = entry.get("amount").asText();
-					String account = entry.get("account").asText();
+					String account = entry.get("destination").asText();
 					destinationBatch.put(KeyPair.fromAccountId(account), amount);
 					operationsCount++;
 				} else {
@@ -172,8 +165,8 @@ public class StellarGateway {
 		for (Map.Entry<KeyPair, String> destination : destinationBatch.entrySet()) {
 			ObjectNode transactionEntry = DataFormats.OBJECT_MAPPER.createObjectNode();
 			transactionEntry.put("timestamp", timestamp);
-			transactionEntry.put("paid", destination.getValue());
-			transactionEntry.put("account", destination.getKey().getAccountId());
+			transactionEntry.put("amount", destination.getValue());
+			transactionEntry.put("destination", destination.getKey().getAccountId());
 			nodeEntries.add(transactionEntry);
 
 			totalPaid += Double.parseDouble(destination.getValue());

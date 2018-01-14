@@ -37,7 +37,6 @@
                             <children>
                                 <TextArea fx:id="exclusionsTextArea" layoutX="340.0" layoutY="167.0" prefHeight="200.0"
                                           prefWidth="200.0" stylesheets="@inflationManagerMain.css"
-                                          text="{&#10;&#9;&quot;uuid&quot;: 32,&#10;&#9;&quot;timestamp&quot; 56465156454,&#10;&#9;&quot;results&quot;: [&#10;&#9;&#9;// Example exclusion. If the target address and the pay amount match they will be excluded from the transaction plan&#10;&#9;&#9;{ &#10;&#9;&#9;&#9;&quot;timestamp&quot;: 12321331239,&#10;&#9;&#9;&#9;&quot;paid&quot; : 5178586,&#10;    &#9;&#9;&#9;&quot;account&quot; : &quot;GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&quot;&#10;&#9;&#9;}&#10;&#9;]&#10;}"
                                           AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                                           AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
                             </children>
@@ -50,7 +49,6 @@
                             <children>
                                 <TextArea fx:id="reroutingTextArea" layoutX="281.0" layoutY="136.0" prefHeight="200.0"
                                           prefWidth="200.0" stylesheets="@inflationManagerMain.css"
-                                          text="{&#10;&#9;&quot;reroute&quot;: [&#10;&#9;&#9;// Example reroute entry&#10;&#9;&#9;{ &#10;&#9;&#9;&#9;&quot;originaldest&quot;: &quot;GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&quot;,&#10;&#9;&#9;&#9;&quot;newdest&quot;: &quot;GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&quot;&#10;&#9;&#9;}&#10;&#9;]&#10;}"
                                           AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                                           AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
                             </children>
