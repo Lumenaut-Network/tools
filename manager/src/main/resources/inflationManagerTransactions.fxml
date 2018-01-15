@@ -10,7 +10,7 @@
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane minHeight="700.0" minWidth="900.0" prefHeight="700.0" prefWidth="900.0"
+<AnchorPane fx:id="transactionPlannerStage" minHeight="700.0" minWidth="900.0" prefHeight="700.0" prefWidth="900.0"
             xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.lumenaut.poolmanager.TransactionsController">
     <children>

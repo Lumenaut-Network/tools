@@ -98,6 +98,10 @@ public class DataFormats {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class TransactionPlan {
         private String uuid;
+        private int excluded;
+        private int rerouted;
+        private long totalvotes;
+        private long totalpayment;
         private List<TransactionPlanEntry> entries;
 
         public String getUuid() {
@@ -106,6 +110,38 @@ public class DataFormats {
 
         public void setUuid(String uuid) {
             this.uuid = uuid;
+        }
+
+        public int getExcluded() {
+            return excluded;
+        }
+
+        public void setExcluded(int excluded) {
+            this.excluded = excluded;
+        }
+
+        public int getRerouted() {
+            return rerouted;
+        }
+
+        public void setRerouted(int rerouted) {
+            this.rerouted = rerouted;
+        }
+
+        public long getTotalvotes() {
+            return totalvotes;
+        }
+
+        public void setTotalvotes(long totalvotes) {
+            this.totalvotes = totalvotes;
+        }
+
+        public long getTotalpayment() {
+            return totalpayment;
+        }
+
+        public void setTotalpayment(long totalpayment) {
+            this.totalpayment = totalpayment;
         }
 
         public List<TransactionPlanEntry> getEntries() {

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.111"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.lumenaut.poolmanager.ProcessingController">
+    <children>
+        <TextArea fx:id="processingOutputTextArea" editable="false" layoutX="14.0" layoutY="14.0" prefHeight="359.0"
+                  prefWidth="590.0" stylesheets="@inflationManagerMain.css" AnchorPane.bottomAnchor="36.0"
+                  AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0"/>
+        <Button fx:id="closeBtn" disable="true" layoutX="540.0" layoutY="370.0" mnemonicParsing="false"
+                prefHeight="25.0" prefWidth="55.0" text="Close" AnchorPane.bottomAnchor="5.0"
+                AnchorPane.rightAnchor="5.0"/>
+        <ProgressBar fx:id="processingProgressBar" layoutX="5.0" layoutY="370.0" prefHeight="25.0" prefWidth="465.0"
+                     progress="0.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0"
+                     AnchorPane.rightAnchor="130.0"/>
+        <Button fx:id="startBtn" layoutX="478.0" layoutY="370.0" mnemonicParsing="false" prefHeight="25.0"
+                prefWidth="55.0" text="Start" AnchorPane.bottomAnchor="5.0" AnchorPane.rightAnchor="67.0"/>
+    </children>
+</AnchorPane>

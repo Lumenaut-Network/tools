@@ -26,199 +26,221 @@ import static com.lumenaut.poolmanager.Settings.SETTING_OPERATIONS_NETWORK;
  * application (LIVE/TEST)
  */
 public class StellarGateway {
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//region FIELDS
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region FIELDS
 
-	// Horizon networks
-	private static final String HORIZON_TEST_NETWORK = "https://horizon-testnet.stellar.org";
-	private static final String HORIZON_LIVE_NETWORK = "https://horizon.stellar.org";
+    // Horizon networks
+    private static final String HORIZON_TEST_NETWORK = "https://horizon-testnet.stellar.org";
+    private static final String HORIZON_LIVE_NETWORK = "https://horizon.stellar.org";
 
-	//endregion
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//region ACCESSORS
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region ACCESSORS
 
-	//endregion
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//region CONSTRUCTORS
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region CONSTRUCTORS
 
-	/**
-	 * Constructor
-	 */
-	private StellarGateway() {
+    /**
+     * Constructor
+     */
+    private StellarGateway() {
 
-	}
+    }
 
-	//endregion
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//region INTERFACES IMPLEMENTATIONS
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region INTERFACES IMPLEMENTATIONS
 
-	//endregion
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//region METHOD OVERRIDES
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region METHOD OVERRIDES
 
-	//endregion
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//region METHODS
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region METHODS
 
-	/**
-	 * Fetch the specified account balance
-	 *
-	 * @param accountId
-	 * @return
-	 */
-	public static BigDecimal getBalance(final String accountId) throws IOException {
-		// Select the operations network
-		final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? HORIZON_LIVE_NETWORK : HORIZON_TEST_NETWORK);
+    /**
+     * Fetch the specified account balance
+     *
+     * @param accountId
+     * @return
+     */
+    public static BigDecimal getBalance(final String accountId) throws IOException {
+        // Select the operations network
+        final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? HORIZON_LIVE_NETWORK : HORIZON_TEST_NETWORK);
 
-		// Build a key pair for the account id specified
-		final KeyPair pair = KeyPair.fromAccountId(accountId);
+        // Build a key pair for the account id specified
+        final KeyPair pair = KeyPair.fromAccountId(accountId);
 
-		// Retrieve balances
-		final AccountResponse account = server.accounts().account(pair);
+        // Retrieve balances
+        final AccountResponse account = server.accounts().account(pair);
 
-		// Sum all account balances
-		BigDecimal total = new BigDecimal("0");
-		for (AccountResponse.Balance balance : account.getBalances()) {
-			total = total.add(new BigDecimal(balance.getBalance()));
-		}
+        // Sum all account balances
+        BigDecimal total = new BigDecimal("0");
+        for (AccountResponse.Balance balance : account.getBalances()) {
+            total = total.add(new BigDecimal(balance.getBalance()));
+        }
 
-		return total;
-	}
+        return total;
+    }
 
-	/**
-	 * Execute the transactions with the given json
-	 *
-	 * @param transactions
-	 * @param amountPaid
-	 * @param secretSeed
-	 * @param memo
-	 * @return
-	 */
-	public boolean executeTransactions(JsonNode transactions, Label amountPaid, String secretSeed, String memo) {
-		if (transactions != null) {
+    /**
+     * Execute the transactions with the given json
+     *
+     * @param transactionPlan
+     * @param amountPaid
+     * @param secretSeed
+     * @param memo
+     * @return
+     */
+    public static boolean executeTransactions(JsonNode transactionPlan, Label amountPaid, String secretSeed, String memo) throws IOException {
+        if (transactionPlan != null) {
+            long totalPaid = 0;
 
-			long totalPaid = 0;
+            String uuid = transactionPlan.get("uuid").asText();
 
-			String uuid = transactions.get("uuid").asText();
+            ObjectNode result = DataFormats.OBJECT_MAPPER.createObjectNode();
+            result.put("uuid", uuid);
+            ArrayNode nodeEntries = DataFormats.OBJECT_MAPPER.createArrayNode();
 
-			ObjectNode result = DataFormats.OBJECT_MAPPER.createObjectNode();
-			result.put("uuid", uuid);
-			ArrayNode nodeEntries = DataFormats.OBJECT_MAPPER.createArrayNode();
+            // Init network to be used
+            switch (SETTING_OPERATIONS_NETWORK) {
+                case "LIVE":
+                    Network.usePublicNetwork();
+                    break;
+                case "TEST":
+                    Network.useTestNetwork();
+                    break;
+            }
 
-			Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? HORIZON_LIVE_NETWORK : HORIZON_TEST_NETWORK);
-			KeyPair source = KeyPair.fromSecretSeed(secretSeed);
+            // Build server object
+            Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? HORIZON_LIVE_NETWORK : HORIZON_TEST_NETWORK);
+            KeyPair source = KeyPair.fromSecretSeed(secretSeed);
 
-			int operationsCount = 0;
-			Map<KeyPair, String> destinationBatch = new HashMap<>();
+            int operationsCount = 0;
+            Map<KeyPair, String> destinationBatch = new HashMap<>();
 
-			for (JsonNode entry : transactions.get("entries")) {
-				if (operationsCount < 100) {
-					String amount = entry.get("amount").asText();
-					String account = entry.get("destination").asText();
-					destinationBatch.put(KeyPair.fromAccountId(account), amount);
-					operationsCount++;
-				} else {
-					if (executeTransactionBatch(server, source, destinationBatch, memo)) {
-						totalPaid += writeJsonTransaction(destinationBatch, nodeEntries, result);
-						amountPaid.setText(""+totalPaid);
+            for (JsonNode entry : transactionPlan.get("entries")) {
+                if (operationsCount < 100) {
+                    String amount = entry.get("amount").asText();
+                    String account = entry.get("destination").asText();
+                    destinationBatch.put(KeyPair.fromAccountId(account), amount);
+                    operationsCount++;
+                } else {
+                    if (executeTransactionBatch(server, source, destinationBatch, memo)) {
+                        totalPaid += writeJsonTransaction(destinationBatch, nodeEntries, result);
+                        amountPaid.setText("" + totalPaid);
 
-						operationsCount = 0;
-						result = DataFormats.OBJECT_MAPPER.createObjectNode();
-						result.put("uuid", uuid);
-						nodeEntries = DataFormats.OBJECT_MAPPER.createArrayNode();
-						destinationBatch.clear();
-					} else {
-						System.out.println("Transaction batch failed.");
-						return false;
-					}
-				}
-			}
+                        operationsCount = 0;
+                        result = DataFormats.OBJECT_MAPPER.createObjectNode();
+                        result.put("uuid", uuid);
+                        nodeEntries = DataFormats.OBJECT_MAPPER.createArrayNode();
+                        destinationBatch.clear();
+                    } else {
+                        return false;
+                    }
+                }
+            }
 
-			if (!destinationBatch.isEmpty() && executeTransactionBatch(server, source, destinationBatch, memo)) {
-				totalPaid += writeJsonTransaction(destinationBatch, nodeEntries, result);
-				amountPaid.setText(""+totalPaid);
-			} else {
-				System.out.println("Transaction batch failed.");
-				return false;
-			}
+            if (!destinationBatch.isEmpty() && executeTransactionBatch(server, source, destinationBatch, memo)) {
+                totalPaid += writeJsonTransaction(destinationBatch, nodeEntries, result);
+                amountPaid.setText("" + totalPaid);
+            } else {
+                System.out.println("Transaction batch failed.");
+                return false;
+            }
 
-			return true;
-		} else {
-			return false;
-		}
-	}
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-	private long writeJsonTransaction(Map<KeyPair, String> destinationBatch, ArrayNode nodeEntries, ObjectNode result) {
-		long totalPaid = 0;
+    private static long writeJsonTransaction(Map<KeyPair, String> destinationBatch, ArrayNode nodeEntries, ObjectNode result) {
+        long totalPaid = 0;
 
-		long timestamp = System.currentTimeMillis();
-		for (Map.Entry<KeyPair, String> destination : destinationBatch.entrySet()) {
-			ObjectNode transactionEntry = DataFormats.OBJECT_MAPPER.createObjectNode();
-			transactionEntry.put("timestamp", timestamp);
-			transactionEntry.put("amount", destination.getValue());
-			transactionEntry.put("destination", destination.getKey().getAccountId());
-			nodeEntries.add(transactionEntry);
+        long timestamp = System.currentTimeMillis();
+        for (Map.Entry<KeyPair, String> destination : destinationBatch.entrySet()) {
+            ObjectNode transactionEntry = DataFormats.OBJECT_MAPPER.createObjectNode();
+            transactionEntry.put("timestamp", timestamp);
+            transactionEntry.put("amount", destination.getValue());
+            transactionEntry.put("destination", destination.getKey().getAccountId());
+            nodeEntries.add(transactionEntry);
 
-			totalPaid += Double.parseDouble(destination.getValue());
-		}
-		result.set("entries", nodeEntries);
+            totalPaid += Double.parseDouble(destination.getValue());
+        }
 
-		try {
-			File transactionJson = File.createTempFile("transactionJson_", ".JSON");
-			DataFormats.OBJECT_MAPPER.writeValue(transactionJson, result);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+        result.set("entries", nodeEntries);
 
-		return totalPaid;
-	}
+        try {
+            File transactionJson = File.createTempFile("transactionJson_", ".JSON");
+            DataFormats.OBJECT_MAPPER.writeValue(transactionJson, result);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-	private boolean executeTransactionBatch(Server server, KeyPair source, Map<KeyPair, String> destinationBatch, String memo) {
-		if (verifyAccounts(server, destinationBatch)) {
-			try {
-				AccountResponse sourceAccount = server.accounts().account(source);
+        return totalPaid;
+    }
 
-				Transaction.Builder transactionBuilder = new Transaction.Builder(sourceAccount);
-				for (Map.Entry<KeyPair, String> entry : destinationBatch.entrySet()) {
-					transactionBuilder.addOperation(new PaymentOperation.Builder(entry.getKey(), new AssetTypeNative(), entry.getValue()).build());
-				}
-				transactionBuilder.addMemo(Memo.text(memo));
+    private static boolean executeTransactionBatch(Server server, KeyPair source, Map<KeyPair, String> destinationBatch, String memo) throws IOException {
+        if (verifyAccounts(server, destinationBatch)) {
+            try {
+                AccountResponse sourceAccount = server.accounts().account(source);
 
-				Transaction transaction = transactionBuilder.build();
-				transaction.sign(source);
-				SubmitTransactionResponse response = server.submitTransaction(transaction);
+                Transaction.Builder transactionBuilder = new Transaction.Builder(sourceAccount);
+                for (Map.Entry<KeyPair, String> entry : destinationBatch.entrySet()) {
+                    transactionBuilder.addOperation(new PaymentOperation.Builder(entry.getKey(), new AssetTypeNative(), entry.getValue()).build());
+                }
+                transactionBuilder.addMemo(Memo.text(memo));
 
-				return response.isSuccess();
-			} catch (IOException e) {
-				System.out.println("Source account not found");
-				e.printStackTrace();
-			}
-		}
-		return false;
-	}
+                Transaction transaction = transactionBuilder.build();
+                transaction.sign(source);
+                SubmitTransactionResponse response = server.submitTransaction(transaction);
 
-	private boolean verifyAccounts(Server server, Map<KeyPair, String> destinationBatch) {
-		for (Map.Entry<KeyPair, String> entry : destinationBatch.entrySet()) {
-			try {
-				server.accounts().account(entry.getKey());
-			} catch (IOException e) {
-				return false;
-			}
-		}
-		return true;
-	}
+                if (!response.isSuccess()) {
+                    System.out.println("Transaction batch failed.");
+                    System.out.println(response);
+                }
 
-	//endregion
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                return response.isSuccess();
+            } catch (Throwable e) {
+                System.out.println("Unable to execute transaction batch: " + e.getMessage());
+                e.printStackTrace();
+
+                throw e;
+            }
+        }
+        return false;
+    }
+
+    private static boolean verifyAccounts(Server server, Map<KeyPair, String> destinationBatch) {
+        for (Map.Entry<KeyPair, String> entry : destinationBatch.entrySet()) {
+            try {
+                server.accounts().account(entry.getKey());
+            } catch (IOException e) {
+                System.out.println("Transaction batch: account failed verification: " + entry.getKey());
+
+                return false;
+            }
+        }
+
+        System.out.println("Transaction batch: accounts verified");
+
+        return true;
+    }
+
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 

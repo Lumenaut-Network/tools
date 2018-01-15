@@ -3,6 +3,7 @@ package com.lumenaut.poolmanager;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.RoundingMode;
 import java.util.Properties;
 
 /**
@@ -25,6 +26,9 @@ public class Settings {
     public static String SETTING_HORIZON_DB_PORT = "";
     public static String SETTING_HORIZON_DB_USER = "";
     public static String SETTING_HORIZON_DB_PASS = "";
+
+    // Non persistent settings
+    public static RoundingMode ROUNDING_MODE = RoundingMode.HALF_DOWN;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

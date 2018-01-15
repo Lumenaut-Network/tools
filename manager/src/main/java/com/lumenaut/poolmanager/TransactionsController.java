@@ -3,11 +3,17 @@ package com.lumenaut.poolmanager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lumenaut.poolmanager.DataFormats.*;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.AnchorPane;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 import java.io.*;
 import java.math.BigDecimal;
@@ -18,8 +24,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.lumenaut.poolmanager.DataFormats.*;
+import static com.lumenaut.poolmanager.Settings.ROUNDING_MODE;
 import static com.lumenaut.poolmanager.Settings.SETTING_OPERATIONS_NETWORK;
 
 /**
@@ -33,6 +41,9 @@ public class TransactionsController {
 
     ////////////////////////////////////////////////////////
     // UI
+
+    @FXML
+    private AnchorPane transactionPlannerStage;
 
     @FXML
     private TextArea transactionPlanTextArea;
@@ -103,6 +114,7 @@ public class TransactionsController {
     // Data bindings from the MainController
     public JsonNode currentVotersData;
     public BigDecimal currentPoolBalance;
+    public AnchorPane primaryStage;
 
     // Data
     private HashMap<String, Long> votesAndBalances;
@@ -155,17 +167,12 @@ public class TransactionsController {
         loadExclusionsData();
         loadReroutingData();
 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // TEXTFIELD HANDLERS
-        inflationAmountTextField.focusedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                final String amountText = inflationAmountTextField.getText();
-                if (!newValue && !amountText.isEmpty()) {
-                    // Check if the amount has been expressed in a format we understand
-                    if (!XLMUtils.isPositiveStroopFormat(amountText) && !XLMUtils.isPositiveDecimalFormat(amountText)) {
-                        showError("Invalid payment amount. Please make sure you enter a positive value in either decimal (1234.1234567) or long (1234567890123456789) format");
-                    }
-                }
+
+        inflationAmountTextField.setOnKeyPressed(keyEvent -> {
+            if (keyEvent.getCode().equals(KeyCode.ENTER)) {
+                validateAmountToPay();
             }
         });
 
@@ -173,23 +180,61 @@ public class TransactionsController {
         // BUTTON HANDLERS
 
         rebuildTransactionPlanBtn.setOnAction(event -> {
+            // Don't even attempt to build the plan if the amount to pay is not valid
+            if (!validateAmountToPay()) {
+                resetPlanUI();
+
+                return;
+            }
+
+            // Try to make a new plan
             if (buildTransactionPlan()) {
+                updatePlanUIandActivateExecution();
+            } else {
+                resetPlanUI();
+            }
+        });
+
+        executeTransactionBtn.setOnAction(event -> {
+            // Check signature
+            final String signingKey = signingKeyTextField.getText();
+
+            // Check if we have a signign key
+            if (signingKey.isEmpty()) {
+                showError("You must specify the signing key for the transactions");
+            } else {
+                // Save current transactions plan, abort if it fails
+                if (!saveTransactionPlan(true)) {
+                    return;
+                }
+
+                // Start the payment process
                 try {
-                    // Update plan text area
-                    transactionPlanTextArea.setText(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(transactionPlan));
+                    // Create new stage
+                    final Stage stage = new Stage();
+                    final FXMLLoader fxmlLoader = new FXMLLoader();
+                    fxmlLoader.setLocation(getClass().getResource("/inflationManagerProcessing.fxml"));
+                    final AnchorPane transactionsProcessingFrame = fxmlLoader.load();
+                    final ProcessingController processingController = fxmlLoader.getController();
 
-                    // Compute total payment required
-                    long requiredTotalPaymentBalance = 0;
-                    for (long amount : votesAndPayments.values()) {
-                        requiredTotalPaymentBalance += amount;
-                    }
+                    // Bind references in the settings controller
+                    processingController.primaryStage = primaryStage;
+                    processingController.transactionPlan = transactionPlan;
+                    processingController.signingKey = signingKey;
 
-                    // Update planned total operations
-                    plannedTransactionsLabel.setText(String.valueOf(transactionPlan.getEntries().size()));
+                    // Initialize the transactions stage and show it
+                    stage.setTitle("Transactions progress");
+                    stage.setScene(new Scene(transactionsProcessingFrame));
+                    stage.getIcons().add(new Image(Main.class.getResourceAsStream("/inflationManager.png")));
+                    stage.initModality(Modality.WINDOW_MODAL);
+                    stage.initOwner(transactionPlannerStage.getScene().getWindow());
+                    stage.initStyle(StageStyle.UNDECORATED);
+                    stage.setWidth(primaryStage.getWidth() + 80);
+                    stage.setHeight(primaryStage.getHeight() + 50);
 
-                    // Update total amount to pay
-                    toBePaidLabel.setText(XLMUtils.formatBalanceFullPrecision(requiredTotalPaymentBalance) + " XLM");
-                } catch (JsonProcessingException e) {
+                    // Open
+                    stage.show();
+                } catch (IOException e) {
                     showError(e.getMessage());
                 }
             }
@@ -197,7 +242,48 @@ public class TransactionsController {
 
         saveExclusionsBtn.setOnAction(event -> saveExclusionsData());
         saveReroutingBtn.setOnAction(event -> saveReroutingData());
-        saveTransactionPlanBtn.setOnAction(event -> saveTransactionPlan());
+        saveTransactionPlanBtn.setOnAction(event -> saveTransactionPlan(false));
+    }
+
+    /**
+     * Updates the planner ui with the data from the currently planned transactions
+     *
+     * @throws JsonProcessingException
+     */
+    private void updatePlanUIandActivateExecution() {
+        // Update plan text area
+        try {
+            transactionPlanTextArea.setText(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(transactionPlan));
+        } catch (JsonProcessingException e) {
+            showError(e.getMessage());
+
+            return;
+        }
+
+        // Update planned total operations
+        plannedTransactionsLabel.setText(String.valueOf(transactionPlan.getEntries().size()));
+
+        // Update total amount to pay
+        toBePaidLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalpayment()) + " XLM");
+
+        // Update the rerouting and exclusion labels
+        reroutedTransactionsLabel.setText(String.valueOf(transactionPlan.getRerouted()));
+        excludedTransactionsLabel.setText(String.valueOf(transactionPlan.getExcluded()));
+
+        // Activate execution
+        executeTransactionBtn.setDisable(false);
+    }
+
+    /**
+     * Reset the current transaction plan and all the counters
+     */
+    private void resetPlanUI() {
+        plannedTransactionsLabel.setText("0");
+        executedTransactionsLabel.setText("0");
+        reroutedTransactionsLabel.setText("0");
+        toBePaidLabel.setText("0 XLM");
+        executeTransactionBtn.setDisable(true);
+        transactionPlan = null;
     }
 
     /**
@@ -236,10 +322,11 @@ public class TransactionsController {
                 return false;
             }
 
-            // Total votes balance
-            long cumulativeVotesBalance = 0L;
+            // !!! IMPORTANT !!!
+            // Total votes balance is always computed BEFORE exclusions
+            long totalVotesAmount = 0L;
             for (long voterBalance : votesAndBalances.values()) {
-                cumulativeVotesBalance += voterBalance;
+                totalVotesAmount += voterBalance;
             }
 
             // Parse inflation amount
@@ -255,12 +342,8 @@ public class TransactionsController {
                 return false;
             }
 
-            // Check if the pool's balance is enough to cover the payment
+            // If the pool's balance is not enough to cover the payment, bail out
             if (inflationAmount > XLMUtils.XLMToStroop(currentPoolBalance)) {
-                showError("The pool does not have enough balance to pay the inflation amount you specified. "
-                          + "Pool balance: " + XLMUtils.formatBalanceFullPrecision(currentPoolBalance) + " XLM, "
-                          + "Inflation payment requires: " + XLMUtils.formatBalanceFullPrecision(inflationAmount) + " XLM");
-
                 return false;
             }
 
@@ -274,7 +357,7 @@ public class TransactionsController {
             // Populate it
             for (HashMap.Entry<String, Long> voter : votesAndBalances.entrySet()) {
                 final long voterBalance = voter.getValue();
-                votesAndPayments.put(voter.getKey(), computeVoterPayout(inflationAmount, cumulativeVotesBalance, voterBalance));
+                votesAndPayments.put(voter.getKey(), computeVoterPayout(inflationAmount, totalVotesAmount, voterBalance));
             }
 
             // Get exclusion data
@@ -308,6 +391,10 @@ public class TransactionsController {
             // Init rerouting and exclusion counters
             final AtomicInteger rerouted = new AtomicInteger(0);
             final AtomicInteger excluded = new AtomicInteger(0);
+            final AtomicLong totalPayments = new AtomicLong(0);
+
+            // Set total votes balance
+            newPlan.setTotalvotes(totalVotesAmount);
 
             // Compute plan entries
             votesAndPayments.forEach((voterAccount, voterAmount) -> {
@@ -345,18 +432,22 @@ public class TransactionsController {
                     }
                 }
 
+                // Update total payment
+                totalPayments.getAndAdd(voterAmount);
+
                 // Append to the entries
                 newPlan.getEntries().add(entry);
             });
 
+            // Update the rerouting and exclusion
+            newPlan.setRerouted(rerouted.get());
+            newPlan.setExcluded(excluded.get());
+            newPlan.setTotalpayment(totalPayments.get());
+
             // Update the transaction plan
             transactionPlan = newPlan;
 
-            // Update the rerouting and exclusion labels
-            reroutedTransactionsLabel.setText(String.valueOf(rerouted.get()));
-            excludedTransactionsLabel.setText(String.valueOf(excluded.get()));
-
-            // success
+            // Plan ready
             return true;
         }
     }
@@ -364,13 +455,26 @@ public class TransactionsController {
     /**
      * Compute the amount of inflation this account should be sent
      *
-     * @param totalInflation
-     * @param cumulativeVotersBalance
+     * @param inflationAmountToPay
+     * @param totalVotesAmount
      * @param voterBalance
      * @return
      */
-    private long computeVoterPayout(final long totalInflation, final long cumulativeVotersBalance, final long voterBalance) {
-        return 1L;
+    private long computeVoterPayout(final long inflationAmountToPay, final long totalVotesAmount, final long voterBalance) {
+        // Constants in the payout calculation
+        final BigDecimal totalInflation = XLMUtils.stroopToXLM(inflationAmountToPay);
+        final BigDecimal totalBalance = XLMUtils.stroopToXLM(totalVotesAmount);
+        final BigDecimal grossVoterBalance = XLMUtils.stroopToXLM(voterBalance);
+        final BigDecimal fee = XLMUtils.stroopToXLM(100 * 2);
+
+        // Percent of the total balance represented by the voter
+        final BigDecimal voterPercentOfTotalBalance = grossVoterBalance.divide(totalBalance, ROUNDING_MODE);
+
+        // Amount to pay
+        final BigDecimal payout = totalInflation.multiply(voterPercentOfTotalBalance).subtract(fee);
+
+        // Convert back to stroops
+        return XLMUtils.XLMToStroop(payout);
     }
 
     /**
@@ -482,14 +586,14 @@ public class TransactionsController {
     /**
      * Saves the current transaction plan
      */
-    private void saveTransactionPlan() {
+    private boolean saveTransactionPlan(boolean quietMode) {
         // Read the current contents of the text area
         final String contents = transactionPlanTextArea.getText();
 
         if (contents.isEmpty()) {
             showInfo("Nothing to save. Build a transaction plan first!");
 
-            return;
+            return false;
         }
 
         // Try to decode them to see if they are in a valid format
@@ -498,7 +602,7 @@ public class TransactionsController {
         } catch (IOException e) {
             showError("Transaction plan format error: " + e.getMessage());
 
-            return;
+            return false;
         }
 
         // Save to file
@@ -510,12 +614,51 @@ public class TransactionsController {
         } catch (IOException e) {
             showError("Cannot write transaction plan file [" + outPutFilePath + "]: " + e.getMessage());
 
-            return;
+            return false;
         }
 
         // Show info
-        showInfo("The current transaction plan has been saved in the following file: " + outPutFilePath);
+        if (!quietMode) {
+            showInfo("The current transaction plan has been saved in the following file: " + outPutFilePath);
+        }
 
+        return true;
+    }
+
+    /**
+     * Validate the currently set amount to pay
+     */
+    private boolean validateAmountToPay() {
+        final String amountText = inflationAmountTextField.getText();
+
+        if (amountText != null && !amountText.isEmpty()) {
+            // Check that the amount specified can be parsed, otherwise fail
+            final String inflationAmountString = inflationAmountTextField.getText();
+            long inflationAmount;
+            if (XLMUtils.isPositiveStroopFormat(inflationAmountString)) {
+                inflationAmount = Long.parseLong(inflationAmountString);
+            } else if (XLMUtils.isPositiveDecimalFormat(inflationAmountString)) {
+                inflationAmount = XLMUtils.XLMToStroop(XLMUtils.decimalStringToXLM(inflationAmountString));
+            } else {
+                showError("Invalid payment amount. Please make sure you enter a positive value in either decimal (1234.1234567) or long (1234567890123456789) format");
+
+                return false;
+            }
+
+            // If the pool's balance is not enough to cover the payment, fail
+            if (inflationAmount > XLMUtils.XLMToStroop(currentPoolBalance)) {
+                showError("The pool does not have enough balance to pay the inflation amount you specified. "
+                          + "Pool balance: " + XLMUtils.formatBalanceFullPrecision(currentPoolBalance) + " XLM, "
+                          + "Inflation payment requires: " + XLMUtils.formatBalanceFullPrecision(inflationAmount) + " XLM");
+
+                return false;
+            }
+
+            // All checks passed
+            return true;
+        }
+
+        return true;
     }
 
     /**

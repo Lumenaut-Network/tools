@@ -223,18 +223,20 @@ public class MainController {
      */
     private void refreshPoolCounters() {
         final String inflationPoolData = inflationPoolDataTextArea.getText();
-        try {
-            final InflationData inflationData = OBJECT_MAPPER.readValue(inflationPoolData, InflationData.class);
-            poolDataVotersLabel.setText(String.valueOf(inflationData.getEntries().size()));
+        if (!inflationPoolData.isEmpty()) {
+            try {
+                final InflationData inflationData = OBJECT_MAPPER.readValue(inflationPoolData, InflationData.class);
+                poolDataVotersLabel.setText(String.valueOf(inflationData.getEntries().size()));
 
-            Long totalVotes = 0L;
-            for (InflationDataEntry voter : inflationData.getEntries()) {
-                totalVotes += voter.getBalance();
+                Long totalVotes = 0L;
+                for (InflationDataEntry voter : inflationData.getEntries()) {
+                    totalVotes += voter.getBalance();
+                }
+
+                poolDataTotalVotesLabel.setText(XLMUtils.formatBalanceFullPrecision(totalVotes) + " XLM");
+            } catch (IOException e) {
+                showError("Cannot compute pool data: " + e.getMessage());
             }
-
-            poolDataTotalVotesLabel.setText(XLMUtils.formatBalanceFullPrecision(totalVotes) + " XLM");
-        } catch (IOException e) {
-            showError("Cannot compute pool data: " + e.getMessage());
         }
     }
 
@@ -550,6 +552,7 @@ public class MainController {
             // Bind references in the settings controller
             transactionsController.currentVotersData = currentVotersData;
             transactionsController.currentPoolBalance = currentPoolBalance;
+            transactionsController.primaryStage = primaryStage;
 
             // Initialize the transactions stage and show it
             transactionsBuilderStage.setTitle("Transactions Builder");

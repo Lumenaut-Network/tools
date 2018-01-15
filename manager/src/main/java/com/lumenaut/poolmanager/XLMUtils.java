@@ -1,8 +1,9 @@
 package com.lumenaut.poolmanager;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.DecimalFormat;
+
+import static com.lumenaut.poolmanager.Settings.ROUNDING_MODE;
 
 /**
  * @Author Luca Vignaroli
@@ -13,9 +14,9 @@ public class XLMUtils {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FIELDS
 
-    // Formatters
-    private static final DecimalFormat XLM_FORMATTER = new DecimalFormat("#,###,###,###,##0.00");
-    private static final DecimalFormat XLM_PRECISION_FORMATTER = new DecimalFormat("#,###,###,###,##0.0000000");
+    // Config
+    public static final DecimalFormat XLM_FORMATTER = new DecimalFormat("#,###,###,###,##0.00");
+    public static final DecimalFormat XLM_PRECISION_FORMATTER = new DecimalFormat("#,###,###,###,##0.0000000");
 
     // Regex patterns
     private static final String positiveDecimalNumberPattern = "^\\d+(\\.\\d{1,7})?$";
@@ -55,7 +56,7 @@ public class XLMUtils {
      */
     public static BigDecimal decimalStringToXLM(final String amount) {
         BigDecimal bd = new BigDecimal(amount);
-        bd = bd.setScale(7, RoundingMode.HALF_EVEN);
+        bd = bd.setScale(7, ROUNDING_MODE);
 
         return bd;
     }
@@ -68,8 +69,8 @@ public class XLMUtils {
      */
     public static BigDecimal stroopToXLM(final long amount) {
         BigDecimal bd = new BigDecimal(amount);
-        bd = bd.setScale(7, RoundingMode.HALF_EVEN);       // Push it to the new scale
-        bd = bd.divide(STROOPS_IN_XLM, RoundingMode.HALF_EVEN);     // We can now safely convert stroops to XLM
+        bd = bd.setScale(7, ROUNDING_MODE);       // Push it to the new scale
+        bd = bd.divide(STROOPS_IN_XLM, ROUNDING_MODE);     // We can now safely convert stroops to XLM
 
         return bd;
     }
@@ -81,7 +82,7 @@ public class XLMUtils {
      * @return
      */
     public static long XLMToStroop(final BigDecimal amount) {
-        return amount.setScale(7, RoundingMode.HALF_EVEN).multiply(STROOPS_IN_XLM).longValue();
+        return amount.setScale(7, ROUNDING_MODE).multiply(STROOPS_IN_XLM).longValue();
     }
 
     /**
