@@ -210,6 +210,8 @@ public class DataFormats {
         public void setEntries(List<TransactionResultEntry> entries) {
             this.entries = entries;
         }
+
+        public void addEntry(TransactionResultEntry entry) { this.entries.add(entry); }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
