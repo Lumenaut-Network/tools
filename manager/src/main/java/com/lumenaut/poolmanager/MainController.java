@@ -275,6 +275,34 @@ public class MainController {
             return;
         }
 
+
+        // Get the current network of the horizon node
+        boolean horizonTestNetwork = true;
+        try {
+            horizonTestNetwork = horizonGateway.isTestNetwork();
+        } catch (SQLException e) {
+            showError("Cannot determine whether the horizon node is on the test network: " + e.getMessage());
+            return;
+        }
+
+        // Check if the networks match
+        switch (SETTING_OPERATIONS_NETWORK) {
+            case "TEST":
+                if (!horizonTestNetwork) {
+                    showError("The horizon node specified seems to be connected to the LIVE network, you are working on the TEST network. Change your settings and try again.");
+                    return;
+                }
+
+                break;
+            case "LIVE":
+                if (horizonTestNetwork) {
+                    showError("The horizon node specified seems to be connected to the TEST network, you are working on the LIVE network. Change your settings and try again.");
+                    return;
+                }
+
+                break;
+        }
+
         // Get the target pool key
         final String poolAddress = poolAddressTextField.getText();
 

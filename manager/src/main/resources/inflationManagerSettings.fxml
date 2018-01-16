@@ -29,27 +29,23 @@
                 prefWidth="151.0" text="Save" AnchorPane.bottomAnchor="14.0" AnchorPane.rightAnchor="15.0"/>
         <Button fx:id="cancelBtn" layoutX="460.0" layoutY="361.0" mnemonicParsing="false" prefHeight="25.0"
                 prefWidth="64.0" text="Cancel" AnchorPane.bottomAnchor="14.0" AnchorPane.rightAnchor="176.0"/>
-        <Label layoutX="40.0" layoutY="276.0" text="Horizon Database Address" AnchorPane.leftAnchor="40.0"
-               AnchorPane.topAnchor="276.0"/>
-        <TextField fx:id="horizonDbAddress" layoutX="190.0" layoutY="272.0" prefHeight="25.0" prefWidth="374.0"
-                   promptText="localhost" AnchorPane.leftAnchor="190.0" AnchorPane.topAnchor="272.0"/>
-        <TextField fx:id="horizonDbPort" layoutX="604.0" layoutY="272.0" prefHeight="25.0" prefWidth="82.0"
+        <Label layoutX="40.0" layoutY="217.0" text="Horizon Database Address" AnchorPane.leftAnchor="40.0"
+               AnchorPane.topAnchor="217.0"/>
+        <TextField fx:id="horizonDbAddress" layoutX="190.0" layoutY="213.0" prefHeight="25.0" prefWidth="374.0"
+                   promptText="localhost" AnchorPane.leftAnchor="190.0" AnchorPane.topAnchor="213.0"/>
+        <TextField fx:id="horizonDbPort" layoutX="604.0" layoutY="213.0" prefHeight="25.0" prefWidth="82.0"
                    promptText="5432" AnchorPane.leftAnchor="604.0" AnchorPane.rightAnchor="14.0"
-                   AnchorPane.topAnchor="272.0"/>
-        <Label layoutX="569.0" layoutY="276.0" text="Port" AnchorPane.leftAnchor="569.0" AnchorPane.topAnchor="276.0"/>
-        <Label layoutX="127.0" layoutY="309.0" text="Username" AnchorPane.leftAnchor="127.0"
-               AnchorPane.topAnchor="309.0"/>
-        <Label layoutX="424.0" layoutY="309.0" text="Password" AnchorPane.leftAnchor="424.0"
-               AnchorPane.topAnchor="309.0"/>
-        <TextField fx:id="horizonDbUser" layoutX="190.0" layoutY="305.0" prefHeight="25.0" prefWidth="225.0"
-                   AnchorPane.leftAnchor="190.0" AnchorPane.topAnchor="305.0"/>
-        <TextField fx:id="horizonDbPass" layoutX="479.0" layoutY="305.0" prefHeight="25.0" prefWidth="203.0"
-                   AnchorPane.leftAnchor="479.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="305.0"/>
+                   AnchorPane.topAnchor="213.0"/>
+        <Label layoutX="569.0" layoutY="217.0" text="Port" AnchorPane.leftAnchor="569.0" AnchorPane.topAnchor="217.0"/>
+        <Label layoutX="127.0" layoutY="250.0" text="Username" AnchorPane.leftAnchor="127.0"
+               AnchorPane.topAnchor="250.0"/>
+        <Label layoutX="424.0" layoutY="250.0" text="Password" AnchorPane.leftAnchor="424.0"
+               AnchorPane.topAnchor="250.0"/>
+        <TextField fx:id="horizonDbUser" layoutX="190.0" layoutY="246.0" prefHeight="25.0" prefWidth="225.0"
+                   AnchorPane.leftAnchor="190.0" AnchorPane.topAnchor="246.0"/>
+        <TextField fx:id="horizonDbPass" layoutX="479.0" layoutY="246.0" prefHeight="25.0" prefWidth="203.0"
+                   AnchorPane.leftAnchor="479.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="246.0"/>
         <Separator layoutY="196.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"/>
-        <Label layoutX="40.0" layoutY="209.0" prefHeight="55.0" prefWidth="646.0"
-               text="!!! WARNING !!! When using your own horizon node to retrieve inflation votes make sure that it is operating on the same network (TEST/LIVE) as the one you have selected above, transactions are executed on the network configured in these settings. Only use this feature if you know what you are doing!"
-               textFill="RED" wrapText="true" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0"
-               AnchorPane.topAnchor="209.0"/>
         <Label layoutX="37.0" layoutY="129.0" text="Memo Text (max 28 chars)"/>
         <TextField fx:id="defaultMemoTextField" layoutX="189.0" layoutY="125.0" prefHeight="25.0" prefWidth="496.0"
                    AnchorPane.leftAnchor="189.0" AnchorPane.topAnchor="125.0"/>

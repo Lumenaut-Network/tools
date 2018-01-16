@@ -124,6 +124,36 @@ public class HorizonGateway {
     }
 
     /**
+     * This is a rough attempt to detect if the horizon node we're connected is on a test network.
+     *
+     * @return
+     * @throws SQLException
+     */
+    public boolean isTestNetwork() throws SQLException {
+        // Prepared statement
+        final Statement stm = conn.createStatement();
+        final String checkNetworkSQL = "SELECT * FROM core.public.storestate WHERE statename = 'networkpassphrase'";
+
+        // Extract results
+        final ResultSet checkNetworkRS = stm.executeQuery(checkNetworkSQL);
+
+        // Assume live network unless the network passphrase contains the "test" keyword.
+        boolean isTestNework = false;
+        if (checkNetworkRS.isBeforeFirst()) {
+            checkNetworkRS.next();
+            final String state = checkNetworkRS.getString("state");
+            isTestNework = state.toLowerCase().contains("test");
+        }
+
+        // Release resources
+        checkNetworkRS.close();
+        stm.close();
+
+        // Respond
+        return isTestNework;
+    }
+
+    /**
      * Get the inflation votes currently cast to the specified accountId
      *
      * @param accountId The public key of the account receiving the inflation votes
