@@ -37,3 +37,19 @@
     -fx-background-color: #cdcbcb;
     -fx-text-alignment: center;
 }
+
+.green-bar {
+    -fx-accent: green;
+}
+
+.yellow-bar {
+    -fx-accent: yellow;
+}
+
+.orange-bar {
+    -fx-accent: orange;
+}
+
+.red-bar {
+    -fx-accent: red;
+}

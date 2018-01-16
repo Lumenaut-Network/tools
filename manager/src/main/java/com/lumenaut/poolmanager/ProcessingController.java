@@ -50,7 +50,11 @@ public class ProcessingController {
     // Transaction plan
     public TransactionPlan transactionPlan;
     public String signingKey;
+
+    // References to other stages
     public AnchorPane primaryStage;
+    public Button executeTransactionBtn;
+    public Label executedTransactionsLabel;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -95,9 +99,6 @@ public class ProcessingController {
     @FXML
     private void initialize() {
 
-        // !!!TEMPORARY!!! will only be enabled when the operation completes
-        closeBtn.setDisable(false);
-
         ////////////////////////////////////////////////////////////////
         // BUTTON HANDLERS
 
@@ -140,10 +141,16 @@ public class ProcessingController {
                     }
 
                     // Build server object
-                    Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? HORIZON_LIVE_NETWORK : HORIZON_TEST_NETWORK);
+                    final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? HORIZON_LIVE_NETWORK : HORIZON_TEST_NETWORK);
+                    ;
+                    final KeyPair source;
+                    try {
+                        source = KeyPair.fromSecretSeed(signingKey);
+                    } catch (Throwable e) {
+                        appendMessage("[ERROR] invalid signing key: " + signingKey);
 
-                    // Create KeyPair from the signing key
-                    KeyPair source = KeyPair.fromSecretSeed(signingKey);
+                        return false;
+                    }
 
                     // Build overall result
                     final TransactionResult transactionResult = new TransactionResult();
@@ -165,22 +172,22 @@ public class ProcessingController {
                     updateProgressBar(totalEntries, 0);
 
                     // Start processing
-                    int processedEntries = 0;
                     int operationsCount = 0;
                     int batchCount = 0;
                     for (TransactionPlanEntry entry : transactionPlan.getEntries()) {
-                        if (operationsCount < OPERATIONS_PER_TRANSACTION_BATCH) {
-                            // Create new entry for the temporary result (which we're using as a buffer for batches)
-                            final TransactionResultEntry transactionResultEntry = new TransactionResultEntry();
-                            transactionResultEntry.setDestination(entry.getDestination());
-                            transactionResultEntry.setAmount(entry.getAmount());
+                        // Create new entry for the temporary result (which we're using as a buffer for batches)
+                        final TransactionResultEntry transactionResultEntry = new TransactionResultEntry();
+                        transactionResultEntry.setDestination(entry.getDestination());
+                        transactionResultEntry.setAmount(entry.getAmount());
 
-                            // Append to the temporary buffer
-                            tmpBatchResult.getEntries().add(transactionResultEntry);
+                        // Append to the temporary buffer
+                        tmpBatchResult.getEntries().add(transactionResultEntry);
 
-                            // Another one bites the dust..
-                            operationsCount++;
-                        } else {
+                        // Another one bites the dust..
+                        operationsCount++;
+
+                        // If the batch is full, execute it
+                        if (operationsCount % OPERATIONS_PER_TRANSACTION_BATCH == 0) {
                             // The batch is full, time to execute
                             try {
                                 final TransactionBatchResponse batchResponse = StellarGateway.executeTransactionBatch(server, source, tmpBatchResult);
@@ -192,15 +199,13 @@ public class ProcessingController {
                                     tmpBatchResult.getEntries().clear();
 
                                     // Update counters
-                                    processedEntries += operationsCount;
-                                    operationsCount = 0;
                                     batchCount++;
 
-                                    // Update progress bar
-                                    updateProgressBar(totalEntries, processedEntries);
-
                                     // Append progress
-                                    appendMessage("Batch [" + batchCount + " of " + totalBatches + "] Submitted successfully");
+                                    appendMessage("Batch [" + batchCount + " of " + totalBatches + "] of [" + operationsCount + "/" + totalEntries + "] operations: Submitted successfully");
+
+                                    // Update progress bar
+                                    updateProgressBar(totalEntries, operationsCount);
                                 } else {
                                     // Push out the error to the console
                                     printBatchError(batchResponse);
@@ -219,14 +224,13 @@ public class ProcessingController {
                             final TransactionBatchResponse batchResponse = StellarGateway.executeTransactionBatch(server, source, tmpBatchResult);
                             if (batchResponse.success) {
                                 // Add to the progress tracker
-                                processedEntries += operationsCount;
                                 batchCount++;
 
-                                // Update progress bar
-                                updateProgressBar(totalEntries, processedEntries);
-
                                 // Append progress
-                                appendMessage("Batch [" + batchCount + " of " + totalBatches + "] Submitted successfully");
+                                appendMessage("Batch [" + batchCount + " of " + totalBatches + "] of [" + operationsCount + "/" + totalEntries + "] operations: Submitted successfully");
+
+                                // Update progress bar
+                                updateProgressBar(totalEntries, operationsCount);
                             } else {
                                 // Push out the error to the console
                                 printBatchError(batchResponse);
@@ -237,6 +241,10 @@ public class ProcessingController {
                             printExceptionError(e);
                         }
                     }
+
+                    // Update the paid label in the transaction planner
+                    final int totalTransactionsPaid = operationsCount;
+                    Platform.runLater(() -> executedTransactionsLabel.setText(String.valueOf(totalTransactionsPaid)));
 
                     // Sleep for a few ms to allow the progress bar and message to update
                     try {
@@ -256,9 +264,33 @@ public class ProcessingController {
             // Completion handler
             processing.thenAccept(success -> {
                 if (success) {
-                    processingOutputTextArea.appendText("[FINISHED] Process completed successfully\n");
+                    Platform.runLater(() -> {
+                        // Append final message
+                        appendMessage("[FINISHED] Process completed successfully\n");
+
+                        // Fill the progress bar and colorize it
+                        processingProgressBar.setProgress(1);
+                        processingProgressBar.getStyleClass().removeAll();
+                        processingProgressBar.getStyleClass().add("green-bar");
+
+                        // Update transaction planner UI
+                        executeTransactionBtn.setText("EXECUTED");
+                        executeTransactionBtn.setDisable(true);
+                    });
                 } else {
-                    processingOutputTextArea.appendText("[FINISHED] Process finished with ERRORS\n\n");
+                    Platform.runLater(() -> {
+                        // Append final message
+                        appendMessage("[FINISHED] Process finished with ERRORS\n");
+
+                        // Fill the progress bar and colorize it
+                        processingProgressBar.setProgress(1);
+                        processingProgressBar.getStyleClass().removeAll();
+                        processingProgressBar.getStyleClass().add("red-bar");
+
+                        executeTransactionBtn.setText("EXECUTED WITH ERRORS");
+                        executeTransactionBtn.setTooltip(new Tooltip("The transaction executed with errors, you might want to use the transaction results as an exclusions list and re-run the payment plan!"));
+                        executeTransactionBtn.setDisable(false);
+                    });
                 }
 
                 scrollToEnd();

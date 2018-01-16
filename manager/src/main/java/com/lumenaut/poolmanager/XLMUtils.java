@@ -19,9 +19,9 @@ public class XLMUtils {
     public static final DecimalFormat XLM_PRECISION_FORMATTER = new DecimalFormat("#,###,###,###,##0.0000000");
 
     // Regex patterns
-    private static final String positiveDecimalNumberPattern = "^\\d+(\\.\\d{1,7})?$";
-    private static final String negativeDecimalNumberPattern = "^-\\d+(\\.\\d{1,7})?$";
-    private static final String decimalNumberPattern = "^[-]?\\d+(\\.\\d{1,7})?$";
+    private static final String positiveDecimalNumberPattern = "^\\d+(\\.\\d{1,7})$";
+    private static final String negativeDecimalNumberPattern = "^-\\d+(\\.\\d{1,7})$";
+    private static final String decimalNumberPattern = "^[-]?\\d+(\\.\\d{1,7})$";
     private static final String positiveStroopFormatPattern = "^\\d{1,19}$";
     private static final String negativeStroopFormatPattern = "^-\\d{1,19}$";
     private static final String stroopFormatPattern = "^[-]?\\d{1,19}$";

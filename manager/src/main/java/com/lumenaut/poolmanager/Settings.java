@@ -30,7 +30,7 @@ public class Settings {
     public static String SETTING_HORIZON_DB_PORT = "";
     public static String SETTING_HORIZON_DB_USER = "";
     public static String SETTING_HORIZON_DB_PASS = "";
-    public static String MEMO = "Here's your inflation!";
+    public static String MEMO = "Thanks from lumenaut.net";
     public static int OPERATIONS_PER_TRANSACTION_BATCH = 100;
 
     // Non persistent settings

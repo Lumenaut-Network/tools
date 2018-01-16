@@ -15,8 +15,8 @@
                 prefHeight="25.0" prefWidth="55.0" text="Close" AnchorPane.bottomAnchor="5.0"
                 AnchorPane.rightAnchor="5.0"/>
         <ProgressBar fx:id="processingProgressBar" layoutX="5.0" layoutY="370.0" prefHeight="25.0" prefWidth="465.0"
-                     progress="0.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0"
-                     AnchorPane.rightAnchor="130.0"/>
+                     progress="0.0" stylesheets="@inflationManagerMain.css" AnchorPane.bottomAnchor="5.0"
+                     AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="130.0"/>
         <Button fx:id="startBtn" layoutX="478.0" layoutY="370.0" mnemonicParsing="false" prefHeight="25.0"
                 prefWidth="55.0" text="Start" AnchorPane.bottomAnchor="5.0" AnchorPane.rightAnchor="67.0"/>
     </children>

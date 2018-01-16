@@ -220,6 +220,8 @@ public class TransactionsController {
                     // Bind references in the settings controller
                     processingController.primaryStage = primaryStage;
                     processingController.transactionPlan = transactionPlan;
+                    processingController.executeTransactionBtn = executeTransactionBtn;
+                    processingController.executedTransactionsLabel = executedTransactionsLabel;
                     processingController.signingKey = signingKey;
 
                     // Initialize the transactions stage and show it
@@ -299,6 +301,11 @@ public class TransactionsController {
 
             return false;
         } else {
+            // Init payments rerouting and exclusion counters
+            final AtomicInteger rerouted = new AtomicInteger(0);
+            final AtomicInteger excluded = new AtomicInteger(0);
+            final AtomicLong totalPayments = new AtomicLong(0);
+
             // Reset votes data
             if (votesAndBalances == null) {
                 votesAndBalances = new HashMap<>();
@@ -357,7 +364,14 @@ public class TransactionsController {
             // Populate it
             for (HashMap.Entry<String, Long> voter : votesAndBalances.entrySet()) {
                 final long voterBalance = voter.getValue();
-                votesAndPayments.put(voter.getKey(), computeVoterPayout(inflationAmount, totalVotesAmount, voterBalance));
+                final long voterPayment = computeVoterPayout(inflationAmount, totalVotesAmount, voterBalance);
+
+                // Only append if the actual payment is positive (if the fees are higher than the payout it can happen)
+                if (voterPayment > 0) {
+                    votesAndPayments.put(voter.getKey(), voterPayment);
+                } else {
+                    excluded.getAndIncrement();
+                }
             }
 
             // Get exclusion data
@@ -387,11 +401,6 @@ public class TransactionsController {
             final TransactionPlan newPlan = new TransactionPlan();
             newPlan.setEntries(new LinkedList<>());
             newPlan.setUuid(uuid);
-
-            // Init rerouting and exclusion counters
-            final AtomicInteger rerouted = new AtomicInteger(0);
-            final AtomicInteger excluded = new AtomicInteger(0);
-            final AtomicLong totalPayments = new AtomicLong(0);
 
             // Set total votes balance
             newPlan.setTotalvotes(totalVotesAmount);
@@ -635,12 +644,10 @@ public class TransactionsController {
             // Check that the amount specified can be parsed, otherwise fail
             final String inflationAmountString = inflationAmountTextField.getText();
             long inflationAmount;
-            if (XLMUtils.isPositiveStroopFormat(inflationAmountString)) {
-                inflationAmount = Long.parseLong(inflationAmountString);
-            } else if (XLMUtils.isPositiveDecimalFormat(inflationAmountString)) {
+            if (XLMUtils.isPositiveDecimalFormat(inflationAmountString)) {
                 inflationAmount = XLMUtils.XLMToStroop(XLMUtils.decimalStringToXLM(inflationAmountString));
             } else {
-                showError("Invalid payment amount. Please make sure you enter a positive value in either decimal (1234.1234567) or long (1234567890123456789) format");
+                showError("Invalid payment amount. Please make sure you enter a positive value in decimal format (1234.1234567). The value must be expressed in XLM, not Stroops!");
 
                 return false;
             }
