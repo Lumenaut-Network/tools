@@ -3,7 +3,9 @@ package com.lumenaut.poolmanager;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonParser.Feature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.stellar.sdk.responses.SubmitTransactionResponse;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,6 +39,18 @@ public class DataFormats {
     // Object mapper configuration
     static {
         OBJECT_MAPPER.configure(Feature.ALLOW_COMMENTS, true);
+    }
+
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region TRANSACTION RESPONSES
+
+    public static class TransactionBatchResponse {
+        public boolean success = false;
+        public SubmitTransactionResponse transactionResponse;
+        public ArrayList<String> errorMessages = new ArrayList<>();
     }
 
     //endregion
@@ -210,8 +224,6 @@ public class DataFormats {
         public void setEntries(List<TransactionResultEntry> entries) {
             this.entries = entries;
         }
-
-        public void addEntry(TransactionResultEntry entry) { this.entries.add(entry); }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

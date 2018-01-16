@@ -15,6 +15,10 @@ public class Settings {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FIELDS
 
+    // Horizon networks
+    public static final String HORIZON_TEST_NETWORK = "https://horizon-testnet.stellar.org";
+    public static final String HORIZON_LIVE_NETWORK = "https://horizon.stellar.org";
+
     // Properties instance
     private static final Properties PROPERTIES = new Properties();
 
@@ -26,6 +30,8 @@ public class Settings {
     public static String SETTING_HORIZON_DB_PORT = "";
     public static String SETTING_HORIZON_DB_USER = "";
     public static String SETTING_HORIZON_DB_PASS = "";
+    public static String MEMO = "Here's your inflation!";
+    public static int OPERATIONS_PER_TRANSACTION_BATCH = 100;
 
     // Non persistent settings
     public static RoundingMode ROUNDING_MODE = RoundingMode.HALF_DOWN;

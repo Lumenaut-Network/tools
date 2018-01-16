@@ -1,24 +1,19 @@
 package com.lumenaut.poolmanager.gateways;
 
-import static com.lumenaut.poolmanager.Settings.SETTING_OPERATIONS_NETWORK;
-
-import java.io.File;
-import java.io.IOException;
-import java.math.BigDecimal;
-
-import org.stellar.sdk.AssetTypeNative;
-import org.stellar.sdk.KeyPair;
-import org.stellar.sdk.Memo;
-import org.stellar.sdk.Network;
-import org.stellar.sdk.PaymentOperation;
-import org.stellar.sdk.Server;
-import org.stellar.sdk.Transaction;
+import com.lumenaut.poolmanager.DataFormats.TransactionBatchResponse;
+import com.lumenaut.poolmanager.DataFormats.TransactionResult;
+import com.lumenaut.poolmanager.DataFormats.TransactionResultEntry;
+import com.lumenaut.poolmanager.Settings;
+import com.lumenaut.poolmanager.XLMUtils;
+import org.stellar.sdk.*;
+import org.stellar.sdk.Transaction.Builder;
 import org.stellar.sdk.responses.AccountResponse;
 import org.stellar.sdk.responses.SubmitTransactionResponse;
 
-import com.lumenaut.poolmanager.DataFormats;
+import java.io.IOException;
+import java.math.BigDecimal;
 
-import javafx.scene.control.Label;
+import static com.lumenaut.poolmanager.Settings.*;
 
 /**
  * @Author Luca Vignaroli
@@ -31,10 +26,6 @@ import javafx.scene.control.Label;
 public class StellarGateway {
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//region FIELDS
-
-	// Horizon networks
-	private static final String HORIZON_TEST_NETWORK = "https://horizon-testnet.stellar.org";
-	private static final String HORIZON_LIVE_NETWORK = "https://horizon.stellar.org";
 
 	//endregion
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,126 +90,72 @@ public class StellarGateway {
 	}
 
 	/**
-	 * Execute the transactions with the given transactionPlan
+	 * Execute the given transactions in a single batch
 	 *
-	 * @param transactionPlan
-	 * @param amountPaid
-	 * @param secretSeed
-	 * @param memo
+	 * @param server
+	 * @param source
+	 * @param transactionResult
+	 * @return
+	 * @throws IOException
+	 */
+	public static TransactionBatchResponse executeTransactionBatch(final Server server, final KeyPair source, final TransactionResult transactionResult) throws IOException {
+		// Prepare response object
+		final TransactionBatchResponse response = new TransactionBatchResponse();
+
+		// Refuse batches with more than 100 operations
+		if (transactionResult.getEntries().size() > OPERATIONS_PER_TRANSACTION_BATCH) {
+			response.success = false;
+			response.errorMessages.add("Refusing to execute a transaction batch with more than [" + OPERATIONS_PER_TRANSACTION_BATCH + "] entries. The batch contains [" + transactionResult.getEntries().size() + "] entries");
+
+			return response;
+		}
+
+		// Prepare a new transaction builder
+		final AccountResponse sourceAccount = server.accounts().account(source);
+		final Builder transactionBuilder = new Transaction.Builder(sourceAccount);
+
+		// Add memo to the transaction
+		transactionBuilder.addMemo(Memo.text(Settings.MEMO));
+
+		// Process all entries
+		for (TransactionResultEntry entry : transactionResult.getEntries()) {
+			// Append operation
+			// !!! IMPORTANT !!! the amount must be specified in XLM as a string in decimal format e.g. 10.0000001 -> 10 lumens, 1 stroop
+			transactionBuilder.addOperation(new PaymentOperation.Builder(KeyPair.fromAccountId(entry.getDestination()), new AssetTypeNative(), XLMUtils.stroopToXLM(entry.getAmount()).toString()).build());
+
+			// Update entry operation timestamp
+			entry.setTimestamp(System.currentTimeMillis());
+		}
+
+
+		// Finalize the transaction
+		final Transaction transaction = transactionBuilder.build();
+		transaction.sign(source);
+
+		// Submit
+		final SubmitTransactionResponse transactionResponse = server.submitTransaction(transaction);
+		if (transactionResponse.isSuccess()) {
+			// Transaction batch was successful
+			response.success = true;
+		} else {
+			// Transaction batch failed
+			response.success = false;
+			response.transactionResponse = transactionResponse;
+			response.errorMessages.add("The transaction response from the horizon network reported an unsuccessful outcome");
+		}
+
+		return response;
+	}
+
+	/**
+	 * Verify all the accounts in the specified transactions plan
+	 *
+	 * @param server
+	 * @param transactionResult
 	 * @return
 	 */
-	public static boolean executeTransactions(DataFormats.TransactionPlan transactionPlan, Label amountPaid, String secretSeed, String memo) throws IOException {
-		if (transactionPlan != null) {
-			DataFormats.TransactionResult transactionResult = new DataFormats.TransactionResult();
-			long totalPaid = 0;
-
-			transactionResult.setUuid(transactionPlan.getUuid());
-
-			// Init network to be used
-			switch (SETTING_OPERATIONS_NETWORK) {
-				case "LIVE":
-					Network.usePublicNetwork();
-					break;
-				case "TEST":
-					Network.useTestNetwork();
-					break;
-			}
-
-			// Build server object
-			Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? HORIZON_LIVE_NETWORK : HORIZON_TEST_NETWORK);
-			KeyPair source = KeyPair.fromSecretSeed(secretSeed);
-
-			int operationsCount = 0;
-
-			for (DataFormats.TransactionPlanEntry entry : transactionPlan.getEntries()) {
-				if (operationsCount < 100) {
-					DataFormats.TransactionResultEntry transactionResultEntry = new DataFormats.TransactionResultEntry();
-					transactionResultEntry.setDestination(entry.getDestination());
-					transactionResultEntry.setAmount(entry.getAmount());
-					transactionResult.addEntry(transactionResultEntry);
-					operationsCount++;
-				} else {
-					if (executeTransactionBatch(server, source, transactionResult, memo)) {
-						totalPaid += writeJsonTransaction(transactionResult);
-						amountPaid.setText("" + totalPaid);
-
-						operationsCount = 0;
-						transactionResult = new DataFormats.TransactionResult();
-						transactionResult.setUuid(transactionPlan.getUuid());
-					} else {
-						return false;
-					}
-				}
-			}
-
-			if (!transactionResult.getEntries().isEmpty() && executeTransactionBatch(server, source, transactionResult, memo)) {
-				totalPaid += writeJsonTransaction(transactionResult);
-				amountPaid.setText("" + totalPaid);
-			} else {
-				System.out.println("Transaction batch failed.");
-				return false;
-			}
-
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	private static long writeJsonTransaction(DataFormats.TransactionResult transactionResult) {
-		long totalPaid = 0;
-
-		for (DataFormats.TransactionResultEntry transactionEntry : transactionResult.getEntries()) {
-			transactionResult.addEntry(transactionEntry);
-			totalPaid += transactionEntry.getAmount();
-		}
-
-		try {
-			File transactionJson = File.createTempFile("transactionJson_", ".JSON");
-			DataFormats.OBJECT_MAPPER.writeValue(transactionJson, DataFormats.OBJECT_MAPPER.valueToTree(transactionResult));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		return totalPaid;
-	}
-
-	private static boolean executeTransactionBatch(Server server, KeyPair source, DataFormats.TransactionResult transactionResult, String memo) throws IOException {
-		if (verifyAccounts(server, transactionResult)) {
-			try {
-				AccountResponse sourceAccount = server.accounts().account(source);
-
-				Transaction.Builder transactionBuilder = new Transaction.Builder(sourceAccount);
-
-				long timestamp = System.currentTimeMillis();
-				for (DataFormats.TransactionResultEntry entry : transactionResult.getEntries()) {
-					entry.setTimestamp(timestamp);
-					transactionBuilder.addOperation(new PaymentOperation.Builder(KeyPair.fromAccountId(entry.getDestination()), new AssetTypeNative(), entry.getAmount().toString()).build());
-				}
-				transactionBuilder.addMemo(Memo.text(memo));
-
-				Transaction transaction = transactionBuilder.build();
-				transaction.sign(source);
-				SubmitTransactionResponse response = server.submitTransaction(transaction);
-
-				if (!response.isSuccess()) {
-					System.out.println("Transaction batch failed.");
-					System.out.println(response);
-				}
-
-				return response.isSuccess();
-			} catch (Throwable e) {
-				System.out.println("Unable to execute transaction batch: " + e.getMessage());
-				e.printStackTrace();
-
-				throw e;
-			}
-		}
-		return false;
-	}
-
-	private static boolean verifyAccounts(Server server, DataFormats.TransactionResult transactionResult) {
-		for (DataFormats.TransactionResultEntry entry : transactionResult.getEntries()) {
+	private static boolean verifyAccounts(final Server server, final TransactionResult transactionResult) {
+		for (TransactionResultEntry entry : transactionResult.getEntries()) {
 			try {
 				server.accounts().account(KeyPair.fromAccountId(entry.getDestination()));
 			} catch (IOException e) {
