@@ -134,11 +134,13 @@ public class SettingsController {
                     case "TEST":
                         selectedNetworkRect.setFill(Paint.valueOf("#64EE64"));
                         selectedNetworkLabel.setText("TEST NETWORK");
+                        SETTING_OPERATIONS_NETWORK = "TEST";
 
                         break;
                     case "LIVE":
                         selectedNetworkRect.setFill(Paint.valueOf("#EE4B52"));
                         selectedNetworkLabel.setText("LIVE NETWORK");
+                        SETTING_OPERATIONS_NETWORK = "LIVE";
 
                         break;
                 }
