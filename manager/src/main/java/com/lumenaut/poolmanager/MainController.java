@@ -213,7 +213,7 @@ public class MainController {
                     totalVotes += voter.getBalance();
                 }
 
-                poolDataTotalVotesLabel.setText(XLMUtils.formatBalanceFullPrecision(totalVotes) + " XLM");
+                poolDataTotalVotesLabel.setText(XLMUtils.formatBalance(totalVotes) + " XLM");
             } catch (IOException e) {
                 showError("Cannot compute pool data: " + e.getMessage());
             }
