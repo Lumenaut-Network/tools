@@ -223,7 +223,7 @@ public class MainController {
      */
     private void refreshPoolCounters() {
         final String inflationPoolData = inflationPoolDataTextArea.getText();
-        if (!inflationPoolData.isEmpty()) {
+        if (inflationPoolData != null && !inflationPoolData.isEmpty()) {
             try {
                 final InflationData inflationData = OBJECT_MAPPER.readValue(inflationPoolData, InflationData.class);
                 poolDataVotersLabel.setText(String.valueOf(inflationData.getEntries().size()));
@@ -360,6 +360,11 @@ public class MainController {
      * Fetch data from the federation network
      */
     private void fetchFedNetworkData() {
+        if (SETTING_OPERATIONS_NETWORK.equals("TEST")) {
+            showError("Cannot fetch inflation pool's data from " + SETTING_FEDERATION_NETWORK_INFLATION_URL + " while on the TEST network!");
+            return;
+        }
+
         // Get the target pool key
         final String poolAddress = poolAddressTextField.getText();
 
@@ -391,7 +396,8 @@ public class MainController {
                     // Cancel applicationBusy state and show error
                     Platform.runLater(() -> {
                         setBusyState(false);
-                        showError(e.getMessage());
+                        showError("Unable to retrieve data for the pool address you specified (" + poolAddress + "):\n\n" + e.getMessage() +
+                                  "\n\nPlease check that the address exists in the same network as your settings!");
                     });
                 }
 
@@ -400,14 +406,19 @@ public class MainController {
 
             // Process task completion
             request.thenAccept(inflationPoolData -> {
-                // Update text area
-                inflationPoolDataTextArea.setText(inflationPoolData);
+                if (inflationPoolData != null) {
+                    // Update text area
+                    inflationPoolDataTextArea.setText(inflationPoolData);
 
-                // Cancel applicationBusy state
+                    // Cancel applicationBusy state
+                    Platform.runLater(() -> {
+                        refreshPoolCounters();
+                        fetchPoolBalanceViaStellar();
+                    });
+                }
+
                 Platform.runLater(() -> {
                     setBusyState(false);
-                    refreshPoolCounters();
-                    fetchPoolBalanceViaStellar();
                 });
             });
         }

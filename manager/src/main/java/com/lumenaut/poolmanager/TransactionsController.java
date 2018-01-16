@@ -23,13 +23,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.lumenaut.poolmanager.DataFormats.*;
-import static com.lumenaut.poolmanager.Settings.ROUNDING_MODE;
-import static com.lumenaut.poolmanager.Settings.SETTING_FEE;
-import static com.lumenaut.poolmanager.Settings.SETTING_OPERATIONS_NETWORK;
+import static com.lumenaut.poolmanager.Settings.*;
 
 /**
  * @Author Luca Vignaroli
@@ -312,6 +311,10 @@ public class TransactionsController {
             final AtomicInteger excluded = new AtomicInteger(0);
             final AtomicLong totalPayments = new AtomicLong(0);
 
+            // Init special trackers for exclusions
+            final AtomicBoolean excludedPoolSelfVote = new AtomicBoolean(false);
+            final AtomicInteger excludedNegativePayments = new AtomicInteger(0);
+
             // Reset votes data
             if (votesAndBalances == null) {
                 votesAndBalances = new HashMap<>();
@@ -387,8 +390,8 @@ public class TransactionsController {
                     // Exclude
                     excluded.getAndIncrement();
 
-                    // Notify the user
-                    showInfo("The pool is voting for itself, it has been excluded from the payment plan!");
+                    // Flag pool exclusion
+                    excludedPoolSelfVote.set(true);
 
                     continue;
                 }
@@ -398,6 +401,7 @@ public class TransactionsController {
                     votesAndPayments.put(voter.getKey(), voterPayment);
                 } else {
                     excluded.getAndIncrement();
+                    excludedNegativePayments.getAndIncrement();
                 }
             }
 
@@ -482,6 +486,16 @@ public class TransactionsController {
 
             // Update the transaction plan
             transactionPlan = newPlan;
+
+            // Notify of pool exclusion
+            if (excludedPoolSelfVote.get()) {
+                showInfo("The pool is voting for itself, it has been excluded from the payment plan!");
+            }
+
+            // Notify of negative payments exclusions
+            if (excludedNegativePayments.get() > 0) {
+                showInfo(excludedNegativePayments.get() + " accounts have been excluded from the distribution because their payment amounts minus the fee would be negative");
+            }
 
             // Plan ready
             return true;
