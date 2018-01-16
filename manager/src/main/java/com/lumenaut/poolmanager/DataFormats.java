@@ -207,6 +207,9 @@ public class DataFormats {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class TransactionResult {
         private String uuid;
+        private int plannedOperations;
+        private int executedOperations;
+        private String resultOutcome;
         private List<TransactionResultEntry> entries;
 
         public String getUuid() {
@@ -215,6 +218,30 @@ public class DataFormats {
 
         public void setUuid(String uuid) {
             this.uuid = uuid;
+        }
+
+        public int getPlannedOperations() {
+            return plannedOperations;
+        }
+
+        public void setPlannedOperations(int plannedOperations) {
+            this.plannedOperations = plannedOperations;
+        }
+
+        public int getExecutedOperations() {
+            return executedOperations;
+        }
+
+        public void setExecutedOperations(int executedOperations) {
+            this.executedOperations = executedOperations;
+        }
+
+        public String getResultOutcome() {
+            return resultOutcome;
+        }
+
+        public void setResultOutcome(String resultOutcome) {
+            this.resultOutcome = resultOutcome;
         }
 
         public List<TransactionResultEntry> getEntries() {

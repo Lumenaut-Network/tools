@@ -11,11 +11,16 @@ import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Network;
 import org.stellar.sdk.Server;
 
-import java.io.IOException;
+import java.io.*;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
 
+import static com.lumenaut.poolmanager.DataFormats.*;
 import static com.lumenaut.poolmanager.Settings.*;
+import static com.lumenaut.poolmanager.TransactionsController.FILE_DATE_FORMATTER;
+import static com.lumenaut.poolmanager.TransactionsController.FOLDER_DATE_FORMATTER;
+import static com.lumenaut.poolmanager.TransactionsController.TRANSACTION_RESULT_JSON_SUFFIX;
 
 /**
  * @Author Luca Vignaroli
@@ -55,6 +60,7 @@ public class ProcessingController {
     public AnchorPane primaryStage;
     public Button executeTransactionBtn;
     public Label executedTransactionsLabel;
+    public Button rebuildTransactionPlanBtn;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -168,6 +174,9 @@ public class ProcessingController {
                     final int totalEntries = transactionPlan.getEntries().size();
                     final int totalBatches = totalEntries / OPERATIONS_PER_TRANSACTION_BATCH + (totalEntries % OPERATIONS_PER_TRANSACTION_BATCH > 0 ? 1 : 0);
 
+                    // Update result total entries planned
+                    transactionResult.setPlannedOperations(totalEntries);
+
                     // Update progress bar
                     updateProgressBar(totalEntries, 0);
 
@@ -194,6 +203,7 @@ public class ProcessingController {
                                 if (batchResponse.success) {
                                     // Append completed batch to the final result
                                     transactionResult.getEntries().addAll(tmpBatchResult.getEntries());
+                                    transactionResult.setExecutedOperations(operationsCount);
 
                                     // Clear the tmp buffer
                                     tmpBatchResult.getEntries().clear();
@@ -207,13 +217,38 @@ public class ProcessingController {
                                     // Update progress bar
                                     updateProgressBar(totalEntries, operationsCount);
                                 } else {
+                                    // Clear the tmp buffer
+                                    tmpBatchResult.getEntries().clear();
+
+                                    // Update result outcome
+                                    transactionResult.setResultOutcome(operationsCount > 0 ? "PARTIALLY EXECUTED" : "NOT EXECUTED");
+
                                     // Push out the error to the console
+                                    appendMessage("Batch [" + batchCount + " of " + totalBatches + "] of [" + operationsCount + "/" + totalEntries + "] operations: FAILED");
                                     printBatchError(batchResponse);
+
+                                    // Save the transaction results
+                                    saveTransactionResult(transactionResult, false);
 
                                     return false;
                                 }
                             } catch (IOException e) {
-                                printExceptionError(e);
+                                // Update batch counter, if the exception triggered it would have not been updated
+                                batchCount++;
+
+                                // Clear the tmp buffer
+                                tmpBatchResult.getEntries().clear();
+
+                                // Append progress
+                                appendMessage("Batch [" + batchCount + " of " + totalBatches + "] of [" + operationsCount + "/" + totalEntries + "] operations: FAILED");
+
+                                // Update result outcome
+                                transactionResult.setResultOutcome(operationsCount > 0 ? "PARTIALLY EXECUTED" : "NOT EXECUTED");
+
+                                // Save the transaction results
+                                saveTransactionResult(transactionResult, false);
+
+                                return false;
                             }
                         }
                     }
@@ -223,6 +258,10 @@ public class ProcessingController {
                         try {
                             final TransactionBatchResponse batchResponse = StellarGateway.executeTransactionBatch(server, source, tmpBatchResult);
                             if (batchResponse.success) {
+                                // Append completed batch to the final result
+                                transactionResult.getEntries().addAll(tmpBatchResult.getEntries());
+                                transactionResult.setExecutedOperations(operationsCount);
+
                                 // Add to the progress tracker
                                 batchCount++;
 
@@ -232,19 +271,48 @@ public class ProcessingController {
                                 // Update progress bar
                                 updateProgressBar(totalEntries, operationsCount);
                             } else {
+                                // Update result outcome
+                                transactionResult.setResultOutcome(operationsCount > 0 ? "PARTIALLY EXECUTED" : "NOT EXECUTED");
+
                                 // Push out the error to the console
+                                appendMessage("Batch [" + batchCount + " of " + totalBatches + "] of [" + operationsCount + "/" + totalEntries + "] operations: FAILED");
                                 printBatchError(batchResponse);
+
+                                // Save the transaction results
+                                saveTransactionResult(transactionResult, false);
 
                                 return false;
                             }
                         } catch (IOException e) {
-                            printExceptionError(e);
+                            // Update batch counter, if the exception triggered it would have not been updated
+                            batchCount++;
+
+                            // Update result outcome
+                            transactionResult.setResultOutcome(operationsCount > 0 ? "PARTIALLY EXECUTED" : "NOT EXECUTED");
+
+                            // Append progress
+                            appendMessage("Batch [" + batchCount + " of " + totalBatches + "] of [" + operationsCount + "/" + totalEntries + "] operations: FAILED");
+
+                            // Save the transaction results
+                            saveTransactionResult(transactionResult, false);
+
+                            return false;
                         }
                     }
 
                     // Update the paid label in the transaction planner
                     final int totalTransactionsPaid = operationsCount;
                     Platform.runLater(() -> executedTransactionsLabel.setText(String.valueOf(totalTransactionsPaid)));
+
+                    // Update result outcome
+                    if (operationsCount == totalEntries) {
+                        transactionResult.setResultOutcome("SUCCESSFULLY EXECUTED");
+                    } else {
+                        transactionResult.setResultOutcome("EXECUTION ERROR, NOT ALL OPERATIONS EXECUTED");
+                    }
+
+                    // Save the transaction result file
+                    saveTransactionResult(transactionResult, false);
 
                     // Sleep for a few ms to allow the progress bar and message to update
                     try {
@@ -276,6 +344,7 @@ public class ProcessingController {
                         // Update transaction planner UI
                         executeTransactionBtn.setText("EXECUTED");
                         executeTransactionBtn.setDisable(true);
+                        rebuildTransactionPlanBtn.setDisable(true);
                     });
                 } else {
                     Platform.runLater(() -> {
@@ -288,8 +357,9 @@ public class ProcessingController {
                         processingProgressBar.getStyleClass().add("red-bar");
 
                         executeTransactionBtn.setText("EXECUTED WITH ERRORS");
-                        executeTransactionBtn.setTooltip(new Tooltip("The transaction executed with errors, you might want to use the transaction results as an exclusions list and re-run the payment plan!"));
-                        executeTransactionBtn.setDisable(false);
+                        executeTransactionBtn.setTooltip(new Tooltip("The transaction executed with errors, you might want to use the transaction results as an exclusions list and build a new transaction plan!"));
+                        executeTransactionBtn.setDisable(true);
+                        rebuildTransactionPlanBtn.setDisable(false);
                     });
                 }
 
@@ -388,13 +458,71 @@ public class ProcessingController {
     }
 
     /**
+     * Saves the specified transaction result
+     */
+    private boolean saveTransactionResult(final TransactionResult result, final boolean quietMode) {
+        // Read the current contents of the text area
+        if (result == null) {
+            showError("Cannot save transaction result, the result is empty");
+
+            return false;
+        }
+
+        // Try to decode them to see if they are in a valid format
+        final String jsonResult;
+        try {
+            jsonResult = OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(result);
+        } catch (IOException e) {
+            showError("Transaction result format error: " + e.getMessage());
+
+            return false;
+        }
+
+        // Create folder if missing
+        final String destinationFolder = "data/" + FOLDER_DATE_FORMATTER.format(new Date());
+        final String destinationFileName = FILE_DATE_FORMATTER.format(new Date()) + "_" + result.getUuid() + "_" + TRANSACTION_RESULT_JSON_SUFFIX;
+        final File destinationDir = new File(destinationFolder);
+        boolean destinationReady;
+        if (!destinationDir.exists()) {
+            destinationReady = destinationDir.mkdir();
+        } else {
+            destinationReady = true;
+        }
+
+        // Save to file
+        if (destinationReady) {
+            // Save to file
+            final String outPutFilePath = destinationFolder + "/" + destinationFileName;
+            try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(outPutFilePath), "UTF-8");
+                 BufferedWriter bufWriter = new BufferedWriter(writer)
+            ) {
+                bufWriter.write(jsonResult);
+            } catch (IOException e) {
+                showError("Cannot write transaction result file [" + outPutFilePath + "]: " + e.getMessage());
+
+                return false;
+            }
+
+            // Show info
+            if (!quietMode) {
+                showInfo("The current transaction result has been saved in the following file: " + outPutFilePath);
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Shows an error dialog
      *
      * @param message
      */
     private void showError(final String message) {
-        final Alert alert = new Alert(AlertType.ERROR, message, ButtonType.OK);
-        alert.show();
+        Platform.runLater(() -> {
+            final Alert alert = new Alert(AlertType.ERROR, message, ButtonType.OK);
+            alert.show();
+        });
+
     }
 
     /**
@@ -403,8 +531,10 @@ public class ProcessingController {
      * @param message
      */
     private void showInfo(final String message) {
-        final Alert alert = new Alert(AlertType.INFORMATION, message, ButtonType.OK);
-        alert.show();
+        Platform.runLater(() -> {
+            final Alert alert = new Alert(AlertType.INFORMATION, message, ButtonType.OK);
+            alert.show();
+        });
     }
 
     //endregion

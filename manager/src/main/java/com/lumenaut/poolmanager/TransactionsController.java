@@ -109,9 +109,12 @@ public class TransactionsController {
     public static final String DATA_EXCLUSIONS_JSON_PATH = "data/exclusions.json";
     public static final String DATA_REROUTING_JSON_PATH = "data/rerouting.json";
     public static final String TRANSACTION_PLAN_JSON_SUFFIX = "transaction_plan.json";
-    public static final DateFormat FILE_DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss_");
+    public static final String TRANSACTION_RESULT_JSON_SUFFIX = "transaction_result.json";
+    public static final DateFormat FOLDER_DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd");
+    public static final DateFormat FILE_DATE_FORMATTER = new SimpleDateFormat("HH'h'mm'm'ss's'");
 
     // Data bindings from the MainController
+    public TextField poolAddressTextField;
     public JsonNode currentVotersData;
     public BigDecimal currentPoolBalance;
     public AnchorPane primaryStage;
@@ -222,6 +225,7 @@ public class TransactionsController {
                     processingController.transactionPlan = transactionPlan;
                     processingController.executeTransactionBtn = executeTransactionBtn;
                     processingController.executedTransactionsLabel = executedTransactionsLabel;
+                    processingController.rebuildTransactionPlanBtn = rebuildTransactionPlanBtn;
                     processingController.signingKey = signingKey;
 
                     // Initialize the transactions stage and show it
@@ -274,6 +278,7 @@ public class TransactionsController {
 
         // Activate execution
         executeTransactionBtn.setDisable(false);
+        executeTransactionBtn.setText("EXECUTE");
     }
 
     /**
@@ -314,6 +319,15 @@ public class TransactionsController {
             }
 
             // Populate it
+            final String poolAddress = poolAddressTextField.getText();
+
+            // Check pool address
+            if (poolAddress == null || poolAddress.isEmpty()) {
+                showError("Pool address cannot be fetched from the main window");
+
+                return false;
+            }
+
             final JsonNode votesEntries = currentVotersData.get("entries");
             if (votesEntries.isArray()) {
                 for (final JsonNode entry : votesEntries) {
@@ -363,8 +377,20 @@ public class TransactionsController {
 
             // Populate it
             for (HashMap.Entry<String, Long> voter : votesAndBalances.entrySet()) {
+                final String voterAddres = voter.getKey();
                 final long voterBalance = voter.getValue();
                 final long voterPayment = computeVoterPayout(inflationAmount, totalVotesAmount, voterBalance);
+
+                // Exclude the pool addres (it can be voting itself)
+                if (voterAddres.equals(poolAddress)) {
+                    // Exclude
+                    excluded.getAndIncrement();
+
+                    // Notify the user
+                    showInfo("The pool is voting for itself, it has been excluded from the payment plan!");
+
+                    continue;
+                }
 
                 // Only append if the actual payment is positive (if the fees are higher than the payout it can happen)
                 if (voterPayment > 0) {
@@ -614,21 +640,38 @@ public class TransactionsController {
             return false;
         }
 
-        // Save to file
-        final String outPutFilePath = "data/" + FILE_DATE_FORMATTER.format(new Date()) + TRANSACTION_PLAN_JSON_SUFFIX;
-        try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(outPutFilePath), "UTF-8");
-             BufferedWriter bufWriter = new BufferedWriter(writer)
-        ) {
-            bufWriter.write(contents);
-        } catch (IOException e) {
-            showError("Cannot write transaction plan file [" + outPutFilePath + "]: " + e.getMessage());
-
-            return false;
+        // Create folder if missing
+        final String destinationFolder = "data/" + FOLDER_DATE_FORMATTER.format(new Date());
+        final String destinationFileName = FILE_DATE_FORMATTER.format(new Date()) + "_" + TRANSACTION_PLAN_JSON_SUFFIX;
+        final File destinationDir = new File(destinationFolder);
+        boolean destinationReady;
+        if (!destinationDir.exists()) {
+            destinationReady = destinationDir.mkdir();
+        } else {
+            destinationReady = true;
         }
 
-        // Show info
-        if (!quietMode) {
-            showInfo("The current transaction plan has been saved in the following file: " + outPutFilePath);
+        // Save to file
+        if (destinationReady) {
+            final String outPutFilePath = destinationFolder + "/" + destinationFileName;
+            try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(outPutFilePath), "UTF-8");
+                 BufferedWriter bufWriter = new BufferedWriter(writer)
+            ) {
+                bufWriter.write(contents);
+            } catch (IOException e) {
+                showError("Cannot write transaction plan file [" + outPutFilePath + "]: " + e.getMessage());
+
+                return false;
+            }
+
+            // Show info
+            if (!quietMode) {
+                showInfo("The current transaction plan has been saved in the following file: " + outPutFilePath);
+            }
+        } else {
+            showError("Cannot write transaction plan file, unable to create folder: " + destinationFolder);
+
+            return false;
         }
 
         return true;

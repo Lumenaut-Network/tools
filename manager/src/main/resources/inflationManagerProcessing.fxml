@@ -9,11 +9,12 @@
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.lumenaut.poolmanager.ProcessingController">
     <children>
         <TextArea fx:id="processingOutputTextArea" editable="false" layoutX="14.0" layoutY="14.0" prefHeight="359.0"
-                  prefWidth="590.0" stylesheets="@inflationManagerMain.css" AnchorPane.bottomAnchor="36.0"
-                  AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0"/>
-        <Button fx:id="closeBtn" disable="true" layoutX="540.0" layoutY="370.0" mnemonicParsing="false"
-                prefHeight="25.0" prefWidth="55.0" text="Close" AnchorPane.bottomAnchor="5.0"
-                AnchorPane.rightAnchor="5.0"/>
+                  prefWidth="590.0" stylesheets="@inflationManagerMain.css"
+                  text="[WARNING] Once the process has started it will be impossible to stop it without killing the application. This is by design, so that if something goes wrong you will be able to recover from a partial payment. IF YOU FORCEFULLY STOP THIS PROCESS YOU WILL NOT BE ABLE TO RESUME PAYMENTS.&#10;&#10;[READY] Press &quot;Start&quot; to begin"
+                  wrapText="true" AnchorPane.bottomAnchor="36.0" AnchorPane.leftAnchor="5.0"
+                  AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0"/>
+        <Button fx:id="closeBtn" layoutX="540.0" layoutY="370.0" mnemonicParsing="false" prefHeight="25.0"
+                prefWidth="55.0" text="Close" AnchorPane.bottomAnchor="5.0" AnchorPane.rightAnchor="5.0"/>
         <ProgressBar fx:id="processingProgressBar" layoutX="5.0" layoutY="370.0" prefHeight="25.0" prefWidth="465.0"
                      progress="0.0" stylesheets="@inflationManagerMain.css" AnchorPane.bottomAnchor="5.0"
                      AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="130.0"/>

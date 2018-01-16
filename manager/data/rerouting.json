@@ -1,4 +1,6 @@
 {
+    // Rerouted entries will be processed before exclusions!
+    // If the rerouted destination is present in the exclusions list it will be excluded as expected
     "entries": [
         {
             "account": "GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",

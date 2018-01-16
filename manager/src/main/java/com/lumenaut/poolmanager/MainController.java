@@ -553,6 +553,7 @@ public class MainController {
             transactionsController.currentVotersData = currentVotersData;
             transactionsController.currentPoolBalance = currentPoolBalance;
             transactionsController.primaryStage = primaryStage;
+            transactionsController.poolAddressTextField = poolAddressTextField;
 
             // Initialize the transactions stage and show it
             transactionsBuilderStage.setTitle("Transactions Builder");

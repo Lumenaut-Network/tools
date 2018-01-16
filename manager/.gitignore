@@ -20,4 +20,4 @@ out/
 # Temporary files
 .*~
 /data/settings.ini
-/data/*_transaction_plan.json
+/data/*/

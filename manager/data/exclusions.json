@@ -1,4 +1,6 @@
 {
+    // These nodes are all the exclusion list cares about.
+    // You can use a partial transaction result here to recover from a payment run that did not fully complete!
     "entries": [
         {
             "destination": "GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
