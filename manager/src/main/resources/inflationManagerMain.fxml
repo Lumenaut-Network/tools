@@ -95,10 +95,10 @@
                                                    stroke="BLACK" strokeType="INSIDE" width="202.0"
                                                    AnchorPane.bottomAnchor="159.0" AnchorPane.leftAnchor="5.0"
                                                    AnchorPane.rightAnchor="5.0"/>
-                                        <Label fx:id="selectedNetworkLabel" layoutX="29.0" layoutY="453.0"
-                                               prefHeight="35.0" prefWidth="127.0" textAlignment="CENTER"
-                                               AnchorPane.bottomAnchor="171.0" AnchorPane.leftAnchor="29.0"
-                                               AnchorPane.rightAnchor="29.0">
+                                        <Label fx:id="selectedNetworkLabel" layoutX="42.0" layoutY="603.0"
+                                               prefHeight="35.0" prefWidth="129.0" textAlignment="CENTER"
+                                               AnchorPane.bottomAnchor="171.0" AnchorPane.leftAnchor="42.0"
+                                               AnchorPane.rightAnchor="44.0">
                                             <font>
                                                 <Font size="18.0"/>
                                             </font>
