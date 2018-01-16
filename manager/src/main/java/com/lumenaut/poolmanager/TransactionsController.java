@@ -21,10 +21,7 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -412,17 +409,26 @@ public class TransactionsController {
             // Get exclusion data
             ExclusionData exclusionData;
             try {
-                exclusionData = OBJECT_MAPPER.readValue(exclusionsTextArea.getText(), ExclusionData.class);
+                if (!exclusionsTextArea.getText().isEmpty()) {
+                    exclusionData = OBJECT_MAPPER.readValue(exclusionsTextArea.getText(), ExclusionData.class);
+                } else {
+                    exclusionData = null;
+                }
             } catch (IOException e) {
                 showError("Cannot parse exclusion data: " + e.getMessage());
 
                 return false;
             }
 
+
             // Get rerouting data
             ReroutingData reroutingData;
             try {
-                reroutingData = OBJECT_MAPPER.readValue(reroutingTextArea.getText(), ReroutingData.class);
+                if (!reroutingTextArea.getText().isEmpty()) {
+                    reroutingData = OBJECT_MAPPER.readValue(reroutingTextArea.getText(), ReroutingData.class);
+                } else {
+                    reroutingData = null;
+                }
             } catch (IOException e) {
                 showError("Cannot parse rerouting data: " + e.getMessage());
 
@@ -448,31 +454,35 @@ public class TransactionsController {
                 entry.setDestination(voterAccount);
 
                 // Reroute if needed
-                for (ReroutingDataEntry reroutingDataEntry : reroutingData.getEntries()) {
-                    if (voterAccount.equals(reroutingDataEntry.getAccount())) {
-                        // Reroute
-                        entry.setDestination(reroutingDataEntry.getReroute());
-                        entry.setReroutedfrom(voterAccount);
+                if (reroutingData != null) {
+                    for (ReroutingDataEntry reroutingDataEntry : reroutingData.getEntries()) {
+                        if (voterAccount.equals(reroutingDataEntry.getAccount())) {
+                            // Reroute
+                            entry.setDestination(reroutingDataEntry.getReroute());
+                            entry.setReroutedfrom(voterAccount);
 
-                        // Update rerouted counter
-                        rerouted.getAndIncrement();
+                            // Update rerouted counter
+                            rerouted.getAndIncrement();
+                        }
                     }
                 }
 
                 // If this account (or its rerouted address) is in the exclusion list skip appending it
-                for (ExclusionEntry exclusionEntry : exclusionData.getEntries()) {
-                    if (exclusionEntry.getDestination().equals(entry.getReroutedfrom())) {
-                        excluded.getAndIncrement();
+                if (exclusionData != null) {
+                    for (ExclusionEntry exclusionEntry : exclusionData.getEntries()) {
+                        if (exclusionEntry.getDestination().equals(entry.getReroutedfrom())) {
+                            excluded.getAndIncrement();
 
-                        // Return immediately without appending the entry
-                        return;
-                    }
+                            // Return immediately without appending the entry
+                            return;
+                        }
 
-                    if (exclusionEntry.getDestination().equals(entry.getDestination())) {
-                        excluded.getAndIncrement();
+                        if (exclusionEntry.getDestination().equals(entry.getDestination())) {
+                            excluded.getAndIncrement();
 
-                        // Return immediately without appending the entry
-                        return;
+                            // Return immediately without appending the entry
+                            return;
+                        }
                     }
                 }
 
@@ -579,6 +589,8 @@ public class TransactionsController {
         BufferedWriter bufWriter = new BufferedWriter(writer)
         ) {
             bufWriter.write(contents);
+
+            showInfo("The current exclusions data has been saved and is now the new default");
         } catch (IOException e) {
             showError("Cannot write exclusions list file [" + System.getProperty("user.dir") + "/" + DATA_EXCLUSIONS_JSON_PATH + "]: " + e.getMessage());
         }
@@ -632,6 +644,8 @@ public class TransactionsController {
         BufferedWriter bufWriter = new BufferedWriter(writer)
         ) {
             bufWriter.write(contents);
+
+            showInfo("The current rerouting data has been saved and is now the new default");
         } catch (IOException e) {
             showError("Cannot write Rerouting list file [" + System.getProperty("user.dir") + "/" + DATA_REROUTING_JSON_PATH + "]: " + e.getMessage());
         }

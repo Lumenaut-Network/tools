@@ -61,9 +61,9 @@ public class UIUtils {
         Platform.runLater(() -> {
             final Alert alert = new Alert(AlertType.ERROR, message, ButtonType.OK);
             alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+            alert.getDialogPane().setMinWidth(Region.USE_PREF_SIZE);
             alert.show();
         });
-
     }
 
     /**
@@ -75,6 +75,7 @@ public class UIUtils {
         Platform.runLater(() -> {
             final Alert alert = new Alert(AlertType.INFORMATION, message, ButtonType.OK);
             alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+            alert.getDialogPane().setMinWidth(Region.USE_PREF_SIZE);
             alert.show();
         });
     }

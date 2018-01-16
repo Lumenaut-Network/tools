@@ -66,10 +66,10 @@
         <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#e8e8e8" height="105.0" layoutX="303.0" layoutY="590.0"
                    stroke="BLACK" strokeType="INSIDE" width="385.0" AnchorPane.bottomAnchor="5.0"
                    AnchorPane.leftAnchor="303.0"/>
-        <Label layoutX="318.0" layoutY="647.0" text="planned:" AnchorPane.bottomAnchor="36.0"
-               AnchorPane.leftAnchor="318.0"/>
-        <Label fx:id="plannedTransactionsLabel" layoutX="377.0" layoutY="647.0" text="0" AnchorPane.bottomAnchor="36.0"
-               AnchorPane.leftAnchor="377.0"/>
+        <Label layoutX="320.0" layoutY="647.0" text="planned:" AnchorPane.bottomAnchor="36.0"
+               AnchorPane.leftAnchor="320.0"/>
+        <Label fx:id="plannedTransactionsLabel" layoutX="381.0" layoutY="647.0" text="0" AnchorPane.bottomAnchor="36.0"
+               AnchorPane.leftAnchor="381.0"/>
         <Label layoutX="458.0" layoutY="597.0" text="Transactions total" AnchorPane.bottomAnchor="76.0"
                AnchorPane.leftAnchor="458.0">
             <font>
@@ -83,24 +83,23 @@
             </font>
         </Label>
         <Button fx:id="saveTransactionPlanBtn" layoutX="5.0" layoutY="641.0" mnemonicParsing="false" prefHeight="25.0"
-                prefWidth="140.0" text="Save transaction plan" AnchorPane.bottomAnchor="34.0"
-                AnchorPane.leftAnchor="5.0"/>
+                prefWidth="140.0" text="Save plan" AnchorPane.bottomAnchor="34.0" AnchorPane.leftAnchor="5.0"/>
         <Label layoutX="317.0" layoutY="602.0" text="excluded:" AnchorPane.bottomAnchor="81.0"
                AnchorPane.leftAnchor="317.0"/>
-        <Label fx:id="excludedTransactionsLabel" layoutX="377.0" layoutY="602.0" text="0" AnchorPane.bottomAnchor="81.0"
-               AnchorPane.leftAnchor="377.0"/>
+        <Label fx:id="excludedTransactionsLabel" layoutX="381.0" layoutY="602.0" text="0" AnchorPane.bottomAnchor="81.0"
+               AnchorPane.leftAnchor="381.0"/>
         <Button fx:id="saveExclusionsBtn" layoutX="5.0" layoutY="674.0" mnemonicParsing="false" prefHeight="17.0"
                 prefWidth="140.0" text="Save exclusions" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0"/>
         <Button fx:id="saveReroutingBtn" layoutX="155.0" layoutY="619.0" mnemonicParsing="false" prefHeight="25.0"
                 prefWidth="140.0" text="Save rerouting" AnchorPane.bottomAnchor="34.0" AnchorPane.leftAnchor="155.0"/>
         <Label layoutX="318.0" layoutY="625.0" text="rerouted:" AnchorPane.bottomAnchor="58.0"
                AnchorPane.leftAnchor="318.0"/>
-        <Label fx:id="reroutedTransactionsLabel" layoutX="377.0" layoutY="625.0" text="0" AnchorPane.bottomAnchor="58.0"
-               AnchorPane.leftAnchor="377.0"/>
-        <Label layoutX="318.0" layoutY="670.0" text="executed:" AnchorPane.bottomAnchor="13.0"
-               AnchorPane.leftAnchor="318.0"/>
-        <Label fx:id="executedTransactionsLabel" layoutX="377.0" layoutY="670.0" text="0" AnchorPane.bottomAnchor="13.0"
-               AnchorPane.leftAnchor="377.0"/>
+        <Label fx:id="reroutedTransactionsLabel" layoutX="381.0" layoutY="625.0" text="0" AnchorPane.bottomAnchor="58.0"
+               AnchorPane.leftAnchor="381.0"/>
+        <Label layoutX="316.0" layoutY="670.0" text="executed:" AnchorPane.bottomAnchor="13.0"
+               AnchorPane.leftAnchor="316.0"/>
+        <Label fx:id="executedTransactionsLabel" layoutX="381.0" layoutY="670.0" text="0" AnchorPane.bottomAnchor="13.0"
+               AnchorPane.leftAnchor="381.0"/>
         <TextField fx:id="signingKeyTextField" layoutX="695.0" layoutY="590.0" prefHeight="25.0" prefWidth="200.0"
                    promptText="Signing Key" AnchorPane.bottomAnchor="85.0" AnchorPane.leftAnchor="695.0"
                    AnchorPane.rightAnchor="5.0"/>

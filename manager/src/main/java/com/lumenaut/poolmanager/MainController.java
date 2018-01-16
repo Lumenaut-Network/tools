@@ -203,7 +203,7 @@ public class MainController {
      */
     private void refreshPoolCounters() {
         final String inflationPoolData = inflationPoolDataTextArea.getText();
-        if (inflationPoolData != null && !inflationPoolData.isEmpty()) {
+        if (inflationPoolData != null && !inflationPoolData.isEmpty() && !inflationPoolData.equals("null")) {
             try {
                 final InflationData inflationData = OBJECT_MAPPER.readValue(inflationPoolData, InflationData.class);
                 poolDataVotersLabel.setText(String.valueOf(inflationData.getEntries().size()));
@@ -324,6 +324,18 @@ public class MainController {
             // Process task completion
             request.thenAccept(inflationPoolData -> {
                 // Update text area
+                if (inflationPoolData == null || inflationPoolData.isEmpty() || inflationPoolData.equals("null")) {
+                    showError("The horizon database does not contain any data for the specified address");
+
+                    Platform.runLater(() -> {
+                        setBusyState(false);
+                        resetPoolCounters();
+                    });
+
+                    return;
+                }
+
+                // Update with the pool data
                 inflationPoolDataTextArea.setText(inflationPoolData);
 
                 // Cancel applicationBusy state
@@ -511,6 +523,11 @@ public class MainController {
 
             // Process task completion
             request.thenAccept(poolBalance -> {
+                // No result
+                if (poolBalance == null) {
+                    return;
+                }
+
                 // Cancel applicationBusy state
                 Platform.runLater(() -> {
                     // Return to normal operation

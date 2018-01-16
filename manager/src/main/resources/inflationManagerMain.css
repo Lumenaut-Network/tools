@@ -9,21 +9,21 @@
 }
 
 .greenBg {
-    -fx-background-color: #90EE90;
+    -fx-background-color: #c8eec6;
 }
 
 .greenBg:hover {
-    -fx-background-color: #64EE64;
+    -fx-background-color: #c8eec6;
     -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.4), 5, 0.0, 0, 1);
     -fx-text-alignment: center;
 }
 
 .redBg {
-    -fx-background-color: #EE4B52;
+    -fx-background-color: #e0b29b;
 }
 
 .redBg:hover {
-    -fx-background-color: #EE4B52;
+    -fx-background-color: #e0b29b;
     -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.4), 5, 0.0, 0, 1);
     -fx-text-alignment: center;
 }
