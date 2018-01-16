@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Region;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Network;
 import org.stellar.sdk.Server;
@@ -21,6 +22,8 @@ import static com.lumenaut.poolmanager.Settings.*;
 import static com.lumenaut.poolmanager.TransactionsController.FILE_DATE_FORMATTER;
 import static com.lumenaut.poolmanager.TransactionsController.FOLDER_DATE_FORMATTER;
 import static com.lumenaut.poolmanager.TransactionsController.TRANSACTION_RESULT_JSON_SUFFIX;
+import static com.lumenaut.poolmanager.UIUtils.showError;
+import static com.lumenaut.poolmanager.UIUtils.showInfo;
 
 /**
  * @Author Luca Vignaroli
@@ -510,31 +513,6 @@ public class ProcessingController {
         }
 
         return true;
-    }
-
-    /**
-     * Shows an error dialog
-     *
-     * @param message
-     */
-    private void showError(final String message) {
-        Platform.runLater(() -> {
-            final Alert alert = new Alert(AlertType.ERROR, message, ButtonType.OK);
-            alert.show();
-        });
-
-    }
-
-    /**
-     * Shows an information dialog
-     *
-     * @param message
-     */
-    private void showInfo(final String message) {
-        Platform.runLater(() -> {
-            final Alert alert = new Alert(AlertType.INFORMATION, message, ButtonType.OK);
-            alert.show();
-        });
     }
 
     //endregion

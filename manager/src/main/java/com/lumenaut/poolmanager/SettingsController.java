@@ -2,14 +2,17 @@ package com.lumenaut.poolmanager;
 
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 
 import java.io.IOException;
 
 import static com.lumenaut.poolmanager.Settings.*;
+import static com.lumenaut.poolmanager.UIUtils.showError;
 
 /**
  * @Author Luca Vignaroli
@@ -181,26 +184,6 @@ public class SettingsController {
 
         // Close the settings window
         saveBtn.getScene().getWindow().hide();
-    }
-
-    /**
-     * Shows an error dialog
-     *
-     * @param message
-     */
-    private void showError(final String message) {
-        final Alert alert = new Alert(AlertType.ERROR, message, ButtonType.OK);
-        alert.show();
-    }
-
-    /**
-     * Shows an information dialog
-     *
-     * @param message
-     */
-    private void showInfo(final String message) {
-        final Alert alert = new Alert(AlertType.INFORMATION, message, ButtonType.OK);
-        alert.show();
     }
 
     //endregion

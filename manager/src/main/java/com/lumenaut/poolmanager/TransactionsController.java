@@ -6,8 +6,10 @@ import com.lumenaut.poolmanager.DataFormats.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
@@ -29,6 +31,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static com.lumenaut.poolmanager.DataFormats.*;
 import static com.lumenaut.poolmanager.Settings.*;
+import static com.lumenaut.poolmanager.UIUtils.showError;
+import static com.lumenaut.poolmanager.UIUtils.showInfo;
 
 /**
  * @Author Luca Vignaroli
@@ -724,26 +728,6 @@ public class TransactionsController {
         }
 
         return true;
-    }
-
-    /**
-     * Shows an error dialog
-     *
-     * @param message
-     */
-    private void showError(final String message) {
-        final Alert alert = new Alert(AlertType.ERROR, message, ButtonType.OK);
-        alert.show();
-    }
-
-    /**
-     * Shows an information dialog
-     *
-     * @param message
-     */
-    private void showInfo(final String message) {
-        final Alert alert = new Alert(AlertType.INFORMATION, message, ButtonType.OK);
-        alert.show();
     }
 
     //endregion

@@ -1,8 +1,8 @@
 package com.lumenaut.poolmanager;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lumenaut.poolmanager.DataFormats.InflationDataEntry;
 import com.lumenaut.poolmanager.DataFormats.InflationData;
+import com.lumenaut.poolmanager.DataFormats.InflationDataEntry;
 import com.lumenaut.poolmanager.gateways.FederationGateway;
 import com.lumenaut.poolmanager.gateways.HorizonGateway;
 import com.lumenaut.poolmanager.gateways.StellarGateway;
@@ -11,7 +11,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Paint;
@@ -29,6 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.lumenaut.poolmanager.DataFormats.OBJECT_MAPPER;
 import static com.lumenaut.poolmanager.Settings.*;
+import static com.lumenaut.poolmanager.UIUtils.showError;
 
 /**
  * @Author Luca Vignaroli
@@ -196,26 +196,6 @@ public class MainController {
                 showError("You must first fetch the voters data and the pool balance");
             }
         });
-    }
-
-    /**
-     * Shows an error dialog
-     *
-     * @param message
-     */
-    private void showError(final String message) {
-        final Alert alert = new Alert(AlertType.ERROR, message, ButtonType.OK);
-        alert.show();
-    }
-
-    /**
-     * Shows an information dialog
-     *
-     * @param message
-     */
-    private void showInfo(final String message) {
-        final Alert alert = new Alert(AlertType.INFORMATION, message, ButtonType.OK);
-        alert.show();
     }
 
     /**
