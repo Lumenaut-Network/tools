@@ -34,7 +34,7 @@ public class SettingsController {
     ////////////////////////////////////////////////////////
     // TEXT FIELDS
     @FXML
-    private ChoiceBox activeNetworkChoiceBox;
+    private ChoiceBox<String> activeNetworkChoiceBox;
 
     @FXML
     private TextField defaultPoolAddressTextField;
