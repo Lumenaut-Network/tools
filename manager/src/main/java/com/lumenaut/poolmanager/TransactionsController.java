@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static com.lumenaut.poolmanager.DataFormats.*;
 import static com.lumenaut.poolmanager.Settings.ROUNDING_MODE;
+import static com.lumenaut.poolmanager.Settings.SETTING_FEE;
 import static com.lumenaut.poolmanager.Settings.SETTING_OPERATIONS_NETWORK;
 
 /**
@@ -500,7 +501,7 @@ public class TransactionsController {
         final BigDecimal totalInflation = XLMUtils.stroopToXLM(inflationAmountToPay);
         final BigDecimal totalBalance = XLMUtils.stroopToXLM(totalVotesAmount);
         final BigDecimal grossVoterBalance = XLMUtils.stroopToXLM(voterBalance);
-        final BigDecimal fee = XLMUtils.stroopToXLM(100 * 2);
+        final BigDecimal fee = XLMUtils.stroopToXLM(SETTING_FEE);
 
         // Percent of the total balance represented by the voter
         final BigDecimal voterPercentOfTotalBalance = grossVoterBalance.divide(totalBalance, ROUNDING_MODE);

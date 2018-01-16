@@ -103,9 +103,9 @@ public class StellarGateway {
 		final TransactionBatchResponse response = new TransactionBatchResponse();
 
 		// Refuse batches with more than 100 operations
-		if (transactionResult.getEntries().size() > OPERATIONS_PER_TRANSACTION_BATCH) {
+		if (transactionResult.getEntries().size() > SETTING_OPERATIONS_PER_TRANSACTION_BATCH) {
 			response.success = false;
-			response.errorMessages.add("Refusing to execute a transaction batch with more than [" + OPERATIONS_PER_TRANSACTION_BATCH + "] entries. The batch contains [" + transactionResult.getEntries().size() + "] entries");
+			response.errorMessages.add("Refusing to execute a transaction batch with more than [" + SETTING_OPERATIONS_PER_TRANSACTION_BATCH + "] entries. The batch contains [" + transactionResult.getEntries().size() + "] entries");
 
 			return response;
 		}
@@ -115,7 +115,7 @@ public class StellarGateway {
 		final Builder transactionBuilder = new Transaction.Builder(sourceAccount);
 
 		// Add memo to the transaction
-		transactionBuilder.addMemo(Memo.text(Settings.MEMO));
+		transactionBuilder.addMemo(Memo.text(Settings.SETTING_MEMO));
 
 		// Process all entries
 		for (TransactionResultEntry entry : transactionResult.getEntries()) {

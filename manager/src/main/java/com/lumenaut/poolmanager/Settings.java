@@ -30,8 +30,9 @@ public class Settings {
     public static String SETTING_HORIZON_DB_PORT = "";
     public static String SETTING_HORIZON_DB_USER = "";
     public static String SETTING_HORIZON_DB_PASS = "";
-    public static String MEMO = "Thanks from lumenaut.net";
-    public static int OPERATIONS_PER_TRANSACTION_BATCH = 100;
+    public static String SETTING_MEMO = "";
+    public static long SETTING_FEE = 100;
+    public static int SETTING_OPERATIONS_PER_TRANSACTION_BATCH = 100;
 
     // Non persistent settings
     public static RoundingMode ROUNDING_MODE = RoundingMode.HALF_DOWN;
@@ -85,6 +86,9 @@ public class Settings {
             SETTING_OPERATIONS_NETWORK = PROPERTIES.getProperty("operationsNetwork");
             SETTING_INFLATION_POOL_ADDRESS = PROPERTIES.getProperty("inflationPoolAddress");
             SETTING_FEDERATION_NETWORK_INFLATION_URL = PROPERTIES.getProperty("fedNetworkInflationUrl");
+            SETTING_MEMO = PROPERTIES.getProperty("memoText");
+            SETTING_FEE = Long.parseLong(PROPERTIES.getProperty("fee")) < 100 ? 100 : Long.parseLong(PROPERTIES.getProperty("fee"));
+
             SETTING_HORIZON_DB_ADDRESS = PROPERTIES.getProperty("horizonDbAddress");
             SETTING_HORIZON_DB_PORT = PROPERTIES.getProperty("horizonDbPort");
             SETTING_HORIZON_DB_USER = PROPERTIES.getProperty("horizonDbUser");
@@ -94,6 +98,15 @@ public class Settings {
             SETTING_OPERATIONS_NETWORK = PROPERTIES.getProperty("operationsNetwork", "TEST");
             SETTING_INFLATION_POOL_ADDRESS = PROPERTIES.getProperty("inflationPoolAddress", "");
             SETTING_FEDERATION_NETWORK_INFLATION_URL = PROPERTIES.getProperty("fedNetworkInflationUrl", "https://fed.network/inflation/");
+            SETTING_MEMO = PROPERTIES.getProperty("memoText", "Thanks from lumenaut.net");
+
+            // Try to parse the fee, or just default to 100
+            try {
+                SETTING_FEE = Long.parseLong(PROPERTIES.getProperty("fee", "100"));
+            } catch (NumberFormatException e) {
+                SETTING_FEE = 100;
+            }
+
             SETTING_HORIZON_DB_ADDRESS = PROPERTIES.getProperty("horizonDbAddress", "");
             SETTING_HORIZON_DB_PORT = PROPERTIES.getProperty("horizonDbPort", "");
             SETTING_HORIZON_DB_USER = PROPERTIES.getProperty("horizonDbUser", "");
@@ -114,6 +127,9 @@ public class Settings {
         PROPERTIES.setProperty("operationsNetwork", SETTING_OPERATIONS_NETWORK);
         PROPERTIES.setProperty("inflationPoolAddress", SETTING_INFLATION_POOL_ADDRESS);
         PROPERTIES.setProperty("fedNetworkInflationUrl", SETTING_FEDERATION_NETWORK_INFLATION_URL);
+        PROPERTIES.setProperty("memoText", SETTING_MEMO);
+        PROPERTIES.setProperty("fee", SETTING_FEE >= 100 ? String.valueOf(SETTING_FEE) : "100");
+
         PROPERTIES.setProperty("horizonDbAddress", SETTING_HORIZON_DB_ADDRESS);
         PROPERTIES.setProperty("horizonDbPort", SETTING_HORIZON_DB_PORT);
         PROPERTIES.setProperty("horizonDbUser", SETTING_HORIZON_DB_USER);

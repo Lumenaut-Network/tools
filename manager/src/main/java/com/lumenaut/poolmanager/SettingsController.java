@@ -40,6 +40,12 @@ public class SettingsController {
     private TextField defaultFedNetworkInflationUrlTextField;
 
     @FXML
+    public TextField defaultMemoTextField;
+
+    @FXML
+    public TextField defaultFeeTextField;
+
+    @FXML
     private TextField horizonDbAddress;
 
     @FXML
@@ -89,10 +95,27 @@ public class SettingsController {
         // Initialize the network choice box values
         activeNetworkChoiceBox.setItems(FXCollections.observableArrayList("TEST", "LIVE"));
 
+        // Limit fee textfield to numeric input only
+        defaultFeeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*")) {
+                defaultFeeTextField.setText(newValue.replaceAll("[^\\d]", ""));
+            }
+        });
+
+        // Limit the memo to 28 characters
+        defaultMemoTextField.textProperty().addListener((ov, oldValue, newValue) -> {
+            if (defaultMemoTextField.getText().length() > 28) {
+                String s = defaultMemoTextField.getText().substring(0, 28);
+                defaultMemoTextField.setText(s);
+            }
+        });
+
         // Load current settings in the UI components
         activeNetworkChoiceBox.setValue(SETTING_OPERATIONS_NETWORK);
         defaultPoolAddressTextField.setText(SETTING_INFLATION_POOL_ADDRESS);
         defaultFedNetworkInflationUrlTextField.setText(SETTING_FEDERATION_NETWORK_INFLATION_URL);
+        defaultMemoTextField.setText(SETTING_MEMO);
+        defaultFeeTextField.setText(String.valueOf(SETTING_FEE));
         horizonDbAddress.setText(SETTING_HORIZON_DB_ADDRESS);
         horizonDbPort.setText(SETTING_HORIZON_DB_PORT);
         horizonDbUser.setText(SETTING_HORIZON_DB_USER);
@@ -131,6 +154,17 @@ public class SettingsController {
         SETTING_OPERATIONS_NETWORK = activeNetworkChoiceBox.getValue().toString();
         SETTING_INFLATION_POOL_ADDRESS = defaultPoolAddressTextField.getText();
         SETTING_FEDERATION_NETWORK_INFLATION_URL = defaultFedNetworkInflationUrlTextField.getText();
+        SETTING_MEMO = defaultMemoTextField.getText();
+
+        final long currentFee = Long.parseLong(defaultFeeTextField.getText());
+        if (currentFee < 100) {
+            SETTING_FEE = 100;
+            defaultFeeTextField.setText("100");
+        } else {
+            SETTING_FEE = currentFee;
+        }
+
+
         SETTING_HORIZON_DB_ADDRESS = horizonDbAddress.getText();
         SETTING_HORIZON_DB_PORT = horizonDbPort.getText();
         SETTING_HORIZON_DB_USER = horizonDbUser.getText();

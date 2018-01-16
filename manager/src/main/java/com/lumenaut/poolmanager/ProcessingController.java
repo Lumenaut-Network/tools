@@ -172,7 +172,7 @@ public class ProcessingController {
 
                     // Init progress tracking
                     final int totalEntries = transactionPlan.getEntries().size();
-                    final int totalBatches = totalEntries / OPERATIONS_PER_TRANSACTION_BATCH + (totalEntries % OPERATIONS_PER_TRANSACTION_BATCH > 0 ? 1 : 0);
+                    final int totalBatches = totalEntries / SETTING_OPERATIONS_PER_TRANSACTION_BATCH + (totalEntries % SETTING_OPERATIONS_PER_TRANSACTION_BATCH > 0 ? 1 : 0);
 
                     // Update result total entries planned
                     transactionResult.setPlannedOperations(totalEntries);
@@ -196,7 +196,7 @@ public class ProcessingController {
                         operationsCount++;
 
                         // If the batch is full, execute it
-                        if (operationsCount % OPERATIONS_PER_TRANSACTION_BATCH == 0) {
+                        if (operationsCount % SETTING_OPERATIONS_PER_TRANSACTION_BATCH == 0) {
                             // The batch is full, time to execute
                             try {
                                 final TransactionBatchResponse batchResponse = StellarGateway.executeTransactionBatch(server, source, tmpBatchResult);
