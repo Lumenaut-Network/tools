@@ -20,7 +20,6 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -257,10 +256,10 @@ public class MainController {
 
 
         // Get the current network of the horizon node
-        boolean horizonTestNetwork = true;
+        boolean horizonTestNetwork;
         try {
             horizonTestNetwork = horizonGateway.isTestNetwork();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             showError("Cannot determine whether the horizon node is on the test network: " + e.getMessage());
             return;
         }
@@ -478,7 +477,7 @@ public class MainController {
         if (!horizonGateway.isConnected()) {
             try {
                 horizonGateway.connect();
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 showError("Cannot fetch pool balance, unable to establish horizon database connection: " + e.getMessage());
 
                 return;
@@ -628,14 +627,14 @@ public class MainController {
             // Connect
             try {
                 horizonGateway.connect();
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 showError(e.getMessage());
             }
         } else {
             // Reconnect, the settings might have changed
             try {
                 horizonGateway.reconnect();
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 showError(e.getMessage());
             }
         }
