@@ -31,8 +31,8 @@ To update the tool open a command prompt where the tool is located and run `git 
 it will let you know.
 
 ## Running the application
-To execute the application run `gradlew run`. If updates were downloaded with git the application we'll be recompiled for 
-you and run immediately 
+Move to the manager's folder `cd lumenauttools\manager` and launch the application build and run with: `gradlew run`. If updates have been 
+downloaded that require a new compilation, that will be done automatically for you.
 
 # LICENSE
 Copyright 2018 Lumenaut Network (https://lumenaut.net)
