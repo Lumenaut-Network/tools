@@ -31,7 +31,7 @@ To update the tool open a command prompt where the tool is located and run `git 
 it will let you know.
 
 ## Running the application
-Move to the manager's folder `cd lumenauttools\manager` and launch the application build and run with: `gradle run`. If updates have been 
+Move to the manager's folder `cd lumenauttools\manager` and launch the application build and run with: `gradlew run`. If updates have been 
 downloaded that require a new compilation, that will be done automatically for you.
 
 ## How to use
@@ -82,7 +82,7 @@ To update the tool open a command prompt where the tool is located and run `git 
 it will let you know.
 
 ## Running the application
-Move to the manager's folder `cd lumenauttools\manager` and launch the application build and run with: `gradle run`. If updates have been 
+Move to the manager's folder `cd lumenauttools\manager` and launch the application build and run with: `gradlew run`. If updates have been 
 downloaded that require a new compilation, that will be done automatically for you.
 
 ## How to use
