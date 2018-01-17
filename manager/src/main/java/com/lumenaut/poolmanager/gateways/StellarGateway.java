@@ -16,8 +16,8 @@ import java.math.BigDecimal;
 import static com.lumenaut.poolmanager.Settings.*;
 
 /**
- * @Author Luca Vignaroli
- * @Email luca@burning.it
+ * @Author Luca Vignaroli, Ludovic Fastré
+ * @Email luca@burning.it, ludovic.fastre@yahoo.fr
  * @Date 12/01/2018 - 3:40 PM
  * <p>
  * Stateless class, exposes quick methods to accomplish operations on the stellar network currently selected in the
