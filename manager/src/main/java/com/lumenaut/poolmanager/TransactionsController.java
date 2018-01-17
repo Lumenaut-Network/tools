@@ -203,6 +203,13 @@ public class TransactionsController {
             // Check signature
             final String signingKey = signingKeyTextField.getText();
 
+            // Check the transaction plan has a positive amount to pay
+            if (transactionPlan.getTotalpayment() <= 0) {
+                showError("This transaction plan has nothing to pay!");
+
+                return;
+            }
+
             // Check if we have a signign key
             if (signingKey.isEmpty()) {
                 showError("You must specify the signing key for the transactions");
