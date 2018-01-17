@@ -34,6 +34,9 @@ it will let you know.
 Move to the manager's folder `cd lumenauttools\manager` and launch the application build and run with: `gradlew run`. If updates have been 
 downloaded that require a new compilation, that will be done automatically for you.
 
+## How to use
+Read the [Pool Manager's User Manual](https://github.com/Lumenaut-Network/tools/wiki/Pool-Manager) in the wiki!
+
 # LICENSE
 Copyright 2018 Lumenaut Network (https://lumenaut.net)
 
