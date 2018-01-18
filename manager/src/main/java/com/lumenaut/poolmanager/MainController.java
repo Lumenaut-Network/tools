@@ -408,9 +408,7 @@ public class MainController {
                     });
                 }
 
-                Platform.runLater(() -> {
-                    setBusyState(false);
-                });
+                Platform.runLater(() -> setBusyState(false));
             });
         }
     }

@@ -97,9 +97,6 @@ public class TransactionsController {
     @FXML
     private Label toBePaidLabel;
 
-    @FXML
-    private Label paidLabel;
-
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -125,8 +122,6 @@ public class TransactionsController {
     private HashMap<String, Long> votesAndPayments;
 
     private TransactionPlan transactionPlan;
-    private ExclusionData exclusionDataData;
-    private ReroutingData reroutingData;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -564,7 +559,7 @@ public class TransactionsController {
 
         // Update the runtime json object
         try {
-            exclusionDataData = OBJECT_MAPPER.readValue(contents.toString(), ExclusionData.class);
+            final ExclusionData exclusionDataData = OBJECT_MAPPER.readValue(contents.toString(), ExclusionData.class);
             exclusionsTextArea.setText(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(exclusionDataData));
         } catch (IOException e) {
             showError("Exclusions list format error: " + e.getMessage());
@@ -619,7 +614,7 @@ public class TransactionsController {
 
         // Update the runtime json object
         try {
-            reroutingData = OBJECT_MAPPER.readValue(contents.toString(), ReroutingData.class);
+            final ReroutingData reroutingData = OBJECT_MAPPER.readValue(contents.toString(), ReroutingData.class);
             reroutingTextArea.setText(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(reroutingData));
         } catch (IOException e) {
             showError("Exclusions list format error: " + e.getMessage());

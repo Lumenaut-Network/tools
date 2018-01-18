@@ -5,9 +5,7 @@ import com.lumenaut.poolmanager.gateways.StellarGateway;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Region;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Network;
 import org.stellar.sdk.Server;
@@ -19,9 +17,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static com.lumenaut.poolmanager.DataFormats.*;
 import static com.lumenaut.poolmanager.Settings.*;
-import static com.lumenaut.poolmanager.TransactionsController.FILE_DATE_FORMATTER;
-import static com.lumenaut.poolmanager.TransactionsController.FOLDER_DATE_FORMATTER;
-import static com.lumenaut.poolmanager.TransactionsController.TRANSACTION_RESULT_JSON_SUFFIX;
+import static com.lumenaut.poolmanager.TransactionsController.*;
 import static com.lumenaut.poolmanager.UIUtils.showError;
 import static com.lumenaut.poolmanager.UIUtils.showInfo;
 
@@ -151,7 +147,6 @@ public class ProcessingController {
 
                     // Build server object
                     final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? HORIZON_LIVE_NETWORK : HORIZON_TEST_NETWORK);
-                    ;
                     final KeyPair source;
                     try {
                         source = KeyPair.fromSecretSeed(signingKey);
@@ -420,26 +415,6 @@ public class ProcessingController {
      */
     private void scrollToEnd() {
         processingOutputTextArea.positionCaret(processingOutputTextArea.getText().length());
-    }
-
-    /**
-     * Print exception error
-     *
-     * @param throwable
-     */
-    private void printExceptionError(final Throwable throwable) {
-        Platform.runLater(() -> {
-            // Append custom error messages
-            processingOutputTextArea.appendText(throwable.getMessage() + "\n");
-
-            // Print our stack trace
-            final StackTraceElement[] trace = throwable.getStackTrace();
-            for (StackTraceElement traceElement : trace) {
-                processingOutputTextArea.appendText("\tat " + traceElement + "\n");
-            }
-
-            scrollToEnd();
-        });
     }
 
     /**
