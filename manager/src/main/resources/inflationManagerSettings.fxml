@@ -52,6 +52,6 @@
         <TextField fx:id="defaultFeeTextField" layoutX="190.0" layoutY="160.0" prefHeight="25.0" prefWidth="496.0"
                    AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="160.0"/>
         <PasswordField fx:id="horizonDbPass" layoutX="487.0" layoutY="246.0" prefHeight="25.0" prefWidth="199.0"
-                       AnchorPane.rightAnchor="15.0"/>
+                       AnchorPane.leftAnchor="486.0" AnchorPane.rightAnchor="15.0"/>
     </children>
 </AnchorPane>
