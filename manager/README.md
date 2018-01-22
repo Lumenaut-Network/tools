@@ -73,7 +73,7 @@ javac 1.8.0_152
 git version 2.14.2
 ``` 
 ## Cloning the repository
-Move to a folder where you would like to contain the tools and run `git clone https://github.com/Lumenaut-Network/tools.git lumeanuttools`, 
+Move to a folder where you would like to contain the tools and run `git clone https://github.com/Lumenaut-Network/tools.git lumenauttools`, 
 where `lumenauttools` is the destination folder (it will be created for you). You now have the latest version of the source 
 code.
 
@@ -82,7 +82,7 @@ To update the tool open a command prompt where the tool is located and run `git 
 it will let you know.
 
 ## Running the application
-Move to the manager's folder `cd lumenauttools\manager` and launch the application build and run with: `gradlew run`. If updates have been 
+Move to the manager's folder `cd lumenauttools\manager`, if you haven't done so, make the gradle wrapper executable: `chmod +x gradlew`, and launch the application build and run with: `/gradlew run`. If updates have been 
 downloaded that require a new compilation, that will be done automatically for you.
 
 ## How to use
