@@ -318,7 +318,8 @@ public class TransactionsController {
             final AtomicBoolean excludedPoolSelfVote = new AtomicBoolean(false);
             final AtomicInteger excludedNegativePayments = new AtomicInteger(0);
 
-            // Reset votes data
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // STEP 1: Prepare voters data (voter and its balance)
             if (votesAndBalances == null) {
                 votesAndBalances = new HashMap<>();
             } else {
@@ -375,7 +376,8 @@ public class TransactionsController {
                 return false;
             }
 
-            // Reset voters and payments data
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // STEP 2: Prepare voters and their payouts
             if (votesAndPayments == null) {
                 votesAndPayments = new HashMap<>();
             } else {
@@ -408,6 +410,9 @@ public class TransactionsController {
                 }
             }
 
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // STEP 3: Process exclusions and rerouting
+
             // Get exclusion data
             ExclusionData exclusionData;
             try {
@@ -436,6 +441,9 @@ public class TransactionsController {
 
                 return false;
             }
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // STEP 4: Build the transaction plan
 
             // Generate UUID
             final String uuid = UUID.randomUUID().toString();
