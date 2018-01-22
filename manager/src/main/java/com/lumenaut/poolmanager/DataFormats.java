@@ -115,6 +115,8 @@ public class DataFormats {
         private int excluded;
         private int rerouted;
         private long totalvotes;
+        private long totalpayments;
+        private long totalfees;
         private long totalpayment;
         private List<TransactionPlanEntry> entries;
 
@@ -148,6 +150,22 @@ public class DataFormats {
 
         public void setTotalvotes(long totalvotes) {
             this.totalvotes = totalvotes;
+        }
+
+        public long getTotalpayments() {
+            return totalpayments;
+        }
+
+        public void setTotalpayments(long totalpayments) {
+            this.totalpayments = totalpayments;
+        }
+
+        public long getTotalfees() {
+            return totalfees;
+        }
+
+        public void setTotalfees(long totalfees) {
+            this.totalfees = totalfees;
         }
 
         public long getTotalpayment() {
@@ -210,6 +228,8 @@ public class DataFormats {
         private int plannedOperations;
         private int executedOperations;
         private String paidTotal;
+        private String totalfees;
+        private String totalpayment;
         private String remainingPayment;
         private String resultOutcome;
         private List<TransactionResultEntry> entries;
@@ -244,6 +264,22 @@ public class DataFormats {
 
         public void setPaidTotal(String paidTotal) {
             this.paidTotal = paidTotal;
+        }
+
+        public String getTotalfees() {
+            return totalfees;
+        }
+
+        public void setTotalfees(String totalfees) {
+            this.totalfees = totalfees;
+        }
+
+        public String getTotalpayment() {
+            return totalpayment;
+        }
+
+        public void setTotalpayment(String totalpayment) {
+            this.totalpayment = totalpayment;
         }
 
         public String getRemainingPayment() {

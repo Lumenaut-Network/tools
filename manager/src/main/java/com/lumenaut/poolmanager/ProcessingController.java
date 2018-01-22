@@ -167,7 +167,9 @@ public class ProcessingController {
 
                     // Payment counters
                     long paidTotal = 0L;
-                    long remainingPayment = transactionPlan.getTotalpayment();
+                    long totalFees = 0L;
+                    long totalPayment = 0L;
+                    long remainingPayment = transactionPlan.getTotalpayments();
 
                     ////////////////////////////////////////////////////////////////////////////////////////////////////
                     // BATCH ENTRIES
@@ -206,6 +208,8 @@ public class ProcessingController {
                                     // Update payment counters
                                     for (TransactionResultEntry resultEntry : tmpBatchResult.getEntries()) {
                                         paidTotal += resultEntry.getAmount();
+                                        totalFees += SETTING_FEE;
+                                        totalPayment += resultEntry.getAmount() + SETTING_FEE;
                                         remainingPayment -= resultEntry.getAmount();
                                     }
 
@@ -238,7 +242,7 @@ public class ProcessingController {
                                     printBatchError(batchResponse);
 
                                     // Save the transaction results
-                                    saveTransactionResult(transactionResult, paidTotal, remainingPayment, false);
+                                    saveTransactionResult(transactionResult, paidTotal, totalFees, totalPayment, remainingPayment, false);
 
                                     return false;
                                 }
@@ -256,7 +260,7 @@ public class ProcessingController {
                                 transactionResult.setResultOutcome(operationsCount > 0 ? "PARTIALLY EXECUTED" : "NOT EXECUTED");
 
                                 // Save the transaction results
-                                saveTransactionResult(transactionResult, paidTotal, remainingPayment, false);
+                                saveTransactionResult(transactionResult, paidTotal, totalFees, totalPayment, remainingPayment, false);
 
                                 return false;
                             }
@@ -271,6 +275,8 @@ public class ProcessingController {
                                 // Update payment counters
                                 for (TransactionResultEntry resultEntry : tmpBatchResult.getEntries()) {
                                     paidTotal += resultEntry.getAmount();
+                                    totalFees += SETTING_FEE;
+                                    totalPayment += resultEntry.getAmount() + SETTING_FEE;
                                     remainingPayment -= resultEntry.getAmount();
                                 }
 
@@ -295,7 +301,7 @@ public class ProcessingController {
                                 printBatchError(batchResponse);
 
                                 // Save the transaction results
-                                saveTransactionResult(transactionResult, paidTotal, remainingPayment, false);
+                                saveTransactionResult(transactionResult, paidTotal, totalFees, totalPayment, remainingPayment, false);
 
                                 return false;
                             }
@@ -310,7 +316,7 @@ public class ProcessingController {
                             appendMessage("Batch [" + batchCount + " of " + totalBatches + "] of [" + operationsCount + "/" + totalEntries + "] operations: FAILED");
 
                             // Save the transaction results
-                            saveTransactionResult(transactionResult, paidTotal, remainingPayment, false);
+                            saveTransactionResult(transactionResult, paidTotal, totalFees, totalPayment, remainingPayment, false);
 
                             return false;
                         }
@@ -327,8 +333,8 @@ public class ProcessingController {
                         transactionResult.setResultOutcome("EXECUTION ERROR, NOT ALL OPERATIONS EXECUTED");
                     }
 
-                    // Save the transaction result file
-                    saveTransactionResult(transactionResult, paidTotal, remainingPayment, false);
+                    // Save the transaction results
+                    saveTransactionResult(transactionResult, paidTotal, totalFees, totalPayment, remainingPayment, false);
 
                     // Sleep for a few ms to allow the progress bar and message to update
                     try {
@@ -456,7 +462,7 @@ public class ProcessingController {
     /**
      * Saves the specified transaction result
      */
-    private boolean saveTransactionResult(final TransactionResult result, final long paidTotal, final long remainingPayment, final boolean quietMode) {
+    private boolean saveTransactionResult(final TransactionResult result, final long paidTotal, final long totalFees, final long totalPayment, final long remainingPayment, final boolean quietMode) {
         // Read the current contents of the text area
         if (result == null) {
             showError("Cannot save transaction result, the result is empty");
@@ -467,6 +473,8 @@ public class ProcessingController {
         // Update totals
         result.setPaidTotal(XLMUtils.formatBalanceFullPrecision(paidTotal) + " XLM");
         result.setRemainingPayment(XLMUtils.formatBalanceFullPrecision(remainingPayment) + " XLM");
+        result.setTotalfees(XLMUtils.formatBalanceFullPrecision(totalFees) + " XLM");
+        result.setTotalpayment(XLMUtils.formatBalanceFullPrecision(totalPayment) + " XLM");
 
         // Try to decode them to see if they are in a valid format
         final String jsonResult;

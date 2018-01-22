@@ -97,6 +97,12 @@ public class TransactionsController {
     @FXML
     private Label toBePaidLabel;
 
+    @FXML
+    private Label feesPaidLabel;
+
+    @FXML
+    private Label totalPaidLabel;
+
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -199,7 +205,7 @@ public class TransactionsController {
             final String signingKey = signingKeyTextField.getText();
 
             // Check the transaction plan has a positive amount to pay
-            if (transactionPlan.getTotalpayment() <= 0) {
+            if (transactionPlan.getTotalpayments() <= 0) {
                 showError("This transaction plan has nothing to pay!");
 
                 return;
@@ -273,7 +279,9 @@ public class TransactionsController {
         plannedTransactionsLabel.setText(String.valueOf(transactionPlan.getEntries().size()));
 
         // Update total amount to pay
-        toBePaidLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalpayment()) + " XLM");
+        toBePaidLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalpayments()) + " XLM");
+        feesPaidLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalfees()) + " XLM");
+        totalPaidLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalpayment()) + " XLM");
 
         // Update the rerouting and exclusion labels
         reroutedTransactionsLabel.setText(String.valueOf(transactionPlan.getRerouted()));
@@ -292,6 +300,8 @@ public class TransactionsController {
         executedTransactionsLabel.setText("0");
         reroutedTransactionsLabel.setText("0");
         toBePaidLabel.setText("0 XLM");
+        feesPaidLabel.setText("0 XLM");
+        totalPaidLabel.setText("0 XLM");
         executeTransactionBtn.setDisable(true);
         transactionPlan = null;
     }
@@ -313,13 +323,15 @@ public class TransactionsController {
             final AtomicInteger rerouted = new AtomicInteger(0);
             final AtomicInteger excluded = new AtomicInteger(0);
             final AtomicLong totalPayments = new AtomicLong(0);
+            final AtomicLong feesPayments = new AtomicLong(0);
+            final AtomicLong totalPayment = new AtomicLong(0);
 
             // Init special trackers for exclusions
             final AtomicBoolean excludedPoolSelfVote = new AtomicBoolean(false);
             final AtomicInteger excludedNegativePayments = new AtomicInteger(0);
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // STEP 1: Prepare voters data (voter and its balance)
+            // STEP 1: Prepare voters data (voters and their balances)
             if (votesAndBalances == null) {
                 votesAndBalances = new HashMap<>();
             } else {
@@ -336,6 +348,7 @@ public class TransactionsController {
                 return false;
             }
 
+            // Parse the voters data
             final JsonNode votesEntries = currentVotersData.get("entries");
             if (votesEntries.isArray()) {
                 for (final JsonNode entry : votesEntries) {
@@ -498,6 +511,8 @@ public class TransactionsController {
 
                 // Update total payment
                 totalPayments.getAndAdd(voterAmount);
+                feesPayments.getAndAdd(SETTING_FEE);
+                totalPayment.getAndAdd(voterAmount + SETTING_FEE);
 
                 // Append to the entries
                 newPlan.getEntries().add(entry);
@@ -506,7 +521,9 @@ public class TransactionsController {
             // Update the rerouting and exclusion
             newPlan.setRerouted(rerouted.get());
             newPlan.setExcluded(excluded.get());
-            newPlan.setTotalpayment(totalPayments.get());
+            newPlan.setTotalpayments(totalPayments.get());
+            newPlan.setTotalfees(feesPayments.get());
+            newPlan.setTotalpayment(totalPayment.get());
 
             // Update the transaction plan
             transactionPlan = newPlan;
@@ -536,10 +553,10 @@ public class TransactionsController {
      */
     private long computeVoterPayout(final long inflationAmountToPay, final long totalVotesAmount, final long voterBalance) {
         // Constants in the payout calculation
-        final BigDecimal totalInflation = XLMUtils.stroopToXLM(inflationAmountToPay);
-        final BigDecimal totalBalance = XLMUtils.stroopToXLM(totalVotesAmount);
-        final BigDecimal grossVoterBalance = XLMUtils.stroopToXLM(voterBalance);
-        final BigDecimal fee = XLMUtils.stroopToXLM(SETTING_FEE);
+        final BigDecimal totalInflation = XLMUtils.stroopToXLM(inflationAmountToPay).setScale(20, ROUNDING_MODE);
+        final BigDecimal totalBalance = XLMUtils.stroopToXLM(totalVotesAmount).setScale(20, ROUNDING_MODE);
+        final BigDecimal grossVoterBalance = XLMUtils.stroopToXLM(voterBalance).setScale(20, ROUNDING_MODE);
+        final BigDecimal fee = XLMUtils.stroopToXLM(SETTING_FEE).setScale(20, ROUNDING_MODE);
 
         // Percent of the total balance represented by the voter
         final BigDecimal voterPercentOfTotalBalance = grossVoterBalance.divide(totalBalance, ROUNDING_MODE);
