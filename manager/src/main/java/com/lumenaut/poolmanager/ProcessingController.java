@@ -165,6 +165,10 @@ public class ProcessingController {
                     final TransactionResult tmpBatchResult = new TransactionResult();
                     tmpBatchResult.setEntries(new LinkedList<>());
 
+                    // Payment counters
+                    long paidTotal = 0L;
+                    long remainingPayment = transactionPlan.getTotalpayment();
+
                     ////////////////////////////////////////////////////////////////////////////////////////////////////
                     // BATCH ENTRIES
 
@@ -199,6 +203,12 @@ public class ProcessingController {
                             try {
                                 final TransactionBatchResponse batchResponse = StellarGateway.executeTransactionBatch(server, source, tmpBatchResult);
                                 if (batchResponse.success) {
+                                    // Update payment counters
+                                    for (TransactionResultEntry resultEntry : tmpBatchResult.getEntries()) {
+                                        paidTotal += resultEntry.getAmount();
+                                        remainingPayment -= resultEntry.getAmount();
+                                    }
+
                                     // Append completed batch to the final result
                                     transactionResult.getEntries().addAll(tmpBatchResult.getEntries());
                                     transactionResult.setExecutedOperations(operationsCount);
@@ -215,6 +225,8 @@ public class ProcessingController {
                                     // Update progress bar
                                     updateProgressBar(totalEntries, operationsCount);
                                 } else {
+
+
                                     // Clear the tmp buffer
                                     tmpBatchResult.getEntries().clear();
 
@@ -226,7 +238,7 @@ public class ProcessingController {
                                     printBatchError(batchResponse);
 
                                     // Save the transaction results
-                                    saveTransactionResult(transactionResult, false);
+                                    saveTransactionResult(transactionResult, paidTotal, remainingPayment, false);
 
                                     return false;
                                 }
@@ -244,7 +256,7 @@ public class ProcessingController {
                                 transactionResult.setResultOutcome(operationsCount > 0 ? "PARTIALLY EXECUTED" : "NOT EXECUTED");
 
                                 // Save the transaction results
-                                saveTransactionResult(transactionResult, false);
+                                saveTransactionResult(transactionResult, paidTotal, remainingPayment, false);
 
                                 return false;
                             }
@@ -256,6 +268,12 @@ public class ProcessingController {
                         try {
                             final TransactionBatchResponse batchResponse = StellarGateway.executeTransactionBatch(server, source, tmpBatchResult);
                             if (batchResponse.success) {
+                                // Update payment counters
+                                for (TransactionResultEntry resultEntry : tmpBatchResult.getEntries()) {
+                                    paidTotal += resultEntry.getAmount();
+                                    remainingPayment -= resultEntry.getAmount();
+                                }
+
                                 // Append completed batch to the final result
                                 transactionResult.getEntries().addAll(tmpBatchResult.getEntries());
                                 transactionResult.setExecutedOperations(operationsCount);
@@ -277,11 +295,11 @@ public class ProcessingController {
                                 printBatchError(batchResponse);
 
                                 // Save the transaction results
-                                saveTransactionResult(transactionResult, false);
+                                saveTransactionResult(transactionResult, paidTotal, remainingPayment, false);
 
                                 return false;
                             }
-                        } catch (IOException e) {
+                        } catch (Exception e) {
                             // Update batch counter, if the exception triggered it would have not been updated
                             batchCount++;
 
@@ -292,7 +310,7 @@ public class ProcessingController {
                             appendMessage("Batch [" + batchCount + " of " + totalBatches + "] of [" + operationsCount + "/" + totalEntries + "] operations: FAILED");
 
                             // Save the transaction results
-                            saveTransactionResult(transactionResult, false);
+                            saveTransactionResult(transactionResult, paidTotal, remainingPayment, false);
 
                             return false;
                         }
@@ -310,7 +328,7 @@ public class ProcessingController {
                     }
 
                     // Save the transaction result file
-                    saveTransactionResult(transactionResult, false);
+                    saveTransactionResult(transactionResult, paidTotal, remainingPayment, false);
 
                     // Sleep for a few ms to allow the progress bar and message to update
                     try {
@@ -438,13 +456,17 @@ public class ProcessingController {
     /**
      * Saves the specified transaction result
      */
-    private boolean saveTransactionResult(final TransactionResult result, final boolean quietMode) {
+    private boolean saveTransactionResult(final TransactionResult result, final long paidTotal, final long remainingPayment, final boolean quietMode) {
         // Read the current contents of the text area
         if (result == null) {
             showError("Cannot save transaction result, the result is empty");
 
             return false;
         }
+
+        // Update totals
+        result.setPaidTotal(XLMUtils.formatBalanceFullPrecision(paidTotal) + " XLM");
+        result.setRemainingPayment(XLMUtils.formatBalanceFullPrecision(remainingPayment) + " XLM");
 
         // Try to decode them to see if they are in a valid format
         final String jsonResult;

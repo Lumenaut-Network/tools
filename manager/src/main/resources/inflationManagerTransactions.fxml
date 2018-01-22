@@ -70,7 +70,7 @@
                AnchorPane.leftAnchor="320.0"/>
         <Label fx:id="plannedTransactionsLabel" layoutX="381.0" layoutY="647.0" text="0" AnchorPane.bottomAnchor="36.0"
                AnchorPane.leftAnchor="381.0"/>
-        <Label layoutX="458.0" layoutY="597.0" text="Transactions total" AnchorPane.bottomAnchor="76.0"
+        <Label layoutX="458.0" layoutY="597.0" text="Payment total (after fees)" AnchorPane.bottomAnchor="76.0"
                AnchorPane.leftAnchor="458.0">
             <font>
                 <Font size="18.0"/>

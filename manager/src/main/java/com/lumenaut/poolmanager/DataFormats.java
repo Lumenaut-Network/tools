@@ -209,6 +209,8 @@ public class DataFormats {
         private String uuid;
         private int plannedOperations;
         private int executedOperations;
+        private String paidTotal;
+        private String remainingPayment;
         private String resultOutcome;
         private List<TransactionResultEntry> entries;
 
@@ -234,6 +236,22 @@ public class DataFormats {
 
         public void setExecutedOperations(int executedOperations) {
             this.executedOperations = executedOperations;
+        }
+
+        public String getPaidTotal() {
+            return paidTotal;
+        }
+
+        public void setPaidTotal(String paidTotal) {
+            this.paidTotal = paidTotal;
+        }
+
+        public String getRemainingPayment() {
+            return remainingPayment;
+        }
+
+        public void setRemainingPayment(String remainingPayment) {
+            this.remainingPayment = remainingPayment;
         }
 
         public String getResultOutcome() {
