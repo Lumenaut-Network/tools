@@ -595,9 +595,9 @@ public class MainController {
             transactionsBuilderStage.initModality(Modality.WINDOW_MODAL);
             transactionsBuilderStage.initOwner(primaryStage.getScene().getWindow());
             transactionsBuilderStage.setWidth(918);
-            transactionsBuilderStage.setHeight(700);
+            transactionsBuilderStage.setHeight(600);
             transactionsBuilderStage.setMinWidth(918);
-            transactionsBuilderStage.setMinHeight(700);
+            transactionsBuilderStage.setMinHeight(600);
             transactionsBuilderStage.show();
         } catch (IOException e) {
             showError(e.getMessage());
