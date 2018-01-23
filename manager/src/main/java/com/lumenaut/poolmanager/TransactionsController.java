@@ -379,7 +379,7 @@ public class TransactionsController {
             }
 
             // !!! IMPORTANT !!!
-            // Total votes balance is always computed BEFORE exclusions
+            // Total votes balance is always computed BEFORE negative payout exclusions
             long totalVotesAmount = 0L;
             for (long voterBalance : votesAndBalances.values()) {
                 totalVotesAmount += voterBalance;
@@ -419,7 +419,7 @@ public class TransactionsController {
 
                 // Only append if the actual payment is positive (if the fees are higher than the payout it can happen)
                 if (voterPayment > 0) {
-                    votesAndPayments.put(voter.getKey(), voterPayment);
+                    votesAndPayments.put(voterAddres, voterPayment);
                 } else {
                     excluded.getAndIncrement();
                     excludedNegativePayments.getAndIncrement();
