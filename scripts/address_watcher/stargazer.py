@@ -2,12 +2,14 @@
 import os
 import sys
 
+import json
+import requests
 from stellar_base.address import Address
 
 
-class Stargazer:
+class LumenautGazer:
     
-    def __init__(self, public_key, data_dir="/var/lib/stargazer", dry_run=False):
+    def __init__(self, public_key, webhook_url, data_dir="/var/lib/LumenautGazer", minimum_amount=0.1, dry_run=False):
         #  On first run, we need to create the datadir
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
@@ -16,6 +18,8 @@ class Stargazer:
             raise ValueError("Please provide public_key.")
             
         self.public_key = public_key
+        self.webhook_url = webhook_url
+        self.minimum_amount = minimum_amount
         self.address = Address(address=self.public_key, network='public')
         self.last_cursor_filepath = os.path.join(data_dir, "{}{}".format(self.public_key, '_cursor'))
         self.dry_run = dry_run
@@ -59,6 +63,11 @@ class Stargazer:
                 print('Not transaction, discarding {}'.format(current_cursor))
                 last_notified_cursor = current_cursor
                 continue
+
+            if float(payment['amount']) < self.minimum_amount:
+                print('Amount too small, discarding {}'.format(current_cursor))
+                last_notified_cursor = current_cursor
+                continue
                 
             # Build message to notify
             transaction_url = "https://stellar.expert/explorer/tx/{hash}".format(hash=payment['transaction_hash'])
@@ -92,11 +101,22 @@ class Stargazer:
             Return True when notification success, False when failed
         """
         if self.dry_run:
-            print(message)
+            print("Will send this message '{}' to {}".format(message, self.webhook_url))
             return True
         else:
-            # TODO: use requests to notify slack incoming webhook
-            return True
+            try:
+                response = requests.post(
+                    self.webhook_url, 
+                    data=json.dumps({"text": message}),
+                    timeout=5
+                )
+                if response.status_code == requests.codes.ok:
+                    return True
+            except Exception:
+                # We don't care about any errors, simply bail out and retry later
+                print("Problem sending notification. Bailing out!")
+                pass
+            return False
             
     def _set_last_cursor(self, cursor):
         with open(self.last_cursor_filepath, 'w') as output_:
@@ -104,8 +124,8 @@ class Stargazer:
 
 
 # Quick and dirty way to get pub key as arg
-if len(sys.argv) != 2:
-    raise ValueError("Please provide correct parameters. Usage: ./stargazer.py AB1231988...NAUT")
+if len(sys.argv) != 3:
+    raise ValueError("Please provide correct parameters. Usage: ./lumenaut_gazer.py AB1231988...NAUT https://hooks.slack.com/services/.../.../...")
 else:
-    gazer = Stargazer(sys.argv[1], dry_run=True)
+    gazer = LumenautGazer(sys.argv[1], sys.argv[2], dry_run=False)
     gazer.poll()
