@@ -355,6 +355,20 @@ public class TransactionsController {
                     final Long balance = entry.get("balance").asLong();
                     final String account = entry.get("account").asText();
 
+                    // !!! Important !!!
+                    // Exclude the pool's own vote, this will prevent the pool balance (which includes the inflation amount)
+                    // from adding itself to the computations on payments.
+                    if (account.equals(poolAddress)) {
+                        // Exclude
+                        excluded.getAndIncrement();
+
+                        // Flag pool exclusion
+                        excludedPoolSelfVote.set(true);
+
+                        // Skip it
+                        continue;
+                    }
+
                     // Append to the votes list
                     votesAndBalances.put(account, balance);
                 }
@@ -402,17 +416,6 @@ public class TransactionsController {
                 final String voterAddres = voter.getKey();
                 final long voterBalance = voter.getValue();
                 final long voterPayment = computeVoterPayout(inflationAmount, totalVotesAmount, voterBalance);
-
-                // Exclude the pool addres (it can be voting itself)
-                if (voterAddres.equals(poolAddress)) {
-                    // Exclude
-                    excluded.getAndIncrement();
-
-                    // Flag pool exclusion
-                    excludedPoolSelfVote.set(true);
-
-                    continue;
-                }
 
                 // Only append if the actual payment is positive (if the fees are higher than the payout it can happen)
                 if (voterPayment > 0) {
