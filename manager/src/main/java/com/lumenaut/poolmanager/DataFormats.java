@@ -442,7 +442,7 @@ public class DataFormats {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class CharityDataEntry {
         private String account;
-        private int charity;
+        private String charity;
 
         public String getAccount() {
             return account;
@@ -452,11 +452,11 @@ public class DataFormats {
             this.account = account;
         }
 
-        public int getCharity() {
+        public String getCharity() {
             return charity;
         }
 
-        public void setCharity(int charity) {
+        public void setCharity(String charity) {
             this.charity = charity;
         }
     }

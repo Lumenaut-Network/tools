@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.lumenaut.poolmanager.XLMUtils;
+import org.postgresql.util.Base64;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Properties;
@@ -196,6 +198,55 @@ public class HorizonGateway {
 
             // Add root nodes
             rootNode.put("inflationdest", accountId);
+            rootNode.set("entries", entriesNode);
+
+            // Return generated structure
+            return rootNode;
+        }
+    }
+
+    /**
+     * Retrieve charity data optionally specified by the given inflation destination pool
+     *
+     * @param inflationDestination
+     * @return
+     * @throws SQLException
+     */
+    public JsonNode getCharity(final String inflationDestination) throws SQLException {
+        final PreparedStatement charityStm = conn.prepareStatement("SELECT accounts.accountid, balance, dataname, datavalue FROM accounts LEFT JOIN accountdata ON accountdata.accountid = accounts.accountid WHERE dataname = 'lumenaut.net charity' AND inflationdest = ?");
+        charityStm.setString(1, inflationDestination);
+        charityStm.setFetchSize(50);  // Fetch in batches of 50 records
+
+        final ResultSet charityRs = charityStm.executeQuery();
+        if (!charityRs.isBeforeFirst()) {
+            // No records found
+            return null;
+        } else {
+            // Extract votes
+            final HashMap<String, byte[]> charity = new HashMap<>();
+            while (charityRs.next()) {
+                final String publicKey = charityRs.getString("accountid");
+                final byte[] dataValue = Base64.decode(charityRs.getString("datavalue"));
+
+                charity.put(publicKey, dataValue);
+            }
+
+            // Prepare JSON tree
+            final ObjectNode rootNode = OBJECT_MAPPER.createObjectNode();
+            final ArrayNode entriesNode = OBJECT_MAPPER.createArrayNode();
+
+            // Append entries
+            charity.forEach((voterAddress, dataValue) -> {
+                final ObjectNode entryNode = OBJECT_MAPPER.createObjectNode();
+                entryNode.put("account", voterAddress);
+                entryNode.put("charity", new String(dataValue, StandardCharsets.UTF_8));
+
+                // Push to the entries array
+                entriesNode.add(entryNode);
+            });
+
+            // Add root nodes
+            rootNode.put("inflationdest", inflationDestination);
             rootNode.set("entries", entriesNode);
 
             // Return generated structure
