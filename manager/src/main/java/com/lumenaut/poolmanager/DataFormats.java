@@ -383,7 +383,7 @@ public class DataFormats {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //region EXCLUSIONS DATA STRUCTURE (MUST BE COMPATIBLE WITH TRANSACTION RESULTS)
+    //region REROUTING DATA STRUCTURE
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ReroutingData {
@@ -417,6 +417,47 @@ public class DataFormats {
 
         public void setReroute(String reroute) {
             this.reroute = reroute;
+        }
+    }
+
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region REROUTING DATA STRUCTURE
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class CharityData {
+        private List<CharityDataEntry> entries;
+
+        public List<CharityDataEntry> getEntries() {
+            return entries;
+        }
+
+        public void setEntries(List<CharityDataEntry> entries) {
+            this.entries = entries;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class CharityDataEntry {
+        private String account;
+        private int charity;
+
+        public String getAccount() {
+            return account;
+        }
+
+        public void setAccount(String account) {
+            this.account = account;
+        }
+
+        public int getCharity() {
+            return charity;
+        }
+
+        public void setCharity(int charity) {
+            this.charity = charity;
         }
     }
 

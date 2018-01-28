@@ -56,6 +56,9 @@ public class TransactionsController {
     private TextArea reroutingTextArea;
 
     @FXML
+    private TextArea charityTextArea;
+
+    @FXML
     private TextField signingKeyTextField;
 
     @FXML
@@ -77,6 +80,9 @@ public class TransactionsController {
     private Button saveReroutingBtn;
 
     @FXML
+    private Button saveCharityBtn;
+
+    @FXML
     private Button executeTransactionBtn;
 
     ////////////////////////////////////////////////////////
@@ -92,10 +98,16 @@ public class TransactionsController {
     private Label plannedTransactionsLabel;
 
     @FXML
+    private Label plannedCharityLabel;
+
+    @FXML
     private Label executedTransactionsLabel;
 
     @FXML
     private Label toBePaidLabel;
+
+    @FXML
+    private Label toKeepForCharityLabel;
 
     @FXML
     private Label feesPaidLabel;
@@ -112,6 +124,7 @@ public class TransactionsController {
     // File names
     public static final String DATA_EXCLUSIONS_JSON_PATH = "data/exclusions.json";
     public static final String DATA_REROUTING_JSON_PATH = "data/rerouting.json";
+    public static final String DATA_CHARITY_JSON_PATH = "data/charity.json";
     public static final String TRANSACTION_PLAN_JSON_SUFFIX = "transaction_plan.json";
     public static final String TRANSACTION_RESULT_JSON_SUFFIX = "transaction_result.json";
     public static final DateFormat FOLDER_DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd");
@@ -168,9 +181,10 @@ public class TransactionsController {
                 break;
         }
 
-        // Load default data for exclusions and rerouting
+        // Load default data for exclusions, rerouting and charity
         loadExclusionsData();
         loadReroutingData();
+        loadCharityData();
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // TEXTFIELD HANDLERS
@@ -257,6 +271,7 @@ public class TransactionsController {
 
         saveExclusionsBtn.setOnAction(event -> saveExclusionsData());
         saveReroutingBtn.setOnAction(event -> saveReroutingData());
+        saveCharityBtn.setOnAction(event -> saveCharityData());
         saveTransactionPlanBtn.setOnAction(event -> saveTransactionPlan(false));
     }
 
@@ -678,6 +693,61 @@ public class TransactionsController {
             showInfo("The current rerouting data has been saved and is now the new default");
         } catch (IOException e) {
             showError("Cannot write Rerouting list file [" + System.getProperty("user.dir") + "/" + DATA_REROUTING_JSON_PATH + "]: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Load the existing charity file
+     */
+    private boolean loadCharityData() {
+        final StringBuilder contents = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new FileReader(DATA_CHARITY_JSON_PATH))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                contents.append(line).append("\n");
+            }
+        } catch (IOException ignore) {
+            return false;
+        }
+
+        // Update the runtime json object
+        try {
+            final CharityData charityData = OBJECT_MAPPER.readValue(contents.toString(), CharityData.class);
+            charityTextArea.setText(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(charityData));
+        } catch (IOException e) {
+            showError("Charity list format error: " + e.getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Saves the charity data currently present in the text area
+     */
+    private void saveCharityData() {
+        // Read the current contents of the text area
+        final String contents = charityTextArea.getText();
+
+        // Try to decode them to see if they are in a valid format
+        try {
+            OBJECT_MAPPER.readValue(contents, CharityData.class);
+        } catch (IOException e) {
+            showError("Charity list format error: " + e.getMessage());
+
+            return;
+        }
+
+        // Save to file
+        try (
+        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(DATA_CHARITY_JSON_PATH), "UTF-8");
+        BufferedWriter bufWriter = new BufferedWriter(writer)
+        ) {
+            bufWriter.write(contents);
+
+            showInfo("The current charity data has been saved and is now the new default");
+        } catch (IOException e) {
+            showError("Cannot write Charity list file [" + System.getProperty("user.dir") + "/" + DATA_CHARITY_JSON_PATH + "]: " + e.getMessage());
         }
     }
 

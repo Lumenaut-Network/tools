@@ -55,6 +55,18 @@
                         </AnchorPane>
                     </content>
                 </Tab>
+                <Tab text="Charity">
+                    <content>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                            <children>
+                                <TextArea fx:id="charityTextArea" layoutX="65.0" layoutY="108.0" prefHeight="200.0"
+                                          prefWidth="385.0" stylesheets="@inflationManagerMain.css"
+                                          AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                            </children>
+                        </AnchorPane>
+                    </content>
+                </Tab>
             </tabs>
         </TabPane>
         <Button fx:id="executeTransactionBtn" disable="true" layoutX="695.0" layoutY="629.0" mnemonicParsing="false"
@@ -66,21 +78,21 @@
         <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#e8e8e8" height="105.0" layoutX="303.0" layoutY="590.0"
                    stroke="BLACK" strokeType="INSIDE" width="385.0" AnchorPane.bottomAnchor="5.0"
                    AnchorPane.leftAnchor="303.0"/>
-        <Label layoutX="320.0" layoutY="647.0" text="planned:" AnchorPane.bottomAnchor="36.0"
-               AnchorPane.leftAnchor="320.0"/>
-        <Label fx:id="plannedTransactionsLabel" layoutX="381.0" layoutY="647.0" text="0" AnchorPane.bottomAnchor="36.0"
+        <Label layoutX="321.0" layoutY="632.0" text="Planned:" AnchorPane.bottomAnchor="51.0"
+               AnchorPane.leftAnchor="321.0"/>
+        <Label fx:id="plannedTransactionsLabel" layoutX="381.0" layoutY="632.0" text="0" AnchorPane.bottomAnchor="51.0"
                AnchorPane.leftAnchor="381.0"/>
-        <Label layoutX="458.0" layoutY="597.0" text="Payment plan" AnchorPane.bottomAnchor="76.0"
+        <Label layoutX="458.0" layoutY="593.0" text="Payment plan" AnchorPane.bottomAnchor="80.0"
                AnchorPane.leftAnchor="458.0">
             <font>
                 <Font size="18.0"/>
             </font>
         </Label>
-        <Label fx:id="toBePaidLabel" layoutX="513.0" layoutY="629.0" text="0 XLM" AnchorPane.bottomAnchor="54.0"
+        <Label fx:id="toBePaidLabel" layoutX="513.0" layoutY="618.0" text="0 XLM" AnchorPane.bottomAnchor="65.0"
                AnchorPane.leftAnchor="513.0"/>
         <Button fx:id="saveTransactionPlanBtn" layoutX="5.0" layoutY="641.0" mnemonicParsing="false" prefHeight="25.0"
                 prefWidth="140.0" text="Save plan" AnchorPane.bottomAnchor="34.0" AnchorPane.leftAnchor="5.0"/>
-        <Label layoutX="317.0" layoutY="602.0" text="excluded:" AnchorPane.bottomAnchor="81.0"
+        <Label layoutX="317.0" layoutY="602.0" text="Excluded:" AnchorPane.bottomAnchor="81.0"
                AnchorPane.leftAnchor="317.0"/>
         <Label fx:id="excludedTransactionsLabel" layoutX="381.0" layoutY="602.0" text="0" AnchorPane.bottomAnchor="81.0"
                AnchorPane.leftAnchor="381.0"/>
@@ -88,11 +100,11 @@
                 prefWidth="140.0" text="Save exclusions" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0"/>
         <Button fx:id="saveReroutingBtn" layoutX="155.0" layoutY="619.0" mnemonicParsing="false" prefHeight="25.0"
                 prefWidth="140.0" text="Save rerouting" AnchorPane.bottomAnchor="34.0" AnchorPane.leftAnchor="155.0"/>
-        <Label layoutX="318.0" layoutY="625.0" text="rerouted:" AnchorPane.bottomAnchor="58.0"
-               AnchorPane.leftAnchor="318.0"/>
-        <Label fx:id="reroutedTransactionsLabel" layoutX="381.0" layoutY="625.0" text="0" AnchorPane.bottomAnchor="58.0"
+        <Label layoutX="315.0" layoutY="617.0" text="Rerouted:" AnchorPane.bottomAnchor="66.0"
+               AnchorPane.leftAnchor="315.0"/>
+        <Label fx:id="reroutedTransactionsLabel" layoutX="381.0" layoutY="617.0" text="0" AnchorPane.bottomAnchor="66.0"
                AnchorPane.leftAnchor="381.0"/>
-        <Label layoutX="316.0" layoutY="670.0" text="executed:" AnchorPane.bottomAnchor="13.0"
+        <Label layoutX="316.0" layoutY="670.0" text="Executed:" AnchorPane.bottomAnchor="13.0"
                AnchorPane.leftAnchor="316.0"/>
         <Label fx:id="executedTransactionsLabel" layoutX="381.0" layoutY="670.0" text="0" AnchorPane.bottomAnchor="13.0"
                AnchorPane.leftAnchor="381.0"/>
@@ -102,15 +114,25 @@
         <TextField fx:id="inflationAmountTextField" layoutX="695.0" layoutY="621.0" prefHeight="25.0" prefWidth="200.0"
                    promptText="Inflation amount" AnchorPane.bottomAnchor="54.0" AnchorPane.leftAnchor="695.0"
                    AnchorPane.rightAnchor="5.0"/>
-        <Label layoutX="458.0" layoutY="629.0" text="Payout:" AnchorPane.bottomAnchor="54.0"
+        <Label layoutX="458.0" layoutY="617.0" text="Payout:" AnchorPane.bottomAnchor="66.0"
                AnchorPane.leftAnchor="458.0"/>
-        <Label layoutX="471.0" layoutY="648.0" text="Fees:" AnchorPane.bottomAnchor="35.0"
+        <Label layoutX="471.0" layoutY="650.0" text="Fees:" AnchorPane.bottomAnchor="33.0"
                AnchorPane.leftAnchor="471.0"/>
-        <Label fx:id="feesPaidLabel" layoutX="513.0" layoutY="648.0" text="0 XLM" AnchorPane.bottomAnchor="35.0"
+        <Label fx:id="feesPaidLabel" layoutX="513.0" layoutY="650.0" text="0 XLM" AnchorPane.bottomAnchor="33.0"
                AnchorPane.leftAnchor="513.0"/>
         <Label layoutX="470.0" layoutY="667.0" text="Total:" AnchorPane.bottomAnchor="16.0"
                AnchorPane.leftAnchor="470.0"/>
         <Label fx:id="totalPaidLabel" layoutX="513.0" layoutY="667.0" text="0 XLM" AnchorPane.bottomAnchor="16.0"
                AnchorPane.leftAnchor="513.0"/>
+        <Label layoutX="458.0" layoutY="633.0" text="Charity:" AnchorPane.bottomAnchor="50.0"
+               AnchorPane.leftAnchor="458.0"/>
+        <Label fx:id="toKeepForCharityLabel" layoutX="513.0" layoutY="634.0" text="0 XLM" AnchorPane.bottomAnchor="49.0"
+               AnchorPane.leftAnchor="513.0"/>
+        <Label layoutX="327.0" layoutY="648.0" text="Charity:" AnchorPane.bottomAnchor="35.0"
+               AnchorPane.leftAnchor="327.0"/>
+        <Label fx:id="plannedCharityLabel" layoutX="381.0" layoutY="648.0" text="0" AnchorPane.bottomAnchor="35.0"
+               AnchorPane.leftAnchor="381.0"/>
+        <Button fx:id="saveCharityBtn" layoutX="155.0" layoutY="670.0" mnemonicParsing="false" prefHeight="25.0"
+                prefWidth="140.0" text="Save charity" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="155.0"/>
     </children>
 </AnchorPane>

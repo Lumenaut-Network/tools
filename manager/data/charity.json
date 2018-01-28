@@ -1,0 +1,11 @@
+{
+    // These nodes represent accounts that expressed their wish to donate a % of their inflation to charity
+    // expressed in the range 1-100, where 100 means all the account inflation should go to charity.
+    // accounts not in this list will receive their full inflation by default
+    "entries": [
+        {
+            "account": "GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+            "charity": 100
+        }
+    ]
+}
