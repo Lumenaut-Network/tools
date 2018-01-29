@@ -302,13 +302,13 @@ public class MainController {
             final CompletableFuture<String> request = CompletableFuture.supplyAsync(() -> {
                 try {
                     // Fetch the voters from the federation network
-                    final JsonNode voters = horizonGateway.getVoters(poolAddress);
+                    final JsonNode votersData = horizonGateway.getVotersData(poolAddress);
 
                     // Update the current voters data
-                    currentVotersData = voters;
+                    currentVotersData = votersData;
 
                     // Format and return
-                    return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(voters);
+                    return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(votersData);
                 } catch (Exception e) {
                     // Cancel applicationBusy state and show error
                     Platform.runLater(() -> {

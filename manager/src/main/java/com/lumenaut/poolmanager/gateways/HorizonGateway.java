@@ -160,12 +160,12 @@ public class HorizonGateway {
      * Get the inflation votes currently cast to the specified accountId
      *
      * @param inflationDestination The public key of the account receiving the inflation votes
-     * @return A hashmap whose keys are the account ids of the voters and values represent their current balance
+     * @return A JsonNode object containing the full structure of the extracted data
      * @throws SQLException
      */
-    public JsonNode getVoters(final String inflationDestination) throws SQLException {
+    public JsonNode getVotersData(final String inflationDestination) throws SQLException {
         // Get donations data
-        final HashMap<String, HashMap<String, String>> donationsData = getVotersCustomData(inflationDestination, "lumenaut.net donation");
+        final HashMap<String, HashMap<String, String>> donationsData = getVotersCustomData(inflationDestination, "*");
 
         // Prepared statement
         final PreparedStatement inflationStm = conn.prepareStatement("SELECT * FROM core.public.accounts WHERE inflationdest = ?");
@@ -253,7 +253,9 @@ public class HorizonGateway {
             sb.delete(sb.length() - 3, sb.length());
             sb.append(")");
         } else {
-            sb.append(" AND dataname = '").append(dataNames[0]).append("'");
+            if (!dataNames[0].equals("*")) {
+                sb.append(" AND dataname = '").append(dataNames[0]).append("'");
+            }
         }
 
         final PreparedStatement accountDataStm = conn.prepareStatement(sb.toString());
@@ -276,14 +278,24 @@ public class HorizonGateway {
             while (accountDataRs.next()) {
                 final String publicKey = accountDataRs.getString("accountid");
                 final String dataName = accountDataRs.getString("dataname");
-                final String dataValue = new String(Base64.decode(accountDataRs.getString("datavalue")), StandardCharsets.UTF_8);
+                final String dataValue = accountDataRs.getString("datavalue");
 
+                // Skip rows without data entries
+                if (dataName == null || dataValue == null) {
+                    continue;
+                }
+
+                // Decode the value
+                final String decodedDataValue = new String(Base64.decode(accountDataRs.getString("datavalue")), StandardCharsets.UTF_8);
+
+                // Create entry in the hashmap if needed
                 if (!accountsData.containsKey(publicKey)) {
                     accountsData.put(publicKey, new HashMap<>());
                 }
 
+                // Put the data entry
                 final HashMap<String, String> accountData = accountsData.get(publicKey);
-                accountData.put(dataName, dataValue);
+                accountData.put(dataName, decodedDataValue);
             }
 
             // Release resources
