@@ -29,6 +29,7 @@ public class HorizonGateway {
     // Data
     private Connection conn;
     private boolean connected;
+    private final StringBuilder sb = new StringBuilder();
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -163,6 +164,9 @@ public class HorizonGateway {
      * @throws SQLException
      */
     public JsonNode getVoters(final String accountId) throws SQLException {
+        // Get donations data
+        final HashMap<String, HashMap<String, String>> donationsData = getVotersCustomData(accountId, "lumenaut.net donation");
+
         // Prepared statement
         final PreparedStatement inflationStm = conn.prepareStatement("SELECT * FROM core.public.accounts WHERE inflationdest = ?");
         inflationStm.setString(1, accountId);
@@ -192,6 +196,23 @@ public class HorizonGateway {
                 entryNode.put("balance", balance);
                 entryNode.put("account", voterAddress);
 
+                if (donationsData.containsKey(voterAddress)) {
+                    final HashMap<String, String> voterData = donationsData.get(voterAddress);
+                    final ArrayNode entryData = OBJECT_MAPPER.createArrayNode();
+
+                    // Add all data to the entry data node array
+                    for (HashMap.Entry<String, String> entry : voterData.entrySet()) {
+                        final ObjectNode entryDataNode = OBJECT_MAPPER.createObjectNode();
+                        entryDataNode.put(entry.getKey(), entry.getValue());
+                        entryData.add(entryDataNode);
+                    }
+
+                    // Add the entry data array to the entry node
+                    entryNode.set("data", entryData);
+                } else {
+                    entryNode.set("data", null);
+                }
+
                 // Push to the entries array
                 entriesNode.add(entryNode);
             });
@@ -206,51 +227,58 @@ public class HorizonGateway {
     }
 
     /**
-     * Retrieve charity data optionally specified by the given inflation destination pool
+     * Retrieve the specified data entry (by name) for any account voting the given inflation destination address
      *
      * @param inflationDestination
      * @return
      * @throws SQLException
      */
-    public JsonNode getCharity(final String inflationDestination) throws SQLException {
-        final PreparedStatement charityStm = conn.prepareStatement("SELECT accounts.accountid, balance, dataname, datavalue FROM accounts LEFT JOIN accountdata ON accountdata.accountid = accounts.accountid WHERE dataname = 'lumenaut.net charity' AND inflationdest = ?");
-        charityStm.setString(1, inflationDestination);
-        charityStm.setFetchSize(50);  // Fetch in batches of 50 records
+    public HashMap<String, HashMap<String, String>> getVotersCustomData(final String inflationDestination, final String... dataNames) throws SQLException {
+        // Build the query
+        sb.setLength(0);
+        sb.append("SELECT * FROM accounts LEFT JOIN accountdata ON accountdata.accountid = accounts.accountid WHERE inflationdest = ?");
 
-        final ResultSet charityRs = charityStm.executeQuery();
-        if (!charityRs.isBeforeFirst()) {
+        if (dataNames.length > 1) {
+            sb.append(" AND (");
+            for (String dataname : dataNames) {
+                sb.append(" dataname = '").append(dataname).append("' OR");
+            }
+
+            // Cut trailing " OR" and close the AND clause
+            sb.delete(sb.length() - 3, sb.length());
+            sb.append(")");
+        } else {
+            sb.append(" AND dataname = '").append(dataNames[0]).append("'");
+        }
+
+        final PreparedStatement accountDataStm = conn.prepareStatement(sb.toString());
+        accountDataStm.setString(1, inflationDestination);
+        accountDataStm.setFetchSize(50);  // Fetch in batches of 50 records
+
+        // Data results
+        final HashMap<String, HashMap<String, String>> accountsData = new HashMap<>();
+
+        // Create result entries
+        final ResultSet accountDataRs = accountDataStm.executeQuery();
+        if (!accountDataRs.isBeforeFirst()) {
             // No records found
             return null;
         } else {
-            // Extract votes
-            final HashMap<String, byte[]> charity = new HashMap<>();
-            while (charityRs.next()) {
-                final String publicKey = charityRs.getString("accountid");
-                final byte[] dataValue = Base64.decode(charityRs.getString("datavalue"));
+            while (accountDataRs.next()) {
+                final String publicKey = accountDataRs.getString("accountid");
+                final String dataName = accountDataRs.getString("dataname");
+                final String dataValue = new String(Base64.decode(accountDataRs.getString("datavalue")), StandardCharsets.UTF_8);
 
-                charity.put(publicKey, dataValue);
+                if (!accountsData.containsKey(publicKey)) {
+                    accountsData.put(publicKey, new HashMap<>());
+                }
+
+                final HashMap<String, String> accountData = accountsData.get(publicKey);
+                accountData.put(dataName, dataValue);
             }
 
-            // Prepare JSON tree
-            final ObjectNode rootNode = OBJECT_MAPPER.createObjectNode();
-            final ArrayNode entriesNode = OBJECT_MAPPER.createArrayNode();
-
-            // Append entries
-            charity.forEach((voterAddress, dataValue) -> {
-                final ObjectNode entryNode = OBJECT_MAPPER.createObjectNode();
-                entryNode.put("account", voterAddress);
-                entryNode.put("charity", new String(dataValue, StandardCharsets.UTF_8));
-
-                // Push to the entries array
-                entriesNode.add(entryNode);
-            });
-
-            // Add root nodes
-            rootNode.put("inflationdest", inflationDestination);
-            rootNode.set("entries", entriesNode);
-
             // Return generated structure
-            return rootNode;
+            return accountsData;
         }
     }
 
