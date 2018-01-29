@@ -159,17 +159,17 @@ public class HorizonGateway {
     /**
      * Get the inflation votes currently cast to the specified accountId
      *
-     * @param accountId The public key of the account receiving the inflation votes
+     * @param inflationDestination The public key of the account receiving the inflation votes
      * @return A hashmap whose keys are the account ids of the voters and values represent their current balance
      * @throws SQLException
      */
-    public JsonNode getVoters(final String accountId) throws SQLException {
+    public JsonNode getVoters(final String inflationDestination) throws SQLException {
         // Get donations data
-        final HashMap<String, HashMap<String, String>> donationsData = getVotersCustomData(accountId, "lumenaut.net donation");
+        final HashMap<String, HashMap<String, String>> donationsData = getVotersCustomData(inflationDestination, "lumenaut.net donation");
 
         // Prepared statement
         final PreparedStatement inflationStm = conn.prepareStatement("SELECT * FROM core.public.accounts WHERE inflationdest = ?");
-        inflationStm.setString(1, accountId);
+        inflationStm.setString(1, inflationDestination);
         inflationStm.setFetchSize(50);  // Fetch in batches of 50 records
 
         // Extract results
@@ -198,18 +198,19 @@ public class HorizonGateway {
 
                 if (donationsData.containsKey(voterAddress)) {
                     final HashMap<String, String> voterData = donationsData.get(voterAddress);
-                    final ArrayNode entryData = OBJECT_MAPPER.createArrayNode();
+                    final ArrayNode voterDataEntriesArray = OBJECT_MAPPER.createArrayNode();
 
                     // Add all data to the entry data node array
                     for (HashMap.Entry<String, String> entry : voterData.entrySet()) {
-                        final ObjectNode entryDataNode = OBJECT_MAPPER.createObjectNode();
-                        entryDataNode.put(entry.getKey(), entry.getValue());
-                        entryData.add(entryDataNode);
+                        final ObjectNode voterDataEntryNode = OBJECT_MAPPER.createObjectNode();
+                        voterDataEntryNode.put(entry.getKey(), entry.getValue());
+                        voterDataEntriesArray.add(voterDataEntryNode);
                     }
 
                     // Add the entry data array to the entry node
-                    entryNode.set("data", entryData);
+                    entryNode.set("data", voterDataEntriesArray);
                 } else {
+                    // No data
                     entryNode.set("data", null);
                 }
 
@@ -218,8 +219,12 @@ public class HorizonGateway {
             });
 
             // Add root nodes
-            rootNode.put("inflationdest", accountId);
+            rootNode.put("inflationdest", inflationDestination);
             rootNode.set("entries", entriesNode);
+
+            // Release resources
+            inflationRs.close();
+            inflationStm.close();
 
             // Return generated structure
             return rootNode;
@@ -236,7 +241,7 @@ public class HorizonGateway {
     public HashMap<String, HashMap<String, String>> getVotersCustomData(final String inflationDestination, final String... dataNames) throws SQLException {
         // Build the query
         sb.setLength(0);
-        sb.append("SELECT * FROM accounts LEFT JOIN accountdata ON accountdata.accountid = accounts.accountid WHERE inflationdest = ?");
+        sb.append("SELECT * FROM core.public.accounts LEFT JOIN core.public.accountdata ON accountdata.accountid = accounts.accountid WHERE inflationdest = ?");
 
         if (dataNames.length > 1) {
             sb.append(" AND (");
@@ -261,6 +266,10 @@ public class HorizonGateway {
         // Create result entries
         final ResultSet accountDataRs = accountDataStm.executeQuery();
         if (!accountDataRs.isBeforeFirst()) {
+            // Release resources
+            accountDataRs.close();
+            accountDataStm.close();
+
             // No records found
             return null;
         } else {
@@ -276,6 +285,10 @@ public class HorizonGateway {
                 final HashMap<String, String> accountData = accountsData.get(publicKey);
                 accountData.put(dataName, dataValue);
             }
+
+            // Release resources
+            accountDataRs.close();
+            accountDataStm.close();
 
             // Return generated structure
             return accountsData;
@@ -303,8 +316,14 @@ public class HorizonGateway {
             // Move cursor to the first record
             inflationRs.next();
 
+            final BigDecimal result = XLMUtils.stroopToXLM(inflationRs.getLong("balance"));
+
+            // Release resources
+            inflationRs.close();
+            inflationStm.close();
+
             // Return balance in XLM
-            return XLMUtils.stroopToXLM(inflationRs.getLong("balance"));
+            return result;
         }
     }
 
