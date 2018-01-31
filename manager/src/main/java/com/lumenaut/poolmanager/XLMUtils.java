@@ -25,6 +25,8 @@ public class XLMUtils {
     private static final String positiveStroopFormatPattern = "^\\d{1,19}$";
     private static final String negativeStroopFormatPattern = "^-\\d{1,19}$";
     private static final String stroopFormatPattern = "^[-]?\\d{1,19}$";
+    private static final String validPublicKey = "^G[A-Z0-9]{55}$";
+    private static final String validSecretKey = "^S[A-Z0-9]{55}$";
 
     // Constants
     public static final BigDecimal STROOPS_IN_XLM = new BigDecimal("10000000");
@@ -173,6 +175,26 @@ public class XLMUtils {
      */
     public static boolean isPositiveDecimalFormat(final String amount) {
         return amount.matches(positiveDecimalNumberPattern);
+    }
+
+    /**
+     * Check if the given public key is in a valid format
+     *
+     * @param publicKey
+     * @return
+     */
+    public static boolean isPublicKeyValidFormat(final String publicKey) {
+        return publicKey.matches(validPublicKey);
+    }
+
+    /**
+     * Check if the given secret key is in a valid format
+     *
+     * @param secretKey
+     * @return
+     */
+    public static boolean isSecretKeyValidFormat(final String secretKey) {
+        return secretKey.matches(validSecretKey);
     }
 
     /**

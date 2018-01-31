@@ -203,7 +203,8 @@ public class HorizonGateway {
                     // Add all data to the entry data node array
                     for (HashMap.Entry<String, String> entry : voterData.entrySet()) {
                         final ObjectNode voterDataEntryNode = OBJECT_MAPPER.createObjectNode();
-                        voterDataEntryNode.put(entry.getKey(), entry.getValue());
+                        voterDataEntryNode.put("dataname", entry.getKey());
+                        voterDataEntryNode.put("datavalue", entry.getValue());
                         voterDataEntriesArray.add(voterDataEntryNode);
                     }
 

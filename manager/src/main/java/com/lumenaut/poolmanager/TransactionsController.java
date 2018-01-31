@@ -217,6 +217,11 @@ public class TransactionsController {
         executeTransactionBtn.setOnAction(event -> {
             // Check signature
             final String signingKey = signingKeyTextField.getText();
+            if (!XLMUtils.isSecretKeyValidFormat(signingKey)) {
+                showError("The signing key specified cannot be a valid signing key!");
+
+                return;
+            }
 
             // Check the transaction plan has a positive amount to pay
             if (transactionPlan.getTotalpayments() <= 0) {
@@ -363,32 +368,53 @@ public class TransactionsController {
                 return false;
             }
 
-            // Parse the voters data
-            final JsonNode votesEntries = currentVotersData.get("entries");
-            if (votesEntries.isArray()) {
-                for (final JsonNode entry : votesEntries) {
-                    final Long balance = entry.get("balance").asLong();
-                    final String account = entry.get("account").asText();
+            // Convert the JsonNode representation in a more manageable POJO
+            final VotersData votersData;
+            try {
+                votersData = OBJECT_MAPPER.readValue(OBJECT_MAPPER.writeValueAsString(currentVotersData), VotersData.class);
+                if (votersData.getEntries().size() > 0) {
+                    for (VoterDataEntry entry : votersData.getEntries()) {
+                        // Pull balance and account data
+                        final Long balance = entry.getBalance();
+                        final String account = entry.getAccount();
 
-                    // !!! Important !!!
-                    // Exclude the pool's own vote, this will prevent the pool balance (which includes the inflation amount)
-                    // from adding itself to the computations on payments.
-                    if (account.equals(poolAddress)) {
-                        // Exclude
-                        excluded.getAndIncrement();
+                        // !!! Important !!!
+                        // Exclude the pool's own vote, this will prevent the pool balance (which includes the inflation amount)
+                        // from adding itself to the computations on payments.
+                        if (account.equals(poolAddress)) {
+                            // Exclude
+                            excluded.getAndIncrement();
 
-                        // Flag pool exclusion
-                        excludedPoolSelfVote.set(true);
+                            // Flag pool exclusion
+                            excludedPoolSelfVote.set(true);
 
-                        // Skip it
-                        continue;
+                            // Skip it
+                            continue;
+                        }
+
+                        // Check for custom data that is relevant to us
+                        final List<VoterCustomDataEntry> voterCustomData = entry.getData();
+                        if (voterCustomData != null) {
+                            for (VoterCustomDataEntry customDataEntry : voterCustomData) {
+                                if (customDataEntry.getDataname() != null && customDataEntry.getDatavalue() != null) {
+                                    switch (customDataEntry.getDataname()) {
+                                        case LUMENAUT_NET_DONATION_DATA_NAME:
+                                            // This voter is donating a % of his inflation to someone
+                                            final String dataValue = customDataEntry.getDatavalue();
+
+
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Append to the votes list
+                        votesAndBalances.put(account, balance);
                     }
-
-                    // Append to the votes list
-                    votesAndBalances.put(account, balance);
                 }
-            } else {
-                showError("Voters data format is invalid");
+            } catch (IOException e) {
+                showError("Voters data format is invalid: " + e.getMessage());
 
                 return false;
             }

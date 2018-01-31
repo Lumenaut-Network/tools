@@ -60,9 +60,9 @@ public class DataFormats {
     //region INFLATION POOL VOTERS DATA STRUCTURE
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class InflationData {
+    public static class VotersData {
         private String inflationdest;
-        private List<InflationDataEntry> entries;
+        private List<VoterDataEntry> entries;
 
         public String getInflationdest() {
             return inflationdest;
@@ -72,19 +72,20 @@ public class DataFormats {
             this.inflationdest = inflationdest;
         }
 
-        public List<InflationDataEntry> getEntries() {
+        public List<VoterDataEntry> getEntries() {
             return entries;
         }
 
-        public void setEntries(List<InflationDataEntry> entries) {
+        public void setEntries(List<VoterDataEntry> entries) {
             this.entries = entries;
         }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class InflationDataEntry {
+    public static class VoterDataEntry {
         private Long balance;
         private String account;
+        private List<VoterCustomDataEntry> data;
 
         public Long getBalance() {
             return balance;
@@ -100,6 +101,36 @@ public class DataFormats {
 
         public void setAccount(String account) {
             this.account = account;
+        }
+
+        public List<VoterCustomDataEntry> getData() {
+            return data;
+        }
+
+        public void setData(List<VoterCustomDataEntry> data) {
+            this.data = data;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class VoterCustomDataEntry {
+        private String dataname;
+        private String datavalue;
+
+        public String getDataname() {
+            return dataname;
+        }
+
+        public void setDataname(String dataname) {
+            this.dataname = dataname;
+        }
+
+        public String getDatavalue() {
+            return datavalue;
+        }
+
+        public void setDatavalue(String datavalue) {
+            this.datavalue = datavalue;
         }
     }
 

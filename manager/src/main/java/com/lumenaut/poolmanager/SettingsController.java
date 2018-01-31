@@ -155,8 +155,15 @@ public class SettingsController {
      * Save current settings
      */
     private void saveSettings() {
+        // Check default pool address
+        if (!XLMUtils.isPublicKeyValidFormat(defaultPoolAddressTextField.getText())) {
+            showError("The default pool address is not valid, make sure you have specified a valid PUBLIC KEY");
+
+            return;
+        }
+
         // Update settings from the textfields
-        SETTING_OPERATIONS_NETWORK = activeNetworkChoiceBox.getValue().toString();
+        SETTING_OPERATIONS_NETWORK = activeNetworkChoiceBox.getValue();
         SETTING_INFLATION_POOL_ADDRESS = defaultPoolAddressTextField.getText();
         SETTING_FEDERATION_NETWORK_INFLATION_URL = defaultFedNetworkInflationUrlTextField.getText();
         SETTING_MEMO = defaultMemoTextField.getText();

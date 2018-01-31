@@ -36,6 +36,7 @@ public class Settings {
 
     // Non persistent settings
     public static RoundingMode ROUNDING_MODE = RoundingMode.HALF_DOWN;
+    public static final String LUMENAUT_NET_DONATION_DATA_NAME = "lumenaut.net donation";
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -84,7 +85,7 @@ public class Settings {
 
             // Bring the settings in the runtime
             SETTING_OPERATIONS_NETWORK = PROPERTIES.getProperty("operationsNetwork");
-            SETTING_INFLATION_POOL_ADDRESS = PROPERTIES.getProperty("inflationPoolAddress");
+            SETTING_INFLATION_POOL_ADDRESS = XLMUtils.isPublicKeyValidFormat(PROPERTIES.getProperty("inflationPoolAddress")) ? PROPERTIES.getProperty("inflationPoolAddress") : "";
             SETTING_FEDERATION_NETWORK_INFLATION_URL = PROPERTIES.getProperty("fedNetworkInflationUrl");
             SETTING_MEMO = PROPERTIES.getProperty("memoText");
             SETTING_FEE = Long.parseLong(PROPERTIES.getProperty("fee")) < 100 ? 100 : Long.parseLong(PROPERTIES.getProperty("fee"));
@@ -125,7 +126,7 @@ public class Settings {
     public static void saveSettings() throws IOException {
         // Get current settings
         PROPERTIES.setProperty("operationsNetwork", SETTING_OPERATIONS_NETWORK);
-        PROPERTIES.setProperty("inflationPoolAddress", SETTING_INFLATION_POOL_ADDRESS);
+        PROPERTIES.setProperty("inflationPoolAddress", XLMUtils.isPublicKeyValidFormat(SETTING_INFLATION_POOL_ADDRESS) ? SETTING_INFLATION_POOL_ADDRESS : "");
         PROPERTIES.setProperty("fedNetworkInflationUrl", SETTING_FEDERATION_NETWORK_INFLATION_URL);
         PROPERTIES.setProperty("memoText", SETTING_MEMO);
         PROPERTIES.setProperty("fee", SETTING_FEE >= 100 ? String.valueOf(SETTING_FEE) : "100");

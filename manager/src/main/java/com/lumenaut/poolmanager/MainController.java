@@ -1,8 +1,8 @@
 package com.lumenaut.poolmanager;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lumenaut.poolmanager.DataFormats.InflationData;
-import com.lumenaut.poolmanager.DataFormats.InflationDataEntry;
+import com.lumenaut.poolmanager.DataFormats.VotersData;
+import com.lumenaut.poolmanager.DataFormats.VoterDataEntry;
 import com.lumenaut.poolmanager.gateways.FederationGateway;
 import com.lumenaut.poolmanager.gateways.HorizonGateway;
 import com.lumenaut.poolmanager.gateways.StellarGateway;
@@ -204,11 +204,11 @@ public class MainController {
         final String inflationPoolData = inflationPoolDataTextArea.getText();
         if (inflationPoolData != null && !inflationPoolData.isEmpty() && !inflationPoolData.equals("null")) {
             try {
-                final InflationData inflationData = OBJECT_MAPPER.readValue(inflationPoolData, InflationData.class);
+                final VotersData inflationData = OBJECT_MAPPER.readValue(inflationPoolData, VotersData.class);
                 poolDataVotersLabel.setText(String.valueOf(inflationData.getEntries().size()));
 
                 Long totalVotes = 0L;
-                for (InflationDataEntry voter : inflationData.getEntries()) {
+                for (VoterDataEntry voter : inflationData.getEntries()) {
                     totalVotes += voter.getBalance();
                 }
 
