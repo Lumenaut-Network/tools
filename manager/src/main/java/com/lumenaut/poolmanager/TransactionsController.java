@@ -56,7 +56,7 @@ public class TransactionsController {
     private TextArea reroutingTextArea;
 
     @FXML
-    private TextArea charityTextArea;
+    private TextArea donationsTextArea;
 
     @FXML
     private TextField signingKeyTextField;
@@ -80,7 +80,7 @@ public class TransactionsController {
     private Button saveReroutingBtn;
 
     @FXML
-    private Button saveCharityBtn;
+    private Button saveDonationsBtn;
 
     @FXML
     private Button executeTransactionBtn;
@@ -98,7 +98,7 @@ public class TransactionsController {
     private Label plannedTransactionsLabel;
 
     @FXML
-    private Label plannedCharityLabel;
+    private Label plannedDonationsLabel;
 
     @FXML
     private Label executedTransactionsLabel;
@@ -107,7 +107,7 @@ public class TransactionsController {
     private Label toBePaidLabel;
 
     @FXML
-    private Label toKeepForCharityLabel;
+    private Label toKeepForDonationsLabel;
 
     @FXML
     private Label feesPaidLabel;
@@ -124,7 +124,7 @@ public class TransactionsController {
     // File names
     public static final String DATA_EXCLUSIONS_JSON_PATH = "data/exclusions.json";
     public static final String DATA_REROUTING_JSON_PATH = "data/rerouting.json";
-    public static final String DATA_CHARITY_JSON_PATH = "data/charity.json";
+    public static final String DATA_CHARITY_JSON_PATH = "data/donations.json";
     public static final String TRANSACTION_PLAN_JSON_SUFFIX = "transaction_plan.json";
     public static final String TRANSACTION_RESULT_JSON_SUFFIX = "transaction_result.json";
     public static final DateFormat FOLDER_DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd");
@@ -276,7 +276,7 @@ public class TransactionsController {
 
         saveExclusionsBtn.setOnAction(event -> saveExclusionsData());
         saveReroutingBtn.setOnAction(event -> saveReroutingData());
-        saveCharityBtn.setOnAction(event -> saveCharityData());
+        saveDonationsBtn.setOnAction(event -> saveCharityData());
         saveTransactionPlanBtn.setOnAction(event -> saveTransactionPlan(false));
     }
 
@@ -738,8 +738,8 @@ public class TransactionsController {
 
         // Update the runtime json object
         try {
-            final CharityData charityData = OBJECT_MAPPER.readValue(contents.toString(), CharityData.class);
-            charityTextArea.setText(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(charityData));
+            final DonationData donationData = OBJECT_MAPPER.readValue(contents.toString(), DonationData.class);
+            donationsTextArea.setText(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(donationData));
         } catch (IOException e) {
             showError("Charity list format error: " + e.getMessage());
             return false;
@@ -753,11 +753,11 @@ public class TransactionsController {
      */
     private void saveCharityData() {
         // Read the current contents of the text area
-        final String contents = charityTextArea.getText();
+        final String contents = donationsTextArea.getText();
 
         // Try to decode them to see if they are in a valid format
         try {
-            OBJECT_MAPPER.readValue(contents, CharityData.class);
+            OBJECT_MAPPER.readValue(contents, DonationData.class);
         } catch (IOException e) {
             showError("Charity list format error: " + e.getMessage());
 

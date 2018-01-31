@@ -83,15 +83,15 @@ public class DataFormats {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class VoterDataEntry {
-        private Long balance;
+        private long balance;
         private String account;
         private List<VoterCustomDataEntry> data;
 
-        public Long getBalance() {
+        public long getBalance() {
             return balance;
         }
 
-        public void setBalance(Long balance) {
+        public void setBalance(long balance) {
             this.balance = balance;
         }
 
@@ -145,6 +145,7 @@ public class DataFormats {
         private String uuid;
         private int excluded;
         private int rerouted;
+        private int donations;
         private long totalvotes;
         private long totalpayments;
         private long totalfees;
@@ -173,6 +174,14 @@ public class DataFormats {
 
         public void setRerouted(int rerouted) {
             this.rerouted = rerouted;
+        }
+
+        public int getDonations() {
+            return donations;
+        }
+
+        public void setDonations(int donations) {
+            this.donations = donations;
         }
 
         public long getTotalvotes() {
@@ -218,15 +227,16 @@ public class DataFormats {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class TransactionPlanEntry {
-        private Long amount;
+        private long amount;
         private String destination;
-        private String reroutedfrom;        // Optional
+        private String reroutedfrom = "";   // Optional
+        private boolean donation = false;   // Optional
 
-        public Long getAmount() {
+        public long getAmount() {
             return amount;
         }
 
-        public void setAmount(Long amount) {
+        public void setAmount(long amount) {
             this.amount = amount;
         }
 
@@ -244,6 +254,14 @@ public class DataFormats {
 
         public void setReroutedfrom(String reroutedfrom) {
             this.reroutedfrom = reroutedfrom;
+        }
+
+        public boolean isDonation() {
+            return donation;
+        }
+
+        public void setDonation(boolean donation) {
+            this.donation = donation;
         }
     }
 
@@ -340,24 +358,25 @@ public class DataFormats {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class TransactionResultEntry {
-        private Long timestamp;
-        private Long amount;
+        private long timestamp;
+        private long amount;
         private String destination;
-        private String reroutedfrom;        // Optional
+        private String reroutedfrom = "";       // Optional
+        private boolean donation = false;       // Optional
 
-        public Long getTimestamp() {
+        public long getTimestamp() {
             return timestamp;
         }
 
-        public void setTimestamp(Long timestamp) {
+        public void setTimestamp(long timestamp) {
             this.timestamp = timestamp;
         }
 
-        public Long getAmount() {
+        public long getAmount() {
             return amount;
         }
 
-        public void setAmount(Long amount) {
+        public void setAmount(long amount) {
             this.amount = amount;
         }
 
@@ -375,6 +394,14 @@ public class DataFormats {
 
         public void setReroutedfrom(String reroutedfrom) {
             this.reroutedfrom = reroutedfrom;
+        }
+
+        public boolean getDonation() {
+            return donation;
+        }
+
+        public void setDonation(boolean donation) {
+            this.donation = donation;
         }
     }
 
@@ -455,40 +482,49 @@ public class DataFormats {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //region REROUTING DATA STRUCTURE
+    //region DONATIONS DATA STRUCTURE
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class CharityData {
-        private List<CharityDataEntry> entries;
+    public static class DonationData {
+        private List<DonationDataEntry> entries;
 
-        public List<CharityDataEntry> getEntries() {
+        public List<DonationDataEntry> getEntries() {
             return entries;
         }
 
-        public void setEntries(List<CharityDataEntry> entries) {
+        public void setEntries(List<DonationDataEntry> entries) {
             this.entries = entries;
         }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class CharityDataEntry {
-        private String account;
-        private String charity;
+    public static class DonationDataEntry {
+        private String source = "";
+        private String destination = "";
+        private int percent = 0;
 
-        public String getAccount() {
-            return account;
+        public String getSource() {
+            return source;
         }
 
-        public void setAccount(String account) {
-            this.account = account;
+        public void setSource(String source) {
+            this.source = source;
         }
 
-        public String getCharity() {
-            return charity;
+        public String getDestination() {
+            return destination;
         }
 
-        public void setCharity(String charity) {
-            this.charity = charity;
+        public void setDestination(String destination) {
+            this.destination = destination;
+        }
+
+        public int getPercent() {
+            return percent;
+        }
+
+        public void setPercent(int percent) {
+            this.percent = percent;
         }
     }
 
