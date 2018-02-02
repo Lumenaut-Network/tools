@@ -9,6 +9,8 @@
 .idea/libraries
 .idea/dbnavigator.xml
 .idea/fileTemplates/includes/File Header.java
+.idea/markdown-navigator.xml
+.idea/markdown-navigator/
 
 # Gradle folders
 .gradle
@@ -21,3 +23,4 @@ out/
 .*~
 /data/settings.ini
 /data/*/
+

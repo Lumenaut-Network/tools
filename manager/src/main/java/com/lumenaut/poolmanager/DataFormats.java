@@ -485,15 +485,42 @@ public class DataFormats {
     //region DONATIONS DATA STRUCTURE
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class DonationData {
-        private List<DonationDataEntry> entries;
+    public static class DonationsData {
+        private int numdonations;
+        private List<DonationDataEntry> donations;
+        private int numerrors;
+        private List<DonationErrorEntry> errors;
 
-        public List<DonationDataEntry> getEntries() {
-            return entries;
+        public int getNumdonations() {
+            return numdonations;
         }
 
-        public void setEntries(List<DonationDataEntry> entries) {
-            this.entries = entries;
+        public void setNumdonations(int numdonations) {
+            this.numdonations = numdonations;
+        }
+
+        public List<DonationDataEntry> getDonations() {
+            return donations;
+        }
+
+        public void setDonations(List<DonationDataEntry> donations) {
+            this.donations = donations;
+        }
+
+        public int getNumerrors() {
+            return numerrors;
+        }
+
+        public void setNumerrors(int numerrors) {
+            this.numerrors = numerrors;
+        }
+
+        public List<DonationErrorEntry> getErrors() {
+            return errors;
+        }
+
+        public void setErrors(List<DonationErrorEntry> errors) {
+            this.errors = errors;
         }
     }
 
@@ -525,6 +552,37 @@ public class DataFormats {
 
         public void setPercent(int percent) {
             this.percent = percent;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class DonationErrorEntry {
+        private String source = "";
+        private String donationstring = "";
+        private String errortype = "";
+
+        public String getSource() {
+            return source;
+        }
+
+        public void setSource(String source) {
+            this.source = source;
+        }
+
+        public String getDonationstring() {
+            return donationstring;
+        }
+
+        public void setDonationstring(String donationstring) {
+            this.donationstring = donationstring;
+        }
+
+        public String getErrortype() {
+            return errortype;
+        }
+
+        public void setErrortype(String errortype) {
+            this.errortype = errortype;
         }
     }
 

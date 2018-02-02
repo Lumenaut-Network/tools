@@ -83,6 +83,9 @@ public class TransactionsController {
     private Button saveDonationsBtn;
 
     @FXML
+    private Button extractDonationsBtn;
+
+    @FXML
     private Button executeTransactionBtn;
 
     ////////////////////////////////////////////////////////
@@ -124,7 +127,7 @@ public class TransactionsController {
     // File names
     public static final String DATA_EXCLUSIONS_JSON_PATH = "data/exclusions.json";
     public static final String DATA_REROUTING_JSON_PATH = "data/rerouting.json";
-    public static final String DATA_CHARITY_JSON_PATH = "data/donations.json";
+    public static final String DATA_DONATIONS_JSON_PATH = "data/donations.json";
     public static final String TRANSACTION_PLAN_JSON_SUFFIX = "transaction_plan.json";
     public static final String TRANSACTION_RESULT_JSON_SUFFIX = "transaction_result.json";
     public static final DateFormat FOLDER_DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd");
@@ -141,6 +144,7 @@ public class TransactionsController {
     private HashMap<String, Long> votesAndPayments;
 
     private TransactionPlan transactionPlan;
+    private DonationsData donationsData;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -181,10 +185,10 @@ public class TransactionsController {
                 break;
         }
 
-        // Load default data for exclusions, rerouting and charity
-        loadExclusionsData();
-        loadReroutingData();
-        loadCharityData();
+        // Load default data for exclusions, rerouting and donations
+        loadSavedExclusionsData();
+        loadSavedReroutingData();
+        loadSavedDonationsData();
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // TEXTFIELD HANDLERS
@@ -196,8 +200,7 @@ public class TransactionsController {
         });
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // BUTTON HANDLERS
-
+        // REBUILD PLAN HANDLER
         rebuildTransactionPlanBtn.setOnAction(event -> {
             // Don't even attempt to build the plan if the amount to pay is not valid
             if (!validateAmountToPay()) {
@@ -214,6 +217,31 @@ public class TransactionsController {
             }
         });
 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // EXTRACT DONATIONS HANDLER
+        extractDonationsBtn.setOnAction(event -> {
+            // Attempt extraction
+            donationsData = getDonationsData();
+
+            // Notify the user
+            if (donationsData != null) {
+                // Replace the contents of the donations panel
+                try {
+                    // Write the data to the donations tab
+                    donationsTextArea.setText(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(donationsData));
+
+                    // Notify the user of results
+                    showInfo("Extracted donations from voters' data:\n\nNumber of valid donations found: " + donationsData.getNumdonations() + "\nInvalid donations format found: " + donationsData.getNumerrors());
+                } catch (Exception e) {
+                    showError("Error occurred while converting donations data to its JsonFormat: " + e.getMessage());
+                }
+            } else {
+                showInfo("No donations data found in the voters' data");
+            }
+        });
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // EXECUTE HANDLER
         executeTransactionBtn.setOnAction(event -> {
             // Check signature
             final String signingKey = signingKeyTextField.getText();
@@ -274,9 +302,11 @@ public class TransactionsController {
             }
         });
 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // OTHER HANDLERS
         saveExclusionsBtn.setOnAction(event -> saveExclusionsData());
         saveReroutingBtn.setOnAction(event -> saveReroutingData());
-        saveDonationsBtn.setOnAction(event -> saveCharityData());
+        saveDonationsBtn.setOnAction(event -> saveDonationsData());
         saveTransactionPlanBtn.setOnAction(event -> saveTransactionPlan(false));
     }
 
@@ -327,6 +357,125 @@ public class TransactionsController {
     }
 
     /**
+     * Attempt extraction of donations data from voters data
+     *
+     * @return DonationsData can be null or have no entries
+     */
+    private DonationsData getDonationsData() {
+        // Get the pool address
+        final String poolAddress = poolAddressTextField.getText();
+
+        // Check pool address
+        if (poolAddress == null || poolAddress.isEmpty() || !XLMUtils.isPublicKeyValidFormat(poolAddress)) {
+            return null;
+        }
+
+        try {
+            final VotersData votersData = OBJECT_MAPPER.readValue(OBJECT_MAPPER.writeValueAsString(currentVotersData), VotersData.class);
+
+            // Ignore if voters data has no entries at all
+            if (votersData.getEntries().size() > 0) {
+                // Prepare result object
+                final DonationsData donationsData = new DonationsData();
+                donationsData.setDonations(new ArrayList<>());
+                donationsData.setErrors(new ArrayList<>());
+
+                for (VoterDataEntry entry : votersData.getEntries()) {
+                    // Voter address
+                    final String voterAddress = entry.getAccount();
+
+                    // Check for custom data that is relevant to us
+                    final List<VoterCustomDataEntry> voterCustomData = entry.getData();
+                    if (voterCustomData != null) {
+                        for (VoterCustomDataEntry customDataEntry : voterCustomData) {
+                            if (customDataEntry.getDataname() != null && customDataEntry.getDatavalue() != null) {
+                                switch (customDataEntry.getDataname()) {
+                                    case LUMENAUT_NET_DONATION_DATA_NAME:
+                                        // This voter is donating a % of his inflation to someone
+                                        final String dataValue = customDataEntry.getDatavalue();
+                                        final String[] tokens = dataValue.split("%");
+                                        if (tokens.length == 2) {
+                                            final String percent = tokens[0];
+                                            final String destinationAddress = tokens[1];
+
+                                            if (XLMUtils.isPublicKeyValidFormat(destinationAddress)) {
+                                                try {
+                                                    // Attempt parsing the donation %
+                                                    int intPercent = Integer.parseInt(percent);
+
+                                                    // Clamp values between 0 and 100
+                                                    if (intPercent < 0) {
+                                                        intPercent = 0;
+                                                    }
+
+                                                    if (intPercent > 100) {
+                                                        intPercent = 100;
+                                                    }
+
+                                                    // Create a new donation entry
+                                                    final DonationDataEntry donationDataEntry = new DonationDataEntry();
+                                                    donationDataEntry.setSource(voterAddress);
+                                                    donationDataEntry.setDestination(destinationAddress);
+                                                    donationDataEntry.setPercent(intPercent);
+
+                                                    // Append
+                                                    donationsData.getDonations().add(donationDataEntry);
+                                                } catch (NumberFormatException e) {
+                                                    // Failed to parse percent amount
+                                                    final DonationErrorEntry donationErrorEntry = new DonationErrorEntry();
+                                                    donationErrorEntry.setSource(voterAddress);
+                                                    donationErrorEntry.setDonationstring(dataValue);
+                                                    donationErrorEntry.setErrortype("Invalid percentage specified");
+
+                                                    donationsData.getErrors().add(donationErrorEntry);
+                                                }
+                                            } else {
+                                                // Invalid destination
+                                                final DonationErrorEntry donationErrorEntry = new DonationErrorEntry();
+                                                donationErrorEntry.setSource(voterAddress);
+                                                donationErrorEntry.setDonationstring(dataValue);
+                                                donationErrorEntry.setErrortype("Invalid destination address");
+
+                                                donationsData.getErrors().add(donationErrorEntry);
+                                            }
+                                        } else {
+                                            // Invalid format
+                                            final DonationErrorEntry donationErrorEntry = new DonationErrorEntry();
+                                            donationErrorEntry.setSource(voterAddress);
+                                            donationErrorEntry.setDonationstring(dataValue);
+                                            donationErrorEntry.setErrortype("Invalid donation string format");
+
+                                            donationsData.getErrors().add(donationErrorEntry);
+                                        }
+
+                                        break;
+                                }
+                            }
+                        }
+
+                        // Update donations data instance counters
+                        donationsData.setNumdonations(donationsData.getDonations().size());
+                        donationsData.setNumerrors(donationsData.getErrors().size());
+                    }
+                }
+
+                // Return donations data object
+                return donationsData;
+            } else {
+                // No data
+                showError("Voters data is empty, cannot extract donations");
+
+                return null;
+            }
+        } catch (IOException e) {
+            // No data
+            showError("Voters data format is invalid: " + e.getMessage());
+
+            return null;
+        }
+    }
+
+    /**
      * Build a new transactions plan
      */
     private boolean buildTransactionPlan() {
@@ -351,24 +500,24 @@ public class TransactionsController {
             final AtomicInteger excludedNegativePayments = new AtomicInteger(0);
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // STEP 1: Prepare voters data (voters and their balances)
+            // STEP 1: Prepare voters data (voters, balances, donations)
             if (votesAndBalances == null) {
                 votesAndBalances = new HashMap<>();
             } else {
                 votesAndBalances.clear();
             }
 
-            // Populate it
+            // Get the pool address
             final String poolAddress = poolAddressTextField.getText();
 
             // Check pool address
-            if (poolAddress == null || poolAddress.isEmpty()) {
-                showError("Pool address cannot be fetched from the main window");
+            if (poolAddress == null || poolAddress.isEmpty() || !XLMUtils.isPublicKeyValidFormat(poolAddress)) {
+                showError("Pool address missing or invalid");
 
                 return false;
             }
 
-            // Convert the JsonNode representation in a more manageable POJO
+            // Prepare voters data structure
             final VotersData votersData;
             try {
                 votersData = OBJECT_MAPPER.readValue(OBJECT_MAPPER.writeValueAsString(currentVotersData), VotersData.class);
@@ -376,12 +525,12 @@ public class TransactionsController {
                     for (VoterDataEntry entry : votersData.getEntries()) {
                         // Pull balance and account data
                         final Long balance = entry.getBalance();
-                        final String account = entry.getAccount();
+                        final String voterAddress = entry.getAccount();
 
                         // !!! Important !!!
                         // Exclude the pool's own vote, this will prevent the pool balance (which includes the inflation amount)
                         // from adding itself to the computations on payments.
-                        if (account.equals(poolAddress)) {
+                        if (voterAddress.equals(poolAddress)) {
                             // Exclude
                             excluded.getAndIncrement();
 
@@ -392,25 +541,8 @@ public class TransactionsController {
                             continue;
                         }
 
-                        // Check for custom data that is relevant to us
-                        final List<VoterCustomDataEntry> voterCustomData = entry.getData();
-                        if (voterCustomData != null) {
-                            for (VoterCustomDataEntry customDataEntry : voterCustomData) {
-                                if (customDataEntry.getDataname() != null && customDataEntry.getDatavalue() != null) {
-                                    switch (customDataEntry.getDataname()) {
-                                        case LUMENAUT_NET_DONATION_DATA_NAME:
-                                            // This voter is donating a % of his inflation to someone
-                                            final String dataValue = customDataEntry.getDatavalue();
-
-
-                                            break;
-                                    }
-                                }
-                            }
-                        }
-
                         // Append to the votes list
-                        votesAndBalances.put(account, balance);
+                        votesAndBalances.put(voterAddress, balance);
                     }
                 }
             } catch (IOException e) {
@@ -615,7 +747,7 @@ public class TransactionsController {
     /**
      * Load the existing exclusions file
      */
-    private boolean loadExclusionsData() {
+    private boolean loadSavedExclusionsData() {
         final StringBuilder contents = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new FileReader(DATA_EXCLUSIONS_JSON_PATH))) {
             String line;
@@ -670,7 +802,7 @@ public class TransactionsController {
     /**
      * Load the existing exclusions file
      */
-    private boolean loadReroutingData() {
+    private boolean loadSavedReroutingData() {
         final StringBuilder contents = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new FileReader(DATA_REROUTING_JSON_PATH))) {
             String line;
@@ -723,11 +855,11 @@ public class TransactionsController {
     }
 
     /**
-     * Load the existing charity file
+     * Load the existing donations file
      */
-    private boolean loadCharityData() {
+    private boolean loadSavedDonationsData() {
         final StringBuilder contents = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new FileReader(DATA_CHARITY_JSON_PATH))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(DATA_DONATIONS_JSON_PATH))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 contents.append(line).append("\n");
@@ -738,10 +870,10 @@ public class TransactionsController {
 
         // Update the runtime json object
         try {
-            final DonationData donationData = OBJECT_MAPPER.readValue(contents.toString(), DonationData.class);
-            donationsTextArea.setText(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(donationData));
+            final DonationsData donationsData = OBJECT_MAPPER.readValue(contents.toString(), DonationsData.class);
+            donationsTextArea.setText(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(donationsData));
         } catch (IOException e) {
-            showError("Charity list format error: " + e.getMessage());
+            showError("Donations list format error: " + e.getMessage());
             return false;
         }
 
@@ -749,31 +881,31 @@ public class TransactionsController {
     }
 
     /**
-     * Saves the charity data currently present in the text area
+     * Saves the donations data currently present in the text area
      */
-    private void saveCharityData() {
+    private void saveDonationsData() {
         // Read the current contents of the text area
         final String contents = donationsTextArea.getText();
 
         // Try to decode them to see if they are in a valid format
         try {
-            OBJECT_MAPPER.readValue(contents, DonationData.class);
+            OBJECT_MAPPER.readValue(contents, DonationsData.class);
         } catch (IOException e) {
-            showError("Charity list format error: " + e.getMessage());
+            showError("Donations data format error: " + e.getMessage());
 
             return;
         }
 
         // Save to file
         try (
-        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(DATA_CHARITY_JSON_PATH), "UTF-8");
+        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(DATA_DONATIONS_JSON_PATH), "UTF-8");
         BufferedWriter bufWriter = new BufferedWriter(writer)
         ) {
             bufWriter.write(contents);
 
-            showInfo("The current charity data has been saved and is now the new default");
+            showInfo("The current donations data has been saved and is now the new default");
         } catch (IOException e) {
-            showError("Cannot write Charity list file [" + System.getProperty("user.dir") + "/" + DATA_CHARITY_JSON_PATH + "]: " + e.getMessage());
+            showError("Cannot write Donations list file [" + System.getProperty("user.dir") + "/" + DATA_DONATIONS_JSON_PATH + "]: " + e.getMessage());
         }
     }
 
