@@ -9,6 +9,7 @@ import javafx.scene.layout.AnchorPane;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Network;
 import org.stellar.sdk.Server;
+import org.stellar.sdk.responses.SubmitTransactionResponse.Extras.ResultCodes;
 
 import java.io.*;
 import java.util.Date;
@@ -408,14 +409,20 @@ public class ProcessingController {
 
             // Append transaction response if available
             if (batchResponse.transactionResponse != null) {
-                processingOutputTextArea.appendText("Transaction result code: " + batchResponse.transactionResponse.getExtras().getResultCodes().getTransactionResultCode() + "\n");
+                final ResultCodes resultCodes = batchResponse.transactionResponse.getExtras().getResultCodes();
 
-                for (String operationResultCode : batchResponse.transactionResponse.getExtras().getResultCodes().getOperationsResultCodes()) {
-                    processingOutputTextArea.appendText("Operation result code: " + operationResultCode + "\n");
+                if (resultCodes != null) {
+                    processingOutputTextArea.appendText("Transaction result code: " + resultCodes.getTransactionResultCode() + "\n");
+
+                    for (String operationResultCode : resultCodes.getOperationsResultCodes()) {
+                        processingOutputTextArea.appendText("Operation result code: " + operationResultCode + "\n");
+                    }
+
+                    processingOutputTextArea.appendText("Result XDR: " + batchResponse.transactionResponse.getResultXdr() + "\n");
+                    processingOutputTextArea.appendText("Envelop XDR: " + batchResponse.transactionResponse.getEnvelopeXdr() + "\n");
+                } else {
+                    processingOutputTextArea.appendText("The transaction result response not provided by the system." + "\n");
                 }
-
-                processingOutputTextArea.appendText("Result XDR: " + batchResponse.transactionResponse.getResultXdr() + "\n");
-                processingOutputTextArea.appendText("Envelop XDR: " + batchResponse.transactionResponse.getEnvelopeXdr() + "\n");
             }
 
             scrollToEnd();
