@@ -12,11 +12,11 @@
             xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.lumenaut.poolmanager.SettingsController">
     <children>
-        <Label layoutX="96.0" layoutY="24.0" text="Stellar Network" AnchorPane.leftAnchor="96.0"
+        <Label layoutX="52.0" layoutY="24.0" text="Default Stellar Network" AnchorPane.leftAnchor="52.0"
                AnchorPane.topAnchor="24.0"/>
         <ChoiceBox fx:id="activeNetworkChoiceBox" layoutX="189.0" layoutY="20.0" prefHeight="25.0" prefWidth="496.0"
                    AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="20.0"/>
-        <Label layoutX="62.0" layoutY="59.0" text="Inflation Pool Address" AnchorPane.leftAnchor="62.0"
+        <Label layoutX="11.0" layoutY="59.0" text="Default Pool Address (optional)" AnchorPane.leftAnchor="11.0"
                AnchorPane.topAnchor="59.0"/>
         <TextField fx:id="defaultPoolAddressTextField" layoutX="189.0" layoutY="55.0" prefHeight="25.0"
                    prefWidth="496.0" AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0"

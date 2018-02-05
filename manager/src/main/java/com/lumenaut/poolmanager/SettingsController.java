@@ -2,10 +2,7 @@ package com.lumenaut.poolmanager;
 
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 
@@ -115,9 +112,14 @@ public class SettingsController {
 
         // Load current settings in the UI components
         activeNetworkChoiceBox.setValue(SETTING_OPERATIONS_NETWORK);
+
         defaultPoolAddressTextField.setText(SETTING_INFLATION_POOL_ADDRESS);
-        defaultFedNetworkInflationUrlTextField.setText(SETTING_FEDERATION_NETWORK_INFLATION_URL);
+        defaultPoolAddressTextField.setTooltip(new Tooltip("A default address to set when you open up the pool manager.\nIf you always use the tool on the same pool this will save you some time!"));
+
         defaultMemoTextField.setText(SETTING_MEMO);
+        defaultMemoTextField.setTooltip(new Tooltip("The MEMO text that will be attached to all transactions."));
+
+        defaultFedNetworkInflationUrlTextField.setText(SETTING_FEDERATION_NETWORK_INFLATION_URL);
         defaultFeeTextField.setText(String.valueOf(SETTING_FEE));
         horizonDbAddress.setText(SETTING_HORIZON_DB_ADDRESS);
         horizonDbPort.setText(SETTING_HORIZON_DB_PORT);
