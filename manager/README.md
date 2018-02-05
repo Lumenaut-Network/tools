@@ -22,7 +22,7 @@ git version 2.15.1.windows.2
 ``` 
 
 ## Cloning the repository
-Move to a folder where you would like to contain the tools and run `git clone https://github.com/Lumenaut-Network/tools.git lumeanuttools`, 
+Move to a folder where you would like to contain the tools and run `git clone https://github.com/Lumenaut-Network/tools.git lumenauttools`, 
 where `lumenauttools` is the destination folder (it will be created for you). You now have the latest version of the source 
 code.
 
