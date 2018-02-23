@@ -389,66 +389,64 @@ public class TransactionsController {
                     if (voterCustomData != null) {
                         for (VoterCustomDataEntry customDataEntry : voterCustomData) {
                             if (customDataEntry.getDataname() != null && customDataEntry.getDatavalue() != null) {
-                                switch (customDataEntry.getDataname()) {
-                                    case LUMENAUT_NET_DONATION_DATA_NAME:
-                                        // This voter is donating a % of his inflation to someone
-                                        final String dataValue = customDataEntry.getDatavalue();
-                                        final String[] tokens = dataValue.split("%");
-                                        if (tokens.length == 2) {
-                                            final String percent = tokens[0];
-                                            final String destinationAddress = tokens[1];
+                                final String dataName = customDataEntry.getDataname().toLowerCase();
+                                if (dataName.startsWith(LUMENAUT_NET_DONATION_DATA_NAME)) {
+                                    // This voter is donating a % of his inflation to someone
+                                    final String dataValue = customDataEntry.getDatavalue();
+                                    final String[] tokens = dataValue.split("%");
+                                    if (tokens.length == 2) {
+                                        final String percent = tokens[0];
+                                        final String destinationAddress = tokens[1];
 
-                                            if (XLMUtils.isPublicKeyValidFormat(destinationAddress)) {
-                                                try {
-                                                    // Attempt parsing the donation %
-                                                    int intPercent = Integer.parseInt(percent);
+                                        if (XLMUtils.isPublicKeyValidFormat(destinationAddress)) {
+                                            try {
+                                                // Attempt parsing the donation %
+                                                int intPercent = Integer.parseInt(percent);
 
-                                                    // Clamp values between 0 and 100
-                                                    if (intPercent < 0) {
-                                                        intPercent = 0;
-                                                    }
-
-                                                    if (intPercent > 100) {
-                                                        intPercent = 100;
-                                                    }
-
-                                                    // Create a new donation entry
-                                                    final DonationDataEntry donationDataEntry = new DonationDataEntry();
-                                                    donationDataEntry.setSource(voterAddress);
-                                                    donationDataEntry.setDestination(destinationAddress);
-                                                    donationDataEntry.setPercent(intPercent);
-
-                                                    // Append
-                                                    donationsData.getDonations().add(donationDataEntry);
-                                                } catch (NumberFormatException e) {
-                                                    // Failed to parse percent amount
-                                                    final DonationErrorEntry donationErrorEntry = new DonationErrorEntry();
-                                                    donationErrorEntry.setSource(voterAddress);
-                                                    donationErrorEntry.setDonationstring(dataValue);
-                                                    donationErrorEntry.setErrortype("Invalid percentage specified");
-
-                                                    donationsData.getErrors().add(donationErrorEntry);
+                                                // Clamp values between 0 and 100
+                                                if (intPercent < 0) {
+                                                    intPercent = 0;
                                                 }
-                                            } else {
-                                                // Invalid destination
+
+                                                if (intPercent > 100) {
+                                                    intPercent = 100;
+                                                }
+
+                                                // Create a new donation entry
+                                                final DonationDataEntry donationDataEntry = new DonationDataEntry();
+                                                donationDataEntry.setSource(voterAddress);
+                                                donationDataEntry.setDestination(destinationAddress);
+                                                donationDataEntry.setPercent(intPercent);
+
+                                                // Append
+                                                donationsData.getDonations().add(donationDataEntry);
+                                            } catch (NumberFormatException e) {
+                                                // Failed to parse percent amount
                                                 final DonationErrorEntry donationErrorEntry = new DonationErrorEntry();
                                                 donationErrorEntry.setSource(voterAddress);
                                                 donationErrorEntry.setDonationstring(dataValue);
-                                                donationErrorEntry.setErrortype("Invalid destination address");
+                                                donationErrorEntry.setErrortype("Invalid percentage specified");
 
                                                 donationsData.getErrors().add(donationErrorEntry);
                                             }
                                         } else {
-                                            // Invalid format
+                                            // Invalid destination
                                             final DonationErrorEntry donationErrorEntry = new DonationErrorEntry();
                                             donationErrorEntry.setSource(voterAddress);
                                             donationErrorEntry.setDonationstring(dataValue);
-                                            donationErrorEntry.setErrortype("Invalid donation string format");
+                                            donationErrorEntry.setErrortype("Invalid destination address");
 
                                             donationsData.getErrors().add(donationErrorEntry);
                                         }
+                                    } else {
+                                        // Invalid format
+                                        final DonationErrorEntry donationErrorEntry = new DonationErrorEntry();
+                                        donationErrorEntry.setSource(voterAddress);
+                                        donationErrorEntry.setDonationstring(dataValue);
+                                        donationErrorEntry.setErrortype("Invalid donation string format");
 
-                                        break;
+                                        donationsData.getErrors().add(donationErrorEntry);
+                                    }
                                 }
                             }
                         }

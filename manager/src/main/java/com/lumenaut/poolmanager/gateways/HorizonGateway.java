@@ -165,7 +165,7 @@ public class HorizonGateway {
      */
     public JsonNode getVotersData(final String inflationDestination) throws SQLException {
         // Get donations data
-        final HashMap<String, HashMap<String, String>> donationsData = getVotersCustomData(inflationDestination, "*");
+        final HashMap<String, HashMap<String, String>> donationsData = getVotersCustomData(inflationDestination, "lumenaut.net donation%");
 
         // Prepared statement
         final PreparedStatement inflationStm = conn.prepareStatement("SELECT * FROM core.public.accounts WHERE inflationdest = ?");
@@ -247,7 +247,7 @@ public class HorizonGateway {
         if (dataNames.length > 1) {
             sb.append(" AND (");
             for (String dataname : dataNames) {
-                sb.append(" dataname = '").append(dataname).append("' OR");
+                sb.append(" dataname ILIKE '").append(dataname).append("' OR");
             }
 
             // Cut trailing " OR" and close the AND clause
@@ -255,7 +255,7 @@ public class HorizonGateway {
             sb.append(")");
         } else {
             if (!dataNames[0].equals("*")) {
-                sb.append(" AND dataname = '").append(dataNames[0]).append("'");
+                sb.append(" AND dataname ILIKE '").append(dataNames[0]).append("'");
             }
         }
 
