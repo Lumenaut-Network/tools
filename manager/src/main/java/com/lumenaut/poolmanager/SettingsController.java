@@ -46,6 +46,9 @@ public class SettingsController {
     public TextField defaultFeeTextField;
 
     @FXML
+    public TextField defaultDonationsStringTextField;
+
+    @FXML
     private TextField horizonDbAddress;
 
     @FXML
@@ -118,6 +121,8 @@ public class SettingsController {
 
         defaultMemoTextField.setText(SETTING_MEMO);
         defaultMemoTextField.setTooltip(new Tooltip("The MEMO text that will be attached to all transactions."));
+        defaultDonationsStringTextField.setText(SETTING_DONATION_DATANAME_PREFIX);
+        defaultDonationsStringTextField.setTooltip(new Tooltip("The prefix of the data name field that will be recognized as a donation"));
 
         defaultFedNetworkInflationUrlTextField.setText(SETTING_FEDERATION_NETWORK_INFLATION_URL);
         defaultFeeTextField.setText(String.valueOf(SETTING_FEE));
@@ -132,7 +137,7 @@ public class SettingsController {
 
         // Handle pay button color based on the network choice
         activeNetworkChoiceBox.setOnAction(event -> {
-            final String selectedValue = activeNetworkChoiceBox.getValue().toString();
+            final String selectedValue = activeNetworkChoiceBox.getValue();
 
             if (selectedNetworkRect != null && selectedNetworkLabel != null) {
                 switch (selectedValue) {
@@ -169,6 +174,7 @@ public class SettingsController {
         SETTING_INFLATION_POOL_ADDRESS = defaultPoolAddressTextField.getText();
         SETTING_FEDERATION_NETWORK_INFLATION_URL = defaultFedNetworkInflationUrlTextField.getText();
         SETTING_MEMO = defaultMemoTextField.getText();
+        SETTING_DONATION_DATANAME_PREFIX = defaultDonationsStringTextField.getText();
 
         final long currentFee = Long.parseLong(defaultFeeTextField.getText());
         if (currentFee < 100) {

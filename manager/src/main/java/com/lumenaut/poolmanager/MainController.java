@@ -167,6 +167,11 @@ public class MainController {
                 break;
         }
 
+        // Init tooltips
+        getFederationDataBtn.setTooltip(new Tooltip("Retrieve voters data and pool balance using Fed.network.\n !!! No donations data will be available !!!"));
+        getHorizonDataBtn.setTooltip(new Tooltip("Retrieve voters data, pool balance and donations data using\n the specified Horizon database connection."));
+        refreshPoolBalanceBtn.setTooltip(new Tooltip("Will update the pool balance using the SDF horizon servers.\n Based on the configured network (LIVE/TEST)"));
+
         // Add all buttons that should react to the application "busy" state
         statefulButtons.add(getFederationDataBtn);
         statefulButtons.add(getHorizonDataBtn);
@@ -307,6 +312,11 @@ public class MainController {
                     // Update the current voters data
                     currentVotersData = votersData;
 
+                    final long poolBalance = votersData.get("balance").asLong();
+                    if (poolBalance != 0L) {
+                        currentPoolBalance = XLMUtils.stroopToXLM(poolBalance);
+                    }
+
                     // Format and return
                     return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(votersData);
                 } catch (Exception e) {
@@ -334,14 +344,14 @@ public class MainController {
                     return;
                 }
 
-                // Update with the pool data
-                inflationPoolDataTextArea.setText(inflationPoolData);
-
                 // Cancel applicationBusy state
                 Platform.runLater(() -> {
+                    // Update with the pool data
+                    inflationPoolDataTextArea.setText(inflationPoolData);
+                    poolDataBalanceLabel.setText(XLMUtils.formatBalance(currentPoolBalance) + " XLM");
+
                     setBusyState(false);
                     refreshPoolCounters();
-                    fetchPoolBalanceViaHorizon();
                 });
             });
         }
@@ -455,76 +465,6 @@ public class MainController {
 
             // Process task completion
             request.thenAccept(poolBalance -> {
-                // Cancel applicationBusy state
-                Platform.runLater(() -> {
-                    // Return to normal operation
-                    setBusyState(false);
-
-                    // Update label
-                    poolDataBalanceLabel.setText(XLMUtils.formatBalance(poolBalance) + " XLM");
-                });
-            });
-        }
-    }
-
-    /**
-     * Fetch the pool balance and update the counter
-     */
-    private void fetchPoolBalanceViaHorizon() {
-        // Check that the horizon gateway is connected
-        if (!horizonGateway.isConnected()) {
-            try {
-                horizonGateway.connect();
-            } catch (Exception e) {
-                showError("Cannot fetch pool balance, unable to establish horizon database connection: " + e.getMessage());
-
-                return;
-            }
-        }
-
-        // Get the target pool key
-        final String poolAddress = poolAddressTextField.getText();
-
-        // Check if we have an address
-        if (poolAddress == null || poolAddress.isEmpty()) {
-            showError("You must specify the inflation pool's address below");
-        } else {
-            // Reset balance
-            poolDataBalanceLabel.setText("0 XLM");
-            currentPoolBalance = null;
-
-            // Start spinning
-            setBusyState(true);
-
-            // Build and submit async task
-            final CompletableFuture<BigDecimal> request = CompletableFuture.supplyAsync(() -> {
-                try {
-                    final BigDecimal balance = horizonGateway.getBalance(poolAddress);
-
-                    // Update current balance
-                    currentPoolBalance = balance;
-
-                    return balance;
-                } catch (Exception e) {
-                    Platform.runLater(() -> {
-                        // Return to normal operation
-                        setBusyState(false);
-
-                        // Show the error
-                        showError(e.getMessage());
-                    });
-                }
-
-                return null;
-            });
-
-            // Process task completion
-            request.thenAccept(poolBalance -> {
-                // No result
-                if (poolBalance == null) {
-                    return;
-                }
-
                 // Cancel applicationBusy state
                 Platform.runLater(() -> {
                     // Return to normal operation

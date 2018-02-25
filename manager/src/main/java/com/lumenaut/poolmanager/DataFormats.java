@@ -62,6 +62,12 @@ public class DataFormats {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class VotersData {
         private String inflationdest;
+        private long balance;
+        private long inflation;
+        private String created;
+        private String expires;
+        private String operation;
+        private String txhash;
         private List<VoterDataEntry> entries;
 
         public String getInflationdest() {
@@ -70,6 +76,54 @@ public class DataFormats {
 
         public void setInflationdest(String inflationdest) {
             this.inflationdest = inflationdest;
+        }
+
+        public long getBalance() {
+            return balance;
+        }
+
+        public void setBalance(long balance) {
+            this.balance = balance;
+        }
+
+        public long getInflation() {
+            return inflation;
+        }
+
+        public void setInflation(long inflation) {
+            this.inflation = inflation;
+        }
+
+        public String getCreated() {
+            return created;
+        }
+
+        public void setCreated(String created) {
+            this.created = created;
+        }
+
+        public String getExpires() {
+            return expires;
+        }
+
+        public void setExpires(String expires) {
+            this.expires = expires;
+        }
+
+        public String getOperation() {
+            return operation;
+        }
+
+        public void setOperation(String operation) {
+            this.operation = operation;
+        }
+
+        public String getTxhash() {
+            return txhash;
+        }
+
+        public void setTxhash(String txhash) {
+            this.txhash = txhash;
         }
 
         public List<VoterDataEntry> getEntries() {

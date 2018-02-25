@@ -30,20 +30,20 @@
                 prefWidth="151.0" text="Save" AnchorPane.bottomAnchor="14.0" AnchorPane.rightAnchor="15.0"/>
         <Button fx:id="cancelBtn" layoutX="460.0" layoutY="361.0" mnemonicParsing="false" prefHeight="25.0"
                 prefWidth="64.0" text="Cancel" AnchorPane.bottomAnchor="14.0" AnchorPane.rightAnchor="176.0"/>
-        <Label layoutX="83.0" layoutY="217.0" text="Horizon DB Host" AnchorPane.leftAnchor="83.0"
-               AnchorPane.topAnchor="217.0"/>
-        <TextField fx:id="horizonDbAddress" layoutX="202.0" layoutY="213.0" prefHeight="25.0" prefWidth="342.0"
-                   promptText="localhost" AnchorPane.leftAnchor="210.0" AnchorPane.topAnchor="213.0"/>
-        <TextField fx:id="horizonDbPort" layoutX="604.0" layoutY="213.0" prefHeight="25.0" prefWidth="82.0"
+        <Label layoutX="83.0" layoutY="254.0" text="Horizon DB Host" AnchorPane.leftAnchor="83.0"
+               AnchorPane.topAnchor="254.0"/>
+        <TextField fx:id="horizonDbAddress" layoutX="210.0" layoutY="250.0" prefHeight="25.0" prefWidth="342.0"
+                   promptText="localhost" AnchorPane.leftAnchor="210.0" AnchorPane.topAnchor="250.0"/>
+        <TextField fx:id="horizonDbPort" layoutX="604.0" layoutY="250.0" prefHeight="25.0" prefWidth="82.0"
                    promptText="5432" AnchorPane.leftAnchor="604.0" AnchorPane.rightAnchor="14.0"
-                   AnchorPane.topAnchor="213.0"/>
-        <Label layoutX="561.0" layoutY="217.0" text="Port" AnchorPane.leftAnchor="561.0" AnchorPane.topAnchor="217.0"/>
-        <Label layoutX="118.0" layoutY="250.0" text="Username" AnchorPane.leftAnchor="118.0"
-               AnchorPane.topAnchor="250.0"/>
-        <Label layoutX="448.0" layoutY="250.0" text="Pass" AnchorPane.leftAnchor="448.0" AnchorPane.topAnchor="250.0"/>
-        <TextField fx:id="horizonDbUser" layoutX="190.0" layoutY="246.0" prefHeight="25.0" prefWidth="225.0"
-                   AnchorPane.leftAnchor="210.0" AnchorPane.topAnchor="246.0"/>
-        <Separator layoutY="196.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"/>
+                   AnchorPane.topAnchor="250.0"/>
+        <Label layoutX="561.0" layoutY="254.0" text="Port" AnchorPane.leftAnchor="561.0" AnchorPane.topAnchor="254.0"/>
+        <Label layoutX="118.0" layoutY="287.0" text="Username" AnchorPane.leftAnchor="118.0"
+               AnchorPane.topAnchor="287.0"/>
+        <Label layoutX="448.0" layoutY="287.0" text="Pass" AnchorPane.leftAnchor="448.0" AnchorPane.topAnchor="287.0"/>
+        <TextField fx:id="horizonDbUser" layoutX="210.0" layoutY="283.0" prefHeight="25.0" prefWidth="225.0"
+                   AnchorPane.leftAnchor="210.0" AnchorPane.topAnchor="283.0"/>
+        <Separator layoutY="234.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"/>
         <Label layoutX="60.0" layoutY="129.0" text="Memo Text (28 chars)"/>
         <TextField fx:id="defaultMemoTextField" layoutX="189.0" layoutY="125.0" prefHeight="25.0" prefWidth="496.0"
                    AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="125.0"/>
@@ -51,7 +51,12 @@
                AnchorPane.topAnchor="164.0"/>
         <TextField fx:id="defaultFeeTextField" layoutX="190.0" layoutY="160.0" prefHeight="25.0" prefWidth="496.0"
                    AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="160.0"/>
-        <PasswordField fx:id="horizonDbPass" layoutX="487.0" layoutY="246.0" prefHeight="25.0" prefWidth="199.0"
+        <PasswordField fx:id="horizonDbPass" layoutX="486.0" layoutY="283.0" prefHeight="25.0" prefWidth="199.0"
                        AnchorPane.leftAnchor="486.0" AnchorPane.rightAnchor="15.0"/>
+        <TextField fx:id="defaultDonationsStringTextField" layoutX="210.0" layoutY="195.0" prefHeight="25.0"
+                   prefWidth="475.0" AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0"
+                   AnchorPane.topAnchor="195.0"/>
+        <Label layoutX="68.0" layoutY="199.0" text="Donations identifier" AnchorPane.leftAnchor="68.0"
+               AnchorPane.topAnchor="199.0"/>
     </children>
 </AnchorPane>

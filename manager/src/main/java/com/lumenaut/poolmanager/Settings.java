@@ -33,10 +33,11 @@ public class Settings {
     public static String SETTING_MEMO = "";
     public static long SETTING_FEE = 100;
     public static int SETTING_OPERATIONS_PER_TRANSACTION_BATCH = 100;
+    public static String SETTING_DONATION_DATANAME_PREFIX = "";
 
     // Non persistent settings
     public static RoundingMode ROUNDING_MODE = RoundingMode.HALF_DOWN;
-    public static final String LUMENAUT_NET_DONATION_DATA_NAME = "lumenaut.net donation";
+
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,6 +90,7 @@ public class Settings {
             SETTING_FEDERATION_NETWORK_INFLATION_URL = PROPERTIES.getProperty("fedNetworkInflationUrl");
             SETTING_MEMO = PROPERTIES.getProperty("memoText");
             SETTING_FEE = Long.parseLong(PROPERTIES.getProperty("fee")) < 100 ? 100 : Long.parseLong(PROPERTIES.getProperty("fee"));
+            SETTING_DONATION_DATANAME_PREFIX = PROPERTIES.getProperty("donationsPrefix");
 
             SETTING_HORIZON_DB_ADDRESS = PROPERTIES.getProperty("horizonDbAddress");
             SETTING_HORIZON_DB_PORT = PROPERTIES.getProperty("horizonDbPort");
@@ -100,6 +102,7 @@ public class Settings {
             SETTING_INFLATION_POOL_ADDRESS = PROPERTIES.getProperty("inflationPoolAddress", "");
             SETTING_FEDERATION_NETWORK_INFLATION_URL = PROPERTIES.getProperty("fedNetworkInflationUrl", "https://fed.network/inflation/");
             SETTING_MEMO = PROPERTIES.getProperty("memoText", "Thanks from lumenaut.net");
+            SETTING_DONATION_DATANAME_PREFIX = PROPERTIES.getProperty("donationsPrefix", "lumenaut.net donation");
 
             // Try to parse the fee, or just default to 100
             try {
@@ -130,6 +133,7 @@ public class Settings {
         PROPERTIES.setProperty("fedNetworkInflationUrl", SETTING_FEDERATION_NETWORK_INFLATION_URL);
         PROPERTIES.setProperty("memoText", SETTING_MEMO);
         PROPERTIES.setProperty("fee", SETTING_FEE >= 100 ? String.valueOf(SETTING_FEE) : "100");
+        PROPERTIES.setProperty("donationsPrefix", SETTING_DONATION_DATANAME_PREFIX);
 
         PROPERTIES.setProperty("horizonDbAddress", SETTING_HORIZON_DB_ADDRESS);
         PROPERTIES.setProperty("horizonDbPort", SETTING_HORIZON_DB_PORT);

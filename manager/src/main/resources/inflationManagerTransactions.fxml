@@ -73,7 +73,7 @@
                 prefHeight="39.0" prefWidth="200.0" stylesheets="@inflationManagerMain.css" text="EXECUTE TRANSACTIONS"
                 AnchorPane.bottomAnchor="11.0" AnchorPane.leftAnchor="695.0" AnchorPane.rightAnchor="5.0"/>
         <Button fx:id="rebuildTransactionPlanBtn" layoutX="5.0" layoutY="589.0" mnemonicParsing="false"
-                prefHeight="25.0" prefWidth="290.0" text="Rebuild transaction plan" AnchorPane.bottomAnchor="92.0"
+                prefHeight="50.0" prefWidth="290.0" text="Rebuild transaction plan" AnchorPane.bottomAnchor="67.0"
                 AnchorPane.leftAnchor="5.0"/>
         <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#e8e8e8" height="105.0" layoutX="303.0" layoutY="590.0"
                    stroke="BLACK" strokeType="INSIDE" width="385.0" AnchorPane.bottomAnchor="11.0"
@@ -90,16 +90,16 @@
         </Label>
         <Label fx:id="toBePaidLabel" layoutX="513.0" layoutY="618.0" text="0 XLM" AnchorPane.bottomAnchor="71.0"
                AnchorPane.leftAnchor="513.0"/>
-        <Button fx:id="saveTransactionPlanBtn" layoutX="5.0" layoutY="617.0" mnemonicParsing="false" prefHeight="25.0"
-                prefWidth="140.0" text="Save plan" AnchorPane.bottomAnchor="64.0" AnchorPane.leftAnchor="5.0"/>
+        <Button fx:id="saveTransactionPlanBtn" layoutX="5.0" layoutY="642.0" mnemonicParsing="false" prefHeight="25.0"
+                prefWidth="140.0" text="Save plan" AnchorPane.bottomAnchor="39.0" AnchorPane.leftAnchor="5.0"/>
         <Label layoutX="317.0" layoutY="602.0" text="Excluded:" AnchorPane.bottomAnchor="87.0"
                AnchorPane.leftAnchor="317.0"/>
         <Label fx:id="excludedTransactionsLabel" layoutX="381.0" layoutY="602.0" text="0" AnchorPane.bottomAnchor="87.0"
                AnchorPane.leftAnchor="381.0"/>
-        <Button fx:id="saveExclusionsBtn" layoutX="5.0" layoutY="645.0" mnemonicParsing="false" prefHeight="17.0"
-                prefWidth="140.0" text="Save exclusions" AnchorPane.bottomAnchor="36.0" AnchorPane.leftAnchor="5.0"/>
-        <Button fx:id="saveReroutingBtn" layoutX="155.0" layoutY="617.0" mnemonicParsing="false" prefHeight="25.0"
-                prefWidth="140.0" text="Save rerouting" AnchorPane.bottomAnchor="64.0" AnchorPane.leftAnchor="155.0"/>
+        <Button fx:id="saveExclusionsBtn" layoutX="5.0" layoutY="670.0" mnemonicParsing="false" prefHeight="17.0"
+                prefWidth="140.0" text="Save exclusions" AnchorPane.bottomAnchor="11.0" AnchorPane.leftAnchor="5.0"/>
+        <Button fx:id="saveReroutingBtn" layoutX="155.0" layoutY="642.0" mnemonicParsing="false" prefHeight="25.0"
+                prefWidth="140.0" text="Save rerouting" AnchorPane.bottomAnchor="39.0" AnchorPane.leftAnchor="155.0"/>
         <Label layoutX="315.0" layoutY="617.0" text="Rerouted:" AnchorPane.bottomAnchor="72.0"
                AnchorPane.leftAnchor="315.0"/>
         <Label fx:id="reroutedTransactionsLabel" layoutX="381.0" layoutY="617.0" text="0" AnchorPane.bottomAnchor="72.0"
@@ -132,10 +132,5 @@
                AnchorPane.leftAnchor="309.0"/>
         <Label fx:id="plannedDonationsLabel" layoutX="381.0" layoutY="647.0" text="0" AnchorPane.bottomAnchor="42.0"
                AnchorPane.leftAnchor="381.0"/>
-        <Button fx:id="saveDonationsBtn" layoutX="155.0" layoutY="645.0" mnemonicParsing="false" prefHeight="25.0"
-                prefWidth="140.0" text="Save donations" AnchorPane.bottomAnchor="36.0" AnchorPane.leftAnchor="155.0"/>
-        <Button fx:id="extractDonationsBtn" layoutX="5.0" layoutY="673.0" mnemonicParsing="false" prefHeight="25.0"
-                prefWidth="140.0" text="Extract donations data" AnchorPane.bottomAnchor="8.0"
-                AnchorPane.leftAnchor="5.0"/>
     </children>
 </AnchorPane>

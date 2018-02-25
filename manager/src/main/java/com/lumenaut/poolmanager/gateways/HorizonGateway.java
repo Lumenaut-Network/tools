@@ -3,10 +3,8 @@ package com.lumenaut.poolmanager.gateways;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.lumenaut.poolmanager.XLMUtils;
 import org.postgresql.util.Base64;
 
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.HashMap;
@@ -166,6 +164,7 @@ public class HorizonGateway {
     public JsonNode getVotersData(final String inflationDestination) throws SQLException {
         // Get donations data
         final HashMap<String, HashMap<String, String>> donationsData = getVotersCustomData(inflationDestination, "lumenaut.net donation%");
+        final long poolBalance = getBalance(inflationDestination);
 
         // Prepared statement
         final PreparedStatement inflationStm = conn.prepareStatement("SELECT * FROM core.public.accounts WHERE inflationdest = ?");
@@ -221,6 +220,7 @@ public class HorizonGateway {
 
             // Add root nodes
             rootNode.put("inflationdest", inflationDestination);
+            rootNode.put("balance", poolBalance);
             rootNode.set("entries", entriesNode);
 
             // Release resources
@@ -315,7 +315,7 @@ public class HorizonGateway {
      * @return
      * @throws SQLException
      */
-    public BigDecimal getBalance(final String accountId) throws SQLException {
+    public Long getBalance(final String accountId) throws SQLException {
         // Prepared statement
         final PreparedStatement inflationStm = conn.prepareStatement("SELECT * FROM core.public.accounts WHERE accountid = ? LIMIT 1");
         inflationStm.setString(1, accountId);
@@ -329,7 +329,7 @@ public class HorizonGateway {
             // Move cursor to the first record
             inflationRs.next();
 
-            final BigDecimal result = XLMUtils.stroopToXLM(inflationRs.getLong("balance"));
+            final long result = inflationRs.getLong("balance");
 
             // Release resources
             inflationRs.close();

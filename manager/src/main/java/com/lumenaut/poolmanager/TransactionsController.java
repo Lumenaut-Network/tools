@@ -3,13 +3,11 @@ package com.lumenaut.poolmanager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lumenaut.poolmanager.DataFormats.*;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
@@ -78,12 +76,6 @@ public class TransactionsController {
 
     @FXML
     private Button saveReroutingBtn;
-
-    @FXML
-    private Button saveDonationsBtn;
-
-    @FXML
-    private Button extractDonationsBtn;
 
     @FXML
     private Button executeTransactionBtn;
@@ -188,7 +180,7 @@ public class TransactionsController {
         // Load default data for exclusions, rerouting and donations
         loadSavedExclusionsData();
         loadSavedReroutingData();
-        loadSavedDonationsData();
+        loadPlaceholderDonationsData();
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // TEXTFIELD HANDLERS
@@ -214,29 +206,6 @@ public class TransactionsController {
                 updatePlanUIandActivateExecution();
             } else {
                 resetPlanUI();
-            }
-        });
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // EXTRACT DONATIONS HANDLER
-        extractDonationsBtn.setOnAction(event -> {
-            // Attempt extraction
-            donationsData = getDonationsData();
-
-            // Notify the user
-            if (donationsData != null) {
-                // Replace the contents of the donations panel
-                try {
-                    // Write the data to the donations tab
-                    donationsTextArea.setText(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(donationsData));
-
-                    // Notify the user of results
-                    showInfo("Extracted donations from voters' data:\n\nNumber of valid donations found: " + donationsData.getNumdonations() + "\nInvalid donations format found: " + donationsData.getNumerrors());
-                } catch (Exception e) {
-                    showError("Error occurred while converting donations data to its JsonFormat: " + e.getMessage());
-                }
-            } else {
-                showInfo("No donations data found in the voters' data");
             }
         });
 
@@ -306,8 +275,35 @@ public class TransactionsController {
         // OTHER HANDLERS
         saveExclusionsBtn.setOnAction(event -> saveExclusionsData());
         saveReroutingBtn.setOnAction(event -> saveReroutingData());
-        saveDonationsBtn.setOnAction(event -> saveDonationsData());
         saveTransactionPlanBtn.setOnAction(event -> saveTransactionPlan(false));
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // TOOLTIPS
+        saveExclusionsBtn.setTooltip(new Tooltip("Save the current exclusions data, it will be loaded as the new default next time you run the program"));
+        saveReroutingBtn.setTooltip(new Tooltip("Save the current rerouting data, it will be loaded as the new default next time you run the program"));
+        saveTransactionPlanBtn.setTooltip(new Tooltip("Save the current transaction plan data for future reference"));
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // RUN AFTER INIT
+
+        // Extract donations data (if present)
+        Platform.runLater(() -> {
+            donationsData = getDonationsData();
+
+            // Notify the user
+            if (donationsData != null && (donationsData.getNumdonations() != 0 || donationsData.getNumerrors() != 0)) {
+                // Replace the contents of the donations panel
+                try {
+                    // Write the data to the donations tab
+                    donationsTextArea.setText(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(donationsData));
+
+                    // Notify the user of results
+                    showInfo("Found and imported donations' data. You can inspect the results in the \"Donations\" tab!\n\nNumber of valid donations found: " + donationsData.getNumdonations() + "\nInvalid donations format found: " + donationsData.getNumerrors());
+                } catch (Exception e) {
+                    showError("Error occurred while converting donations data to its JsonFormat: " + e.getMessage());
+                }
+            }
+        });
     }
 
     /**
@@ -390,7 +386,7 @@ public class TransactionsController {
                         for (VoterCustomDataEntry customDataEntry : voterCustomData) {
                             if (customDataEntry.getDataname() != null && customDataEntry.getDatavalue() != null) {
                                 final String dataName = customDataEntry.getDataname().toLowerCase();
-                                if (dataName.startsWith(LUMENAUT_NET_DONATION_DATA_NAME)) {
+                                if (dataName.startsWith(SETTING_DONATION_DATANAME_PREFIX)) {
                                     // This voter is donating a % of his inflation to someone
                                     final String dataValue = customDataEntry.getDatavalue();
                                     final String[] tokens = dataValue.split("%");
@@ -855,7 +851,7 @@ public class TransactionsController {
     /**
      * Load the existing donations file
      */
-    private boolean loadSavedDonationsData() {
+    private boolean loadPlaceholderDonationsData() {
         final StringBuilder contents = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new FileReader(DATA_DONATIONS_JSON_PATH))) {
             String line;
@@ -876,35 +872,6 @@ public class TransactionsController {
         }
 
         return true;
-    }
-
-    /**
-     * Saves the donations data currently present in the text area
-     */
-    private void saveDonationsData() {
-        // Read the current contents of the text area
-        final String contents = donationsTextArea.getText();
-
-        // Try to decode them to see if they are in a valid format
-        try {
-            OBJECT_MAPPER.readValue(contents, DonationsData.class);
-        } catch (IOException e) {
-            showError("Donations data format error: " + e.getMessage());
-
-            return;
-        }
-
-        // Save to file
-        try (
-        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(DATA_DONATIONS_JSON_PATH), "UTF-8");
-        BufferedWriter bufWriter = new BufferedWriter(writer)
-        ) {
-            bufWriter.write(contents);
-
-            showInfo("The current donations data has been saved and is now the new default");
-        } catch (IOException e) {
-            showError("Cannot write Donations list file [" + System.getProperty("user.dir") + "/" + DATA_DONATIONS_JSON_PATH + "]: " + e.getMessage());
-        }
     }
 
     /**
