@@ -1,17 +1,19 @@
 package com.lumenaut.poolmanager;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.lumenaut.poolmanager.DataFormats.VotersData;
 import com.lumenaut.poolmanager.DataFormats.VoterDataEntry;
+import com.lumenaut.poolmanager.DataFormats.VotersData;
 import com.lumenaut.poolmanager.gateways.FederationGateway;
 import com.lumenaut.poolmanager.gateways.HorizonGateway;
 import com.lumenaut.poolmanager.gateways.StellarGateway;
 import javafx.application.Platform;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
@@ -200,6 +202,101 @@ public class MainController {
                 showError("You must first fetch the voters data and the pool balance");
             }
         });
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // DATA HANDLERS
+
+        // Prevent direct input in the pool data text area
+        inflationPoolDataTextArea.setOnKeyTyped(Event::consume);
+
+        // Filter key presses to only allow CTRL+A/C/V through
+        inflationPoolDataTextArea.setOnKeyPressed(event -> {
+            if (!event.isControlDown()) {
+                if (event.getCode() == KeyCode.DELETE || event.getCode() == KeyCode.BACK_SPACE) {
+                    // Let Backspace and delete clear the whole textarea
+                    inflationPoolDataTextArea.setText("");
+                } else {
+                    event.consume();
+                }
+            } else if (event.getCode() != KeyCode.C && event.getCode() != KeyCode.V && event.getCode() != KeyCode.A) {
+                event.consume();
+            }
+        });
+
+        // Detect changes in the text area, if the JSON is valid, enable the transaction builder button
+        inflationPoolDataTextArea.textProperty().addListener((observableValue, oldValue, newValue) -> {
+            if (newValue != null && !newValue.isEmpty()) {
+                // The data has changed and it's not empty, process it
+                handleVotersDataChange(newValue);
+            } else {
+                // Reset data labels and disable the transaction builder button
+                buildTransactionBtn.setDisable(true);
+                poolDataBalanceLabel.setText("0 XLM");
+                poolDataVotersLabel.setText("0");
+                poolDataTotalVotesLabel.setText("0");
+            }
+        });
+    }
+
+    /**
+     * Handles changes in the voters data textarea
+     *
+     * @param newValue
+     */
+    private void handleVotersDataChange(final String newValue) {
+        Platform.runLater(() -> {
+            // Start spinning
+            setBusyState(true);
+
+            try {
+                final VotersData votersData = OBJECT_MAPPER.readValue(newValue, VotersData.class);
+                if (votersData != null) {
+                    // Only update the runtime data if we have both balance and inflation destination entries.
+                    // If these two are missing it means that the data has been fetched via fed.network, otherwise
+                    // the data either comes from our horizon network implementation or has been pasted from a snapshot
+                    if (votersData.getInflationdest() != null && !votersData.getInflationdest().isEmpty() && votersData.getBalance() != 0L) {
+                        // The transaction data has parsed, enable transaction button
+                        buildTransactionBtn.setDisable(false);
+
+                        // Update inflation destination
+                        poolAddressTextField.setText(votersData.getInflationdest());
+
+                        // Update the balance label
+                        currentPoolBalance = XLMUtils.stroopToXLM(votersData.getBalance());
+                        poolDataBalanceLabel.setText(XLMUtils.formatBalance(votersData.getBalance()) + " XLM");
+
+                        // Update the current voters data
+                        currentVotersData = OBJECT_MAPPER.valueToTree(votersData);
+
+                        // Update the pool counters (voters number and votes)
+                        refreshPoolCounters();
+                    }
+
+                    // Stop spinning
+                    setBusyState(false);
+                } else {
+                    // Stop spinning
+                    setBusyState(false);
+
+                    // Reset data labels and disable the transaction builder button
+                    buildTransactionBtn.setDisable(true);
+                    poolDataBalanceLabel.setText("0 XLM");
+                    poolDataVotersLabel.setText("0");
+                    poolDataTotalVotesLabel.setText("0");
+                    showError("Error parsing voters data response, unable to map object data");
+                }
+            } catch (IOException e) {
+                // Stop spinning
+                setBusyState(false);
+
+                // Reset data labels and disable the transaction builder button
+                buildTransactionBtn.setDisable(true);
+                poolDataBalanceLabel.setText("0 XLM");
+                poolDataVotersLabel.setText("0");
+                poolDataTotalVotesLabel.setText("0");
+                showError("Error parsing voters data response: " + e.getMessage());
+            }
+        });
     }
 
     /**
@@ -312,11 +409,6 @@ public class MainController {
                     // Update the current voters data
                     currentVotersData = votersData;
 
-                    final long poolBalance = votersData.get("balance").asLong();
-                    if (poolBalance != 0L) {
-                        currentPoolBalance = XLMUtils.stroopToXLM(poolBalance);
-                    }
-
                     // Format and return
                     return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(votersData);
                 } catch (Exception e) {
@@ -348,7 +440,6 @@ public class MainController {
                 Platform.runLater(() -> {
                     // Update with the pool data
                     inflationPoolDataTextArea.setText(inflationPoolData);
-                    poolDataBalanceLabel.setText(XLMUtils.formatBalance(currentPoolBalance) + " XLM");
 
                     setBusyState(false);
                     refreshPoolCounters();
@@ -414,11 +505,9 @@ public class MainController {
                     // Cancel applicationBusy state
                     Platform.runLater(() -> {
                         refreshPoolCounters();
-                        fetchPoolBalanceViaStellar();
+                        fetchPoolBalanceViaStellar(); // This will cancel the busy state we initiated once it completes
                     });
                 }
-
-                Platform.runLater(() -> setBusyState(false));
             });
         }
     }
