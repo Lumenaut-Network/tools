@@ -643,6 +643,12 @@ public class TransactionsController {
             votesAndPayments.forEach((voterAccount, voterAmount) -> {
                 // Create new entry node
                 final TransactionPlanEntry entry = new TransactionPlanEntry();
+
+                // Map the balance of this voter as we recorded it when fetching data (default to 0L if the data is missing)
+                final Long recordedVoterBalance = votesAndBalances.get(voterAccount);
+                entry.setRecordedBalance(recordedVoterBalance != null ? recordedVoterBalance : 0L);
+
+                // Set the amount and destination of the transaction
                 entry.setAmount(voterAmount);
                 entry.setDestination(voterAccount);
 

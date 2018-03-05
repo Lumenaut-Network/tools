@@ -281,10 +281,19 @@ public class DataFormats {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class TransactionPlanEntry {
+        private long recordedBalance;
         private long amount;
         private String destination;
         private String reroutedfrom = "";   // Optional
         private boolean donation = false;   // Optional
+
+        public long getRecordedBalance() {
+            return recordedBalance;
+        }
+
+        public void setRecordedBalance(long recordedBalance) {
+            this.recordedBalance = recordedBalance;
+        }
 
         public long getAmount() {
             return amount;
@@ -413,6 +422,7 @@ public class DataFormats {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class TransactionResultEntry {
         private long timestamp;
+        private long recordedBalance;
         private long amount;
         private String destination;
         private String reroutedfrom = "";       // Optional
@@ -424,6 +434,14 @@ public class DataFormats {
 
         public void setTimestamp(long timestamp) {
             this.timestamp = timestamp;
+        }
+
+        public long getRecordedBalance() {
+            return recordedBalance;
+        }
+
+        public void setRecordedBalance(long recordedBalance) {
+            this.recordedBalance = recordedBalance;
         }
 
         public long getAmount() {

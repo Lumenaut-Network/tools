@@ -192,6 +192,7 @@ public class ProcessingController {
                         // Create new entry for the temporary result (which we're using as a buffer for batches)
                         final TransactionResultEntry transactionResultEntry = new TransactionResultEntry();
                         transactionResultEntry.setDestination(entry.getDestination());
+                        transactionResultEntry.setRecordedBalance(entry.getRecordedBalance());
                         transactionResultEntry.setAmount(entry.getAmount());
 
                         // Append to the temporary buffer
