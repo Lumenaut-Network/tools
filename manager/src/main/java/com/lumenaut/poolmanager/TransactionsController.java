@@ -407,6 +407,19 @@ public class TransactionsController {
                                         final String percent = tokens[0];
                                         final String destinationAddress = tokens[1];
 
+                                        // Exclude if the voter is donating to itself
+                                        if (voterAddress.equals(destinationAddress)) {
+                                            // Invalid destination
+                                            final DonationErrorEntry donationErrorEntry = new DonationErrorEntry();
+                                            donationErrorEntry.setSource(voterAddress);
+                                            donationErrorEntry.setDonationstring(dataValue);
+                                            donationErrorEntry.setErrortype("Invalid destination address, donating to self");
+
+                                            donationsData.getErrors().add(donationErrorEntry);
+
+                                            continue;
+                                        }
+
                                         if (XLMUtils.isPublicKeyValidFormat(destinationAddress)) {
                                             try {
                                                 // Attempt parsing the donation %
@@ -715,11 +728,6 @@ public class TransactionsController {
                     if (donationEntry.getSource().equals(voterAccount)) {
                         // Extract donation data and compute donation amount
                         final String beneficiary = donationEntry.getDestination();
-
-                        // If the voter is donating to itself skip
-                        if (beneficiary.equals(voterAccount)) {
-                            continue;
-                        }
 
                         // Percent to donate
                         final int percent = donationEntry.getPercent();

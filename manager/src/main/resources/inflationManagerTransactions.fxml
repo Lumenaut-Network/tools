@@ -58,8 +58,8 @@
                     <content>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                             <children>
-                                <TextArea fx:id="donationsTextArea" layoutX="65.0" layoutY="108.0" prefHeight="200.0"
-                                          prefWidth="385.0" stylesheets="@inflationManagerMain.css"
+                                <TextArea fx:id="donationsTextArea" editable="false" layoutX="65.0" layoutY="108.0"
+                                          prefHeight="200.0" prefWidth="385.0" stylesheets="@inflationManagerMain.css"
                                           AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="0.0"
                                           AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
                             </children>

@@ -355,7 +355,7 @@ public class DataFormats {
             this.reroutedfrom = reroutedfrom;
         }
 
-        public boolean isDonation() {
+        public boolean getDonation() {
             return donation;
         }
 

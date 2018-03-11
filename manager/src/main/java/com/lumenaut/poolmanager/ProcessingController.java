@@ -170,7 +170,7 @@ public class ProcessingController {
                     long paidTotal = 0L;
                     long totalFees = 0L;
                     long totalPayment = 0L;
-                    long remainingPayment = transactionPlan.getTotalpayouts();
+                    long remainingPayment = transactionPlan.getTotalpayment();
 
                     ////////////////////////////////////////////////////////////////////////////////////////////////////
                     // BATCH ENTRIES
@@ -194,6 +194,7 @@ public class ProcessingController {
                         transactionResultEntry.setDestination(entry.getDestination());
                         transactionResultEntry.setRecordedBalance(entry.getRecordedBalance());
                         transactionResultEntry.setAmount(entry.getAmount());
+                        transactionResultEntry.setDonation(entry.getDonation());
 
                         // Append to the temporary buffer
                         tmpBatchResult.getEntries().add(transactionResultEntry);
@@ -212,7 +213,7 @@ public class ProcessingController {
                                         paidTotal += resultEntry.getAmount();
                                         totalFees += SETTING_FEE;
                                         totalPayment += resultEntry.getAmount() + SETTING_FEE;
-                                        remainingPayment -= resultEntry.getAmount();
+                                        remainingPayment -= resultEntry.getAmount() + SETTING_FEE;
                                     }
 
                                     // Append completed batch to the final result
@@ -277,7 +278,7 @@ public class ProcessingController {
                                     paidTotal += resultEntry.getAmount();
                                     totalFees += SETTING_FEE;
                                     totalPayment += resultEntry.getAmount() + SETTING_FEE;
-                                    remainingPayment -= resultEntry.getAmount();
+                                    remainingPayment -= resultEntry.getAmount() + SETTING_FEE;
                                 }
 
                                 // Append completed batch to the final result
