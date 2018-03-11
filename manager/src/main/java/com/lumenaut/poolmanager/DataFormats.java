@@ -200,8 +200,11 @@ public class DataFormats {
         private int excluded;
         private int rerouted;
         private int donations;
+        private int donationBeneficiaries;
+        private long totalDonationsPayment;
+        private long totalPoolDonations;
         private long totalvotes;
-        private long totalpayments;
+        private long totalpayouts;
         private long totalfees;
         private long totalpayment;
         private List<TransactionPlanEntry> entries;
@@ -238,6 +241,30 @@ public class DataFormats {
             this.donations = donations;
         }
 
+        public int getDonationBeneficiaries() {
+            return donationBeneficiaries;
+        }
+
+        public void setDonationBeneficiaries(int donationBeneficiaries) {
+            this.donationBeneficiaries = donationBeneficiaries;
+        }
+
+        public long getTotalDonationsPayment() {
+            return totalDonationsPayment;
+        }
+
+        public void setTotalDonationsPayment(long totalDonationsPayment) {
+            this.totalDonationsPayment = totalDonationsPayment;
+        }
+
+        public long getTotalPoolDonations() {
+            return totalPoolDonations;
+        }
+
+        public void setTotalPoolDonations(long totalPoolDonations) {
+            this.totalPoolDonations = totalPoolDonations;
+        }
+
         public long getTotalvotes() {
             return totalvotes;
         }
@@ -246,12 +273,12 @@ public class DataFormats {
             this.totalvotes = totalvotes;
         }
 
-        public long getTotalpayments() {
-            return totalpayments;
+        public long getTotalpayouts() {
+            return totalpayouts;
         }
 
-        public void setTotalpayments(long totalpayments) {
-            this.totalpayments = totalpayments;
+        public void setTotalpayouts(long totalpayouts) {
+            this.totalpayouts = totalpayouts;
         }
 
         public long getTotalfees() {
@@ -283,6 +310,7 @@ public class DataFormats {
     public static class TransactionPlanEntry {
         private long recordedBalance;
         private long amount;
+        private long donatedAmount;
         private String destination;
         private String reroutedfrom = "";   // Optional
         private boolean donation = false;   // Optional
@@ -303,6 +331,14 @@ public class DataFormats {
             this.amount = amount;
         }
 
+        public long getDonatedAmount() {
+            return donatedAmount;
+        }
+
+        public void setDonatedAmount(long donatedAmount) {
+            this.donatedAmount = donatedAmount;
+        }
+
         public String getDestination() {
             return destination;
         }
@@ -319,7 +355,7 @@ public class DataFormats {
             this.reroutedfrom = reroutedfrom;
         }
 
-        public boolean isDonation() {
+        public boolean getDonation() {
             return donation;
         }
 
@@ -339,7 +375,7 @@ public class DataFormats {
         private String uuid;
         private int plannedOperations;
         private int executedOperations;
-        private String paidTotal;
+        private String totalPayout;
         private String totalfees;
         private String totalpayment;
         private String remainingPayment;
@@ -370,12 +406,12 @@ public class DataFormats {
             this.executedOperations = executedOperations;
         }
 
-        public String getPaidTotal() {
-            return paidTotal;
+        public String getTotalPayout() {
+            return totalPayout;
         }
 
-        public void setPaidTotal(String paidTotal) {
-            this.paidTotal = paidTotal;
+        public void setTotalPayout(String totalPayout) {
+            this.totalPayout = totalPayout;
         }
 
         public String getTotalfees() {

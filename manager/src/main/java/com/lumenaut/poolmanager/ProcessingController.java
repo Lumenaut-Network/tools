@@ -170,7 +170,7 @@ public class ProcessingController {
                     long paidTotal = 0L;
                     long totalFees = 0L;
                     long totalPayment = 0L;
-                    long remainingPayment = transactionPlan.getTotalpayments();
+                    long remainingPayment = transactionPlan.getTotalpayment();
 
                     ////////////////////////////////////////////////////////////////////////////////////////////////////
                     // BATCH ENTRIES
@@ -194,6 +194,7 @@ public class ProcessingController {
                         transactionResultEntry.setDestination(entry.getDestination());
                         transactionResultEntry.setRecordedBalance(entry.getRecordedBalance());
                         transactionResultEntry.setAmount(entry.getAmount());
+                        transactionResultEntry.setDonation(entry.getDonation());
 
                         // Append to the temporary buffer
                         tmpBatchResult.getEntries().add(transactionResultEntry);
@@ -212,7 +213,7 @@ public class ProcessingController {
                                         paidTotal += resultEntry.getAmount();
                                         totalFees += SETTING_FEE;
                                         totalPayment += resultEntry.getAmount() + SETTING_FEE;
-                                        remainingPayment -= resultEntry.getAmount();
+                                        remainingPayment -= resultEntry.getAmount() + SETTING_FEE;
                                     }
 
                                     // Append completed batch to the final result
@@ -231,8 +232,6 @@ public class ProcessingController {
                                     // Update progress bar
                                     updateProgressBar(totalEntries, operationsCount);
                                 } else {
-
-
                                     // Clear the tmp buffer
                                     tmpBatchResult.getEntries().clear();
 
@@ -279,7 +278,7 @@ public class ProcessingController {
                                     paidTotal += resultEntry.getAmount();
                                     totalFees += SETTING_FEE;
                                     totalPayment += resultEntry.getAmount() + SETTING_FEE;
-                                    remainingPayment -= resultEntry.getAmount();
+                                    remainingPayment -= resultEntry.getAmount() + SETTING_FEE;
                                 }
 
                                 // Append completed batch to the final result
@@ -479,7 +478,7 @@ public class ProcessingController {
         }
 
         // Update totals
-        result.setPaidTotal(XLMUtils.formatBalanceFullPrecision(paidTotal) + " XLM");
+        result.setTotalPayout(XLMUtils.formatBalanceFullPrecision(paidTotal) + " XLM");
         result.setRemainingPayment(XLMUtils.formatBalanceFullPrecision(remainingPayment) + " XLM");
         result.setTotalfees(XLMUtils.formatBalanceFullPrecision(totalFees) + " XLM");
         result.setTotalpayment(XLMUtils.formatBalanceFullPrecision(totalPayment) + " XLM");

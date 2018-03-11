@@ -96,19 +96,25 @@ public class TransactionsController {
     private Label plannedDonationsLabel;
 
     @FXML
+    private Label plannedBeneficiariesLabel;
+
+    @FXML
     private Label executedTransactionsLabel;
 
     @FXML
-    private Label toBePaidLabel;
+    private Label totalToBePaidLabel;
 
     @FXML
-    private Label toKeepForDonationsLabel;
+    private Label plannedDonationsAmountLabel;
 
     @FXML
-    private Label feesPaidLabel;
+    private Label totalFeesPaidLabel;
 
     @FXML
     private Label totalPaidLabel;
+
+    @FXML
+    private Label totalPoolDonationsLabel;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -134,7 +140,6 @@ public class TransactionsController {
     // Data
     private HashMap<String, Long> votesAndBalances;
     private HashMap<String, Long> votesAndPayments;
-
     private TransactionPlan transactionPlan;
     private DonationsData donationsData;
 
@@ -221,7 +226,7 @@ public class TransactionsController {
             }
 
             // Check the transaction plan has a positive amount to pay
-            if (transactionPlan.getTotalpayments() <= 0) {
+            if (transactionPlan.getTotalpayouts() <= 0) {
                 showError("This transaction plan has nothing to pay!");
 
                 return;
@@ -325,13 +330,19 @@ public class TransactionsController {
         plannedTransactionsLabel.setText(String.valueOf(transactionPlan.getEntries().size()));
 
         // Update total amount to pay
-        toBePaidLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalpayments()) + " XLM");
-        feesPaidLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalfees()) + " XLM");
+        totalToBePaidLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalpayouts()) + " XLM");
+        totalFeesPaidLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalfees()) + " XLM");
         totalPaidLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalpayment()) + " XLM");
+        plannedDonationsAmountLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalDonationsPayment()) + " XLM");
+        totalPoolDonationsLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalPoolDonations()) + " XLM");
 
         // Update the rerouting and exclusion labels
         reroutedTransactionsLabel.setText(String.valueOf(transactionPlan.getRerouted()));
         excludedTransactionsLabel.setText(String.valueOf(transactionPlan.getExcluded()));
+
+        // Update donations labels
+        plannedDonationsLabel.setText(String.valueOf(transactionPlan.getDonations()));
+        plannedBeneficiariesLabel.setText(String.valueOf(transactionPlan.getDonationBeneficiaries()));
 
         // Activate execution
         executeTransactionBtn.setDisable(false);
@@ -345,9 +356,11 @@ public class TransactionsController {
         plannedTransactionsLabel.setText("0");
         executedTransactionsLabel.setText("0");
         reroutedTransactionsLabel.setText("0");
-        toBePaidLabel.setText("0 XLM");
-        feesPaidLabel.setText("0 XLM");
+        totalToBePaidLabel.setText("0 XLM");
+        totalFeesPaidLabel.setText("0 XLM");
         totalPaidLabel.setText("0 XLM");
+        plannedDonationsAmountLabel.setText("0 XLM");
+        totalPoolDonationsLabel.setText("0 XLM");
         executeTransactionBtn.setDisable(true);
         transactionPlan = null;
     }
@@ -393,6 +406,19 @@ public class TransactionsController {
                                     if (tokens.length == 2) {
                                         final String percent = tokens[0];
                                         final String destinationAddress = tokens[1];
+
+                                        // Exclude if the voter is donating to itself
+                                        if (voterAddress.equals(destinationAddress)) {
+                                            // Invalid destination
+                                            final DonationErrorEntry donationErrorEntry = new DonationErrorEntry();
+                                            donationErrorEntry.setSource(voterAddress);
+                                            donationErrorEntry.setDonationstring(dataValue);
+                                            donationErrorEntry.setErrortype("Invalid destination address, donating to self");
+
+                                            donationsData.getErrors().add(donationErrorEntry);
+
+                                            continue;
+                                        }
 
                                         if (XLMUtils.isPublicKeyValidFormat(destinationAddress)) {
                                             try {
@@ -483,11 +509,16 @@ public class TransactionsController {
             return false;
         } else {
             // Init payments rerouting and exclusion counters
-            final AtomicInteger rerouted = new AtomicInteger(0);
-            final AtomicInteger excluded = new AtomicInteger(0);
-            final AtomicLong totalPayments = new AtomicLong(0);
-            final AtomicLong feesPayments = new AtomicLong(0);
-            final AtomicLong totalPayment = new AtomicLong(0);
+            final AtomicInteger numRerouted = new AtomicInteger(0);
+            final AtomicInteger numExcluded = new AtomicInteger(0);
+            final AtomicInteger numDonations = new AtomicInteger(0);
+            final AtomicInteger numDonationBeneficiaries = new AtomicInteger(0);
+            final AtomicLong totalVoterPayout = new AtomicLong(0);
+            final AtomicLong totalDonationsPayout = new AtomicLong(0);
+            final AtomicLong totalPoolDonations = new AtomicLong(0);
+            final AtomicLong totalFees = new AtomicLong(0);
+            final AtomicLong totalTransactionsPayment = new AtomicLong(0);
+
 
             // Init special trackers for exclusions
             final AtomicBoolean excludedPoolSelfVote = new AtomicBoolean(false);
@@ -526,7 +557,7 @@ public class TransactionsController {
                         // from adding itself to the computations on payments.
                         if (voterAddress.equals(poolAddress)) {
                             // Exclude
-                            excluded.getAndIncrement();
+                            numExcluded.getAndIncrement();
 
                             // Flag pool exclusion
                             excludedPoolSelfVote.set(true);
@@ -588,7 +619,7 @@ public class TransactionsController {
                 if (voterPayment > 0) {
                     votesAndPayments.put(voterAddres, voterPayment);
                 } else {
-                    excluded.getAndIncrement();
+                    numExcluded.getAndIncrement();
                     excludedNegativePayments.getAndIncrement();
                 }
             }
@@ -639,29 +670,35 @@ public class TransactionsController {
             // Set total votes balance
             newPlan.setTotalvotes(totalVotesAmount);
 
+            // Get donations entries
+            final List<DonationDataEntry> donationDataEntries = donationsData.getDonations();
+
+            // Prepare donations temporary buffer
+            final HashMap<String, Long> donationBeneficiariesAndAmounts = new HashMap<>();
+
             // Compute plan entries
             votesAndPayments.forEach((voterAccount, voterAmount) -> {
                 // Create new entry node
-                final TransactionPlanEntry entry = new TransactionPlanEntry();
+                final TransactionPlanEntry voterPaymentEntry = new TransactionPlanEntry();
 
                 // Map the balance of this voter as we recorded it when fetching data (default to 0L if the data is missing)
                 final Long recordedVoterBalance = votesAndBalances.get(voterAccount);
-                entry.setRecordedBalance(recordedVoterBalance != null ? recordedVoterBalance : 0L);
+                voterPaymentEntry.setRecordedBalance(recordedVoterBalance != null ? recordedVoterBalance : 0L);
 
                 // Set the amount and destination of the transaction
-                entry.setAmount(voterAmount);
-                entry.setDestination(voterAccount);
+                voterPaymentEntry.setAmount(voterAmount);
+                voterPaymentEntry.setDestination(voterAccount);
 
                 // Reroute if needed
                 if (reroutingData != null) {
                     for (ReroutingDataEntry reroutingDataEntry : reroutingData.getEntries()) {
                         if (voterAccount.equals(reroutingDataEntry.getAccount())) {
                             // Reroute
-                            entry.setDestination(reroutingDataEntry.getReroute());
-                            entry.setReroutedfrom(voterAccount);
+                            voterPaymentEntry.setDestination(reroutingDataEntry.getReroute());
+                            voterPaymentEntry.setReroutedfrom(voterAccount);
 
                             // Update rerouted counter
-                            rerouted.getAndIncrement();
+                            numRerouted.getAndIncrement();
                         }
                     }
                 }
@@ -669,15 +706,15 @@ public class TransactionsController {
                 // If this account (or its rerouted address) is in the exclusion list skip appending it
                 if (exclusionData != null) {
                     for (ExclusionEntry exclusionEntry : exclusionData.getEntries()) {
-                        if (exclusionEntry.getDestination().equals(entry.getReroutedfrom())) {
-                            excluded.getAndIncrement();
+                        if (exclusionEntry.getDestination().equals(voterPaymentEntry.getReroutedfrom())) {
+                            numExcluded.getAndIncrement();
 
                             // Return immediately without appending the entry
                             return;
                         }
 
-                        if (exclusionEntry.getDestination().equals(entry.getDestination())) {
-                            excluded.getAndIncrement();
+                        if (exclusionEntry.getDestination().equals(voterPaymentEntry.getDestination())) {
+                            numExcluded.getAndIncrement();
 
                             // Return immediately without appending the entry
                             return;
@@ -685,21 +722,94 @@ public class TransactionsController {
                     }
                 }
 
-                // Update total payment
-                totalPayments.getAndAdd(voterAmount);
-                feesPayments.getAndAdd(SETTING_FEE);
-                totalPayment.getAndAdd(voterAmount + SETTING_FEE);
+                ////////////////////////////////////////////////////////////////////////////////////////////////////////
+                // STEP 5 (executes per voter): Scan donations data for a matching voter source
+                for (DonationDataEntry donationEntry : donationDataEntries) {
+                    if (donationEntry.getSource().equals(voterAccount)) {
+                        // Extract donation data and compute donation amount
+                        final String beneficiary = donationEntry.getDestination();
+
+                        // Percent to donate
+                        final int percent = donationEntry.getPercent();
+
+                        // Calculate donation amount (voterAmount / 100 * percent donated)
+                        final BigDecimal voterAmountXLM = XLMUtils.stroopToXLM(voterAmount);
+                        final BigDecimal voterAmountOnePercent = voterAmountXLM.divide(new BigDecimal(100), ROUNDING_MODE);
+                        final BigDecimal donationAmount = voterAmountOnePercent.multiply(new BigDecimal(percent));
+
+                        // Convert compute amount back to stroops
+                        final long donationAmountStroops = XLMUtils.XLMToStroop(donationAmount);
+
+                        // Deduct donation from voter amount and set the donated amount entry
+                        voterPaymentEntry.setAmount(voterAmount - donationAmountStroops);
+                        voterPaymentEntry.setDonatedAmount(donationAmountStroops);
+
+                        // Add a new entry to the beneficiaries or update an existing one
+                        if (donationBeneficiariesAndAmounts.containsKey(beneficiary)) {
+                            // Increment existing beneficiary amount
+                            final Long newBeneficiaryAmount = donationBeneficiariesAndAmounts.get(beneficiary) + donationAmountStroops;
+
+                            // Update entry
+                            donationBeneficiariesAndAmounts.put(beneficiary, newBeneficiaryAmount);
+                        } else {
+                            // Insert a new beneficiary
+                            donationBeneficiariesAndAmounts.put(beneficiary, donationAmountStroops);
+
+                            // Update beneficiaries count
+                            numDonationBeneficiaries.getAndIncrement();
+                        }
+
+                        // Update donations counter
+                        numDonations.getAndIncrement();
+                    }
+                }
+
+                // Update total payment up until this point
+                totalFees.getAndAdd(SETTING_FEE);
+                totalVoterPayout.getAndAdd(voterPaymentEntry.getAmount());
+                totalTransactionsPayment.getAndAdd(voterPaymentEntry.getAmount() + SETTING_FEE);
 
                 // Append to the entries
-                newPlan.getEntries().add(entry);
+                newPlan.getEntries().add(voterPaymentEntry);
+            });
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // STEP 6: Add donation beneficiaries entries to the plan
+            donationBeneficiariesAndAmounts.forEach((beneficiary, donationsAmount) -> {
+                // If the destination is the pool itself, don't generate the transaction, the payment will simply remain in the pool's balance
+                if (beneficiary.equals(poolAddress)) {
+                    // Only update the total donations
+                    totalDonationsPayout.getAndAdd(donationsAmount);
+                    totalPoolDonations.getAndAdd(donationsAmount);
+                } else {
+                    // Create new entry node
+                    final TransactionPlanEntry beneficiaryEntry = new TransactionPlanEntry();
+
+                    // Append transaction
+                    beneficiaryEntry.setDestination(beneficiary);
+                    beneficiaryEntry.setAmount(donationsAmount);
+                    beneficiaryEntry.setDonation(true);
+
+                    // Update payment counts
+                    totalFees.getAndAdd(SETTING_FEE);
+                    totalDonationsPayout.getAndAdd(donationsAmount);
+                    totalTransactionsPayment.getAndAdd(donationsAmount + SETTING_FEE);
+
+                    // Append to the entries
+                    newPlan.getEntries().add(beneficiaryEntry);
+                }
             });
 
             // Update the rerouting and exclusion
-            newPlan.setRerouted(rerouted.get());
-            newPlan.setExcluded(excluded.get());
-            newPlan.setTotalpayments(totalPayments.get());
-            newPlan.setTotalfees(feesPayments.get());
-            newPlan.setTotalpayment(totalPayment.get());
+            newPlan.setRerouted(numRerouted.get());
+            newPlan.setExcluded(numExcluded.get());
+            newPlan.setTotalpayouts(totalVoterPayout.get());
+            newPlan.setTotalfees(totalFees.get());
+            newPlan.setDonations(numDonations.get());
+            newPlan.setDonationBeneficiaries(numDonationBeneficiaries.get());
+            newPlan.setTotalDonationsPayment(totalDonationsPayout.get());
+            newPlan.setTotalPoolDonations(totalPoolDonations.get());
+            newPlan.setTotalpayment(totalTransactionsPayment.get());
 
             // Update the transaction plan
             transactionPlan = newPlan;
@@ -712,6 +822,12 @@ public class TransactionsController {
             // Notify of negative payments exclusions
             if (excludedNegativePayments.get() > 0) {
                 showInfo(excludedNegativePayments.get() + " accounts have been excluded from the distribution because their payment amounts minus the fee would be negative");
+            }
+
+            // Notify of pool donations
+            if (transactionPlan.getTotalPoolDonations() > 0) {
+                // Inform the user that the pool has received donations
+                showInfo("The pool has received a total donation of: " + XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalPoolDonations()) + " XLM");
             }
 
             // Plan ready
