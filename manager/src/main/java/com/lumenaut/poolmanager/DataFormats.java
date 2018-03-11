@@ -201,8 +201,10 @@ public class DataFormats {
         private int rerouted;
         private int donations;
         private int donationBeneficiaries;
+        private long totalDonationsPayment;
+        private long totalPoolDonations;
         private long totalvotes;
-        private long totalpayments;
+        private long totalpayouts;
         private long totalfees;
         private long totalpayment;
         private List<TransactionPlanEntry> entries;
@@ -247,6 +249,22 @@ public class DataFormats {
             this.donationBeneficiaries = donationBeneficiaries;
         }
 
+        public long getTotalDonationsPayment() {
+            return totalDonationsPayment;
+        }
+
+        public void setTotalDonationsPayment(long totalDonationsPayment) {
+            this.totalDonationsPayment = totalDonationsPayment;
+        }
+
+        public long getTotalPoolDonations() {
+            return totalPoolDonations;
+        }
+
+        public void setTotalPoolDonations(long totalPoolDonations) {
+            this.totalPoolDonations = totalPoolDonations;
+        }
+
         public long getTotalvotes() {
             return totalvotes;
         }
@@ -255,12 +273,12 @@ public class DataFormats {
             this.totalvotes = totalvotes;
         }
 
-        public long getTotalpayments() {
-            return totalpayments;
+        public long getTotalpayouts() {
+            return totalpayouts;
         }
 
-        public void setTotalpayments(long totalpayments) {
-            this.totalpayments = totalpayments;
+        public void setTotalpayouts(long totalpayouts) {
+            this.totalpayouts = totalpayouts;
         }
 
         public long getTotalfees() {
@@ -357,7 +375,7 @@ public class DataFormats {
         private String uuid;
         private int plannedOperations;
         private int executedOperations;
-        private String paidTotal;
+        private String totalPayout;
         private String totalfees;
         private String totalpayment;
         private String remainingPayment;
@@ -388,12 +406,12 @@ public class DataFormats {
             this.executedOperations = executedOperations;
         }
 
-        public String getPaidTotal() {
-            return paidTotal;
+        public String getTotalPayout() {
+            return totalPayout;
         }
 
-        public void setPaidTotal(String paidTotal) {
-            this.paidTotal = paidTotal;
+        public void setTotalPayout(String totalPayout) {
+            this.totalPayout = totalPayout;
         }
 
         public String getTotalfees() {

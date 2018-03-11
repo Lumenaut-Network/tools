@@ -170,7 +170,7 @@ public class ProcessingController {
                     long paidTotal = 0L;
                     long totalFees = 0L;
                     long totalPayment = 0L;
-                    long remainingPayment = transactionPlan.getTotalpayments();
+                    long remainingPayment = transactionPlan.getTotalpayouts();
 
                     ////////////////////////////////////////////////////////////////////////////////////////////////////
                     // BATCH ENTRIES
@@ -231,8 +231,6 @@ public class ProcessingController {
                                     // Update progress bar
                                     updateProgressBar(totalEntries, operationsCount);
                                 } else {
-
-
                                     // Clear the tmp buffer
                                     tmpBatchResult.getEntries().clear();
 
@@ -479,7 +477,7 @@ public class ProcessingController {
         }
 
         // Update totals
-        result.setPaidTotal(XLMUtils.formatBalanceFullPrecision(paidTotal) + " XLM");
+        result.setTotalPayout(XLMUtils.formatBalanceFullPrecision(paidTotal) + " XLM");
         result.setRemainingPayment(XLMUtils.formatBalanceFullPrecision(remainingPayment) + " XLM");
         result.setTotalfees(XLMUtils.formatBalanceFullPrecision(totalFees) + " XLM");
         result.setTotalpayment(XLMUtils.formatBalanceFullPrecision(totalPayment) + " XLM");
