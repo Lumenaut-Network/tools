@@ -200,6 +200,7 @@ public class DataFormats {
         private int excluded;
         private int rerouted;
         private int donations;
+        private int donationBeneficiaries;
         private long totalvotes;
         private long totalpayments;
         private long totalfees;
@@ -236,6 +237,14 @@ public class DataFormats {
 
         public void setDonations(int donations) {
             this.donations = donations;
+        }
+
+        public int getDonationBeneficiaries() {
+            return donationBeneficiaries;
+        }
+
+        public void setDonationBeneficiaries(int donationBeneficiaries) {
+            this.donationBeneficiaries = donationBeneficiaries;
         }
 
         public long getTotalvotes() {
@@ -283,6 +292,7 @@ public class DataFormats {
     public static class TransactionPlanEntry {
         private long recordedBalance;
         private long amount;
+        private long donatedAmount;
         private String destination;
         private String reroutedfrom = "";   // Optional
         private boolean donation = false;   // Optional
@@ -301,6 +311,14 @@ public class DataFormats {
 
         public void setAmount(long amount) {
             this.amount = amount;
+        }
+
+        public long getDonatedAmount() {
+            return donatedAmount;
+        }
+
+        public void setDonatedAmount(long donatedAmount) {
+            this.donatedAmount = donatedAmount;
         }
 
         public String getDestination() {

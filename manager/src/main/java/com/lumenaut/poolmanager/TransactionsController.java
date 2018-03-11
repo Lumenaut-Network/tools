@@ -96,6 +96,9 @@ public class TransactionsController {
     private Label plannedDonationsLabel;
 
     @FXML
+    private Label plannedBeneficiariesLabel;
+
+    @FXML
     private Label executedTransactionsLabel;
 
     @FXML
@@ -333,6 +336,10 @@ public class TransactionsController {
         reroutedTransactionsLabel.setText(String.valueOf(transactionPlan.getRerouted()));
         excludedTransactionsLabel.setText(String.valueOf(transactionPlan.getExcluded()));
 
+        // Update donations labels
+        plannedDonationsLabel.setText(String.valueOf(transactionPlan.getDonations()));
+        plannedBeneficiariesLabel.setText(String.valueOf(transactionPlan.getDonationBeneficiaries()));
+
         // Activate execution
         executeTransactionBtn.setDisable(false);
         executeTransactionBtn.setText("EXECUTE");
@@ -485,6 +492,8 @@ public class TransactionsController {
             // Init payments rerouting and exclusion counters
             final AtomicInteger rerouted = new AtomicInteger(0);
             final AtomicInteger excluded = new AtomicInteger(0);
+            final AtomicInteger donations = new AtomicInteger(0);
+            final AtomicInteger donationBeneficiaries = new AtomicInteger(0);
             final AtomicLong totalPayments = new AtomicLong(0);
             final AtomicLong feesPayments = new AtomicLong(0);
             final AtomicLong totalPayment = new AtomicLong(0);
@@ -639,6 +648,12 @@ public class TransactionsController {
             // Set total votes balance
             newPlan.setTotalvotes(totalVotesAmount);
 
+            // Get donations entries
+            final List<DonationDataEntry> donationDataEntries = donationsData.getDonations();
+
+            // Prepare donations temporary buffer
+            final HashMap<String, Long> donationBeneficiariesAndAmounts = new HashMap<>();
+
             // Compute plan entries
             votesAndPayments.forEach((voterAccount, voterAmount) -> {
                 // Create new entry node
@@ -685,6 +700,39 @@ public class TransactionsController {
                     }
                 }
 
+                ////////////////////////////////////////////////////////////////////////////////////////////////////////
+                // STEP 5 (executes per voter): Scan donations data for a matching voter source
+                for (DonationDataEntry donationEntry : donationDataEntries) {
+                    if (donationEntry.getSource().equals(voterAccount)) {
+                        // Extract donation data and compute donation amount
+                        final String beneficiary = donationEntry.getDestination();
+                        final int percent = donationEntry.getPercent();
+                        final long donationAmount = voterAmount / 100 * percent;
+
+                        // Deduct donation from voter amount and set the donated amount entry
+                        entry.setAmount(voterAmount - donationAmount);
+                        entry.setDonatedAmount(donationAmount);
+
+                        // Add a new entry to the beneficiaries or update an existing one
+                        if (donationBeneficiariesAndAmounts.containsKey(beneficiary)) {
+                            // Increment existing beneficiary amount
+                            final Long existingBeneficiaryAmount = donationBeneficiariesAndAmounts.get(beneficiary) + donationAmount;
+
+                            // Update entry
+                            donationBeneficiariesAndAmounts.put(beneficiary, existingBeneficiaryAmount);
+                        } else {
+                            // Insert a new beneficiary
+                            donationBeneficiariesAndAmounts.put(beneficiary, donationAmount);
+
+                            // Update beneficiaries count
+                            donationBeneficiaries.getAndIncrement();
+                        }
+
+                        // Update donations counter
+                        donations.getAndIncrement();
+                    }
+                }
+
                 // Update total payment
                 totalPayments.getAndAdd(voterAmount);
                 feesPayments.getAndAdd(SETTING_FEE);
@@ -694,12 +742,32 @@ public class TransactionsController {
                 newPlan.getEntries().add(entry);
             });
 
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // STEP 6: Add donation beneficiaries entries to the plan
+            donationBeneficiariesAndAmounts.forEach((beneficiary, amount) -> {
+                // Create new entry node
+                final TransactionPlanEntry beneficiaryEntry = new TransactionPlanEntry();
+                beneficiaryEntry.setDestination(beneficiary);
+                beneficiaryEntry.setAmount(amount);
+                beneficiaryEntry.setDonation(true);
+
+                // Update payment counts
+                feesPayments.getAndAdd(SETTING_FEE);
+                totalPayments.getAndAdd(amount);
+                totalPayment.getAndAdd(amount + SETTING_FEE);
+
+                // Append to the entries
+                newPlan.getEntries().add(beneficiaryEntry);
+            });
+
             // Update the rerouting and exclusion
             newPlan.setRerouted(rerouted.get());
             newPlan.setExcluded(excluded.get());
             newPlan.setTotalpayments(totalPayments.get());
             newPlan.setTotalfees(feesPayments.get());
             newPlan.setTotalpayment(totalPayment.get());
+            newPlan.setDonations(donations.get());
+            newPlan.setDonationBeneficiaries(donationBeneficiaries.get());
 
             // Update the transaction plan
             transactionPlan = newPlan;
