@@ -170,7 +170,7 @@ public class ProcessingController {
                     long paidTotal = 0L;
                     long totalFees = 0L;
                     long totalPayment = 0L;
-                    long remainingPayment = transactionPlan.getTotalpayment();
+                    long remainingPayment = transactionPlan.getTotalPayment();
 
                     ////////////////////////////////////////////////////////////////////////////////////////////////////
                     // BATCH ENTRIES
@@ -480,8 +480,8 @@ public class ProcessingController {
         // Update totals
         result.setTotalPayout(XLMUtils.formatBalanceFullPrecision(paidTotal) + " XLM");
         result.setRemainingPayment(XLMUtils.formatBalanceFullPrecision(remainingPayment) + " XLM");
-        result.setTotalfees(XLMUtils.formatBalanceFullPrecision(totalFees) + " XLM");
-        result.setTotalpayment(XLMUtils.formatBalanceFullPrecision(totalPayment) + " XLM");
+        result.setTotalFees(XLMUtils.formatBalanceFullPrecision(totalFees) + " XLM");
+        result.setTotalPayment(XLMUtils.formatBalanceFullPrecision(totalPayment) + " XLM");
 
         // Try to decode them to see if they are in a valid format
         final String jsonResult;

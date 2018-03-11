@@ -203,10 +203,10 @@ public class DataFormats {
         private int donationBeneficiaries;
         private long totalDonationsPayment;
         private long totalPoolDonations;
-        private long totalvotes;
-        private long totalpayouts;
-        private long totalfees;
-        private long totalpayment;
+        private long totalVotes;
+        private long totalPayouts;
+        private long totalFees;
+        private long totalPayment;
         private List<TransactionPlanEntry> entries;
 
         public String getUuid() {
@@ -265,36 +265,36 @@ public class DataFormats {
             this.totalPoolDonations = totalPoolDonations;
         }
 
-        public long getTotalvotes() {
-            return totalvotes;
+        public long getTotalVotes() {
+            return totalVotes;
         }
 
-        public void setTotalvotes(long totalvotes) {
-            this.totalvotes = totalvotes;
+        public void setTotalVotes(long totalVotes) {
+            this.totalVotes = totalVotes;
         }
 
-        public long getTotalpayouts() {
-            return totalpayouts;
+        public long getTotalPayouts() {
+            return totalPayouts;
         }
 
-        public void setTotalpayouts(long totalpayouts) {
-            this.totalpayouts = totalpayouts;
+        public void setTotalPayouts(long totalPayouts) {
+            this.totalPayouts = totalPayouts;
         }
 
-        public long getTotalfees() {
-            return totalfees;
+        public long getTotalFees() {
+            return totalFees;
         }
 
-        public void setTotalfees(long totalfees) {
-            this.totalfees = totalfees;
+        public void setTotalFees(long totalFees) {
+            this.totalFees = totalFees;
         }
 
-        public long getTotalpayment() {
-            return totalpayment;
+        public long getTotalPayment() {
+            return totalPayment;
         }
 
-        public void setTotalpayment(long totalpayment) {
-            this.totalpayment = totalpayment;
+        public void setTotalPayment(long totalPayment) {
+            this.totalPayment = totalPayment;
         }
 
         public List<TransactionPlanEntry> getEntries() {
@@ -312,7 +312,7 @@ public class DataFormats {
         private long amount;
         private long donatedAmount;
         private String destination;
-        private String reroutedfrom = "";   // Optional
+        private String reroutedFrom = "";   // Optional
         private boolean donation = false;   // Optional
 
         public long getRecordedBalance() {
@@ -347,12 +347,12 @@ public class DataFormats {
             this.destination = destination;
         }
 
-        public String getReroutedfrom() {
-            return reroutedfrom;
+        public String getReroutedFrom() {
+            return reroutedFrom;
         }
 
-        public void setReroutedfrom(String reroutedfrom) {
-            this.reroutedfrom = reroutedfrom;
+        public void setReroutedFrom(String reroutedFrom) {
+            this.reroutedFrom = reroutedFrom;
         }
 
         public boolean getDonation() {
@@ -376,8 +376,8 @@ public class DataFormats {
         private int plannedOperations;
         private int executedOperations;
         private String totalPayout;
-        private String totalfees;
-        private String totalpayment;
+        private String totalFees;
+        private String totalPayment;
         private String remainingPayment;
         private String resultOutcome;
         private List<TransactionResultEntry> entries;
@@ -414,20 +414,20 @@ public class DataFormats {
             this.totalPayout = totalPayout;
         }
 
-        public String getTotalfees() {
-            return totalfees;
+        public String getTotalFees() {
+            return totalFees;
         }
 
-        public void setTotalfees(String totalfees) {
-            this.totalfees = totalfees;
+        public void setTotalFees(String totalFees) {
+            this.totalFees = totalFees;
         }
 
-        public String getTotalpayment() {
-            return totalpayment;
+        public String getTotalPayment() {
+            return totalPayment;
         }
 
-        public void setTotalpayment(String totalpayment) {
-            this.totalpayment = totalpayment;
+        public void setTotalPayment(String totalPayment) {
+            this.totalPayment = totalPayment;
         }
 
         public String getRemainingPayment() {
@@ -461,7 +461,7 @@ public class DataFormats {
         private long recordedBalance;
         private long amount;
         private String destination;
-        private String reroutedfrom = "";       // Optional
+        private String reroutedFrom = "";       // Optional
         private boolean donation = false;       // Optional
 
         public long getTimestamp() {
@@ -496,12 +496,12 @@ public class DataFormats {
             this.destination = destination;
         }
 
-        public String getReroutedfrom() {
-            return reroutedfrom;
+        public String getReroutedFrom() {
+            return reroutedFrom;
         }
 
-        public void setReroutedfrom(String reroutedfrom) {
-            this.reroutedfrom = reroutedfrom;
+        public void setReroutedFrom(String reroutedFrom) {
+            this.reroutedFrom = reroutedFrom;
         }
 
         public boolean getDonation() {
@@ -594,17 +594,17 @@ public class DataFormats {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class DonationsData {
-        private int numdonations;
+        private int numDonations;
         private List<DonationDataEntry> donations;
-        private int numerrors;
+        private int numErrors;
         private List<DonationErrorEntry> errors;
 
-        public int getNumdonations() {
-            return numdonations;
+        public int getNumDonations() {
+            return numDonations;
         }
 
-        public void setNumdonations(int numdonations) {
-            this.numdonations = numdonations;
+        public void setNumDonations(int numDonations) {
+            this.numDonations = numDonations;
         }
 
         public List<DonationDataEntry> getDonations() {
@@ -615,12 +615,12 @@ public class DataFormats {
             this.donations = donations;
         }
 
-        public int getNumerrors() {
-            return numerrors;
+        public int getNumErrors() {
+            return numErrors;
         }
 
-        public void setNumerrors(int numerrors) {
-            this.numerrors = numerrors;
+        public void setNumErrors(int numErrors) {
+            this.numErrors = numErrors;
         }
 
         public List<DonationErrorEntry> getErrors() {
@@ -666,8 +666,8 @@ public class DataFormats {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class DonationErrorEntry {
         private String source = "";
-        private String donationstring = "";
-        private String errortype = "";
+        private String donationString = "";
+        private String errorType = "";
 
         public String getSource() {
             return source;
@@ -677,20 +677,20 @@ public class DataFormats {
             this.source = source;
         }
 
-        public String getDonationstring() {
-            return donationstring;
+        public String getDonationString() {
+            return donationString;
         }
 
-        public void setDonationstring(String donationstring) {
-            this.donationstring = donationstring;
+        public void setDonationString(String donationString) {
+            this.donationString = donationString;
         }
 
-        public String getErrortype() {
-            return errortype;
+        public String getErrorType() {
+            return errorType;
         }
 
-        public void setErrortype(String errortype) {
-            this.errortype = errortype;
+        public void setErrorType(String errorType) {
+            this.errorType = errorType;
         }
     }
 

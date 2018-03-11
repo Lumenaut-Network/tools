@@ -226,7 +226,7 @@ public class TransactionsController {
             }
 
             // Check the transaction plan has a positive amount to pay
-            if (transactionPlan.getTotalpayouts() <= 0) {
+            if (transactionPlan.getTotalPayouts() <= 0) {
                 showError("This transaction plan has nothing to pay!");
 
                 return;
@@ -296,14 +296,14 @@ public class TransactionsController {
             donationsData = getDonationsData();
 
             // Notify the user
-            if (donationsData != null && (donationsData.getNumdonations() != 0 || donationsData.getNumerrors() != 0)) {
+            if (donationsData != null && (donationsData.getNumDonations() != 0 || donationsData.getNumErrors() != 0)) {
                 // Replace the contents of the donations panel
                 try {
                     // Write the data to the donations tab
                     donationsTextArea.setText(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(donationsData));
 
                     // Notify the user of results
-                    showInfo("Found and imported donations' data. You can inspect the results in the \"Donations\" tab!\n\nNumber of valid donations found: " + donationsData.getNumdonations() + "\nInvalid donations format found: " + donationsData.getNumerrors());
+                    showInfo("Found and imported donations' data. You can inspect the results in the \"Donations\" tab!\n\nNumber of valid donations found: " + donationsData.getNumDonations() + "\nInvalid donations format found: " + donationsData.getNumErrors());
                 } catch (Exception e) {
                     showError("Error occurred while converting donations data to its JsonFormat: " + e.getMessage());
                 }
@@ -330,9 +330,9 @@ public class TransactionsController {
         plannedTransactionsLabel.setText(String.valueOf(transactionPlan.getEntries().size()));
 
         // Update total amount to pay
-        totalToBePaidLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalpayouts()) + " XLM");
-        totalFeesPaidLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalfees()) + " XLM");
-        totalPaidLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalpayment()) + " XLM");
+        totalToBePaidLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalPayouts()) + " XLM");
+        totalFeesPaidLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalFees()) + " XLM");
+        totalPaidLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalPayment()) + " XLM");
         plannedDonationsAmountLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalDonationsPayment()) + " XLM");
         totalPoolDonationsLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalPoolDonations()) + " XLM");
 
@@ -412,8 +412,8 @@ public class TransactionsController {
                                             // Invalid destination
                                             final DonationErrorEntry donationErrorEntry = new DonationErrorEntry();
                                             donationErrorEntry.setSource(voterAddress);
-                                            donationErrorEntry.setDonationstring(dataValue);
-                                            donationErrorEntry.setErrortype("Invalid destination address, donating to self");
+                                            donationErrorEntry.setDonationString(dataValue);
+                                            donationErrorEntry.setErrorType("Invalid destination address, donating to self");
 
                                             donationsData.getErrors().add(donationErrorEntry);
 
@@ -446,8 +446,8 @@ public class TransactionsController {
                                                 // Failed to parse percent amount
                                                 final DonationErrorEntry donationErrorEntry = new DonationErrorEntry();
                                                 donationErrorEntry.setSource(voterAddress);
-                                                donationErrorEntry.setDonationstring(dataValue);
-                                                donationErrorEntry.setErrortype("Invalid percentage specified");
+                                                donationErrorEntry.setDonationString(dataValue);
+                                                donationErrorEntry.setErrorType("Invalid percentage specified");
 
                                                 donationsData.getErrors().add(donationErrorEntry);
                                             }
@@ -455,8 +455,8 @@ public class TransactionsController {
                                             // Invalid destination
                                             final DonationErrorEntry donationErrorEntry = new DonationErrorEntry();
                                             donationErrorEntry.setSource(voterAddress);
-                                            donationErrorEntry.setDonationstring(dataValue);
-                                            donationErrorEntry.setErrortype("Invalid destination address");
+                                            donationErrorEntry.setDonationString(dataValue);
+                                            donationErrorEntry.setErrorType("Invalid destination address");
 
                                             donationsData.getErrors().add(donationErrorEntry);
                                         }
@@ -464,8 +464,8 @@ public class TransactionsController {
                                         // Invalid format
                                         final DonationErrorEntry donationErrorEntry = new DonationErrorEntry();
                                         donationErrorEntry.setSource(voterAddress);
-                                        donationErrorEntry.setDonationstring(dataValue);
-                                        donationErrorEntry.setErrortype("Invalid donation string format");
+                                        donationErrorEntry.setDonationString(dataValue);
+                                        donationErrorEntry.setErrorType("Invalid donation string format");
 
                                         donationsData.getErrors().add(donationErrorEntry);
                                     }
@@ -474,8 +474,8 @@ public class TransactionsController {
                         }
 
                         // Update donations data instance counters
-                        donationsData.setNumdonations(donationsData.getDonations().size());
-                        donationsData.setNumerrors(donationsData.getErrors().size());
+                        donationsData.setNumDonations(donationsData.getDonations().size());
+                        donationsData.setNumErrors(donationsData.getErrors().size());
                     }
                 }
 
@@ -668,7 +668,7 @@ public class TransactionsController {
             newPlan.setUuid(uuid);
 
             // Set total votes balance
-            newPlan.setTotalvotes(totalVotesAmount);
+            newPlan.setTotalVotes(totalVotesAmount);
 
             // Get donations entries
             final List<DonationDataEntry> donationDataEntries = donationsData.getDonations();
@@ -695,7 +695,7 @@ public class TransactionsController {
                         if (voterAccount.equals(reroutingDataEntry.getAccount())) {
                             // Reroute
                             voterPaymentEntry.setDestination(reroutingDataEntry.getReroute());
-                            voterPaymentEntry.setReroutedfrom(voterAccount);
+                            voterPaymentEntry.setReroutedFrom(voterAccount);
 
                             // Update rerouted counter
                             numRerouted.getAndIncrement();
@@ -706,7 +706,7 @@ public class TransactionsController {
                 // If this account (or its rerouted address) is in the exclusion list skip appending it
                 if (exclusionData != null) {
                     for (ExclusionEntry exclusionEntry : exclusionData.getEntries()) {
-                        if (exclusionEntry.getDestination().equals(voterPaymentEntry.getReroutedfrom())) {
+                        if (exclusionEntry.getDestination().equals(voterPaymentEntry.getReroutedFrom())) {
                             numExcluded.getAndIncrement();
 
                             // Return immediately without appending the entry
@@ -803,13 +803,13 @@ public class TransactionsController {
             // Update the rerouting and exclusion
             newPlan.setRerouted(numRerouted.get());
             newPlan.setExcluded(numExcluded.get());
-            newPlan.setTotalpayouts(totalVoterPayout.get());
-            newPlan.setTotalfees(totalFees.get());
+            newPlan.setTotalPayouts(totalVoterPayout.get());
+            newPlan.setTotalFees(totalFees.get());
             newPlan.setDonations(numDonations.get());
             newPlan.setDonationBeneficiaries(numDonationBeneficiaries.get());
             newPlan.setTotalDonationsPayment(totalDonationsPayout.get());
             newPlan.setTotalPoolDonations(totalPoolDonations.get());
-            newPlan.setTotalpayment(totalTransactionsPayment.get());
+            newPlan.setTotalPayment(totalTransactionsPayment.get());
 
             // Update the transaction plan
             transactionPlan = newPlan;
