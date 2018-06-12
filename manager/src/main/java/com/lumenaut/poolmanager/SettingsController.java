@@ -99,6 +99,30 @@ public class SettingsController {
     @FXML
     private TextField chan6KeyField;
 
+    @FXML
+    private TextField chan7AddressField;
+
+    @FXML
+    private TextField chan7KeyField;
+
+    @FXML
+    private TextField chan8AddressField;
+
+    @FXML
+    private TextField chan8KeyField;
+
+    @FXML
+    private TextField chan9AddressField;
+
+    @FXML
+    private TextField chan9KeyField;
+
+    @FXML
+    private TextField chan10AddressField;
+
+    @FXML
+    private TextField chan10KeyField;
+
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -186,6 +210,14 @@ public class SettingsController {
         chan5KeyField.setText(SETTING_PARALLEL_CHANNEL_KEY_5);
         chan6AddressField.setText(SETTING_PARALLEL_CHANNEL_ADDRESS_6);
         chan6KeyField.setText(SETTING_PARALLEL_CHANNEL_KEY_6);
+        chan7AddressField.setText(SETTING_PARALLEL_CHANNEL_ADDRESS_7);
+        chan7KeyField.setText(SETTING_PARALLEL_CHANNEL_KEY_7);
+        chan8AddressField.setText(SETTING_PARALLEL_CHANNEL_ADDRESS_8);
+        chan8KeyField.setText(SETTING_PARALLEL_CHANNEL_KEY_8);
+        chan9AddressField.setText(SETTING_PARALLEL_CHANNEL_ADDRESS_9);
+        chan9KeyField.setText(SETTING_PARALLEL_CHANNEL_KEY_9);
+        chan10AddressField.setText(SETTING_PARALLEL_CHANNEL_ADDRESS_10);
+        chan10KeyField.setText(SETTING_PARALLEL_CHANNEL_KEY_10);
 
         // Handle save & closing
         cancelBtn.setOnAction(event -> cancelBtn.getScene().getWindow().hide());
@@ -265,6 +297,14 @@ public class SettingsController {
         SETTING_PARALLEL_CHANNEL_KEY_5 = chan5KeyField.getText();
         SETTING_PARALLEL_CHANNEL_ADDRESS_6 = chan6AddressField.getText();
         SETTING_PARALLEL_CHANNEL_KEY_6 = chan6KeyField.getText();
+        SETTING_PARALLEL_CHANNEL_ADDRESS_7 = chan7AddressField.getText();
+        SETTING_PARALLEL_CHANNEL_KEY_7 = chan7KeyField.getText();
+        SETTING_PARALLEL_CHANNEL_ADDRESS_8 = chan8AddressField.getText();
+        SETTING_PARALLEL_CHANNEL_KEY_8 = chan8KeyField.getText();
+        SETTING_PARALLEL_CHANNEL_ADDRESS_9 = chan9AddressField.getText();
+        SETTING_PARALLEL_CHANNEL_KEY_9 = chan9KeyField.getText();
+        SETTING_PARALLEL_CHANNEL_ADDRESS_10 = chan10AddressField.getText();
+        SETTING_PARALLEL_CHANNEL_KEY_10 = chan10KeyField.getText();
 
         // Trigger settings save
         try {
