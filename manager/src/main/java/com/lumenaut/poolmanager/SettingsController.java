@@ -60,6 +60,45 @@ public class SettingsController {
     @FXML
     private TextField horizonDbPass;
 
+    @FXML
+    private CheckBox checkboxParallelChannels;
+
+    @FXML
+    private TextField chan1AddressField;
+
+    @FXML
+    private TextField chan1KeyField;
+
+    @FXML
+    private TextField chan2AddressField;
+
+    @FXML
+    private TextField chan2KeyField;
+
+    @FXML
+    private TextField chan3AddressField;
+
+    @FXML
+    private TextField chan3KeyField;
+
+    @FXML
+    private TextField chan4AddressField;
+
+    @FXML
+    private TextField chan4KeyField;
+
+    @FXML
+    private TextField chan5AddressField;
+
+    @FXML
+    private TextField chan5KeyField;
+
+    @FXML
+    private TextField chan6AddressField;
+
+    @FXML
+    private TextField chan6KeyField;
+
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -126,10 +165,27 @@ public class SettingsController {
 
         defaultFedNetworkInflationUrlTextField.setText(SETTING_FEDERATION_NETWORK_INFLATION_URL);
         defaultFeeTextField.setText(String.valueOf(SETTING_FEE));
+
+        // Horizon DB
         horizonDbAddress.setText(SETTING_HORIZON_DB_ADDRESS);
         horizonDbPort.setText(SETTING_HORIZON_DB_PORT);
         horizonDbUser.setText(SETTING_HORIZON_DB_USER);
         horizonDbPass.setText(SETTING_HORIZON_DB_PASS);
+
+        // Channels
+        checkboxParallelChannels.setSelected(SETTING_PARALLEL_CHANNELS_ENABLED);
+        chan1AddressField.setText(SETTING_PARALLEL_CHANNEL_ADDRESS_1);
+        chan1KeyField.setText(SETTING_PARALLEL_CHANNEL_KEY_1);
+        chan2AddressField.setText(SETTING_PARALLEL_CHANNEL_ADDRESS_2);
+        chan2KeyField.setText(SETTING_PARALLEL_CHANNEL_KEY_2);
+        chan3AddressField.setText(SETTING_PARALLEL_CHANNEL_ADDRESS_3);
+        chan3KeyField.setText(SETTING_PARALLEL_CHANNEL_KEY_3);
+        chan4AddressField.setText(SETTING_PARALLEL_CHANNEL_ADDRESS_4);
+        chan4KeyField.setText(SETTING_PARALLEL_CHANNEL_KEY_4);
+        chan5AddressField.setText(SETTING_PARALLEL_CHANNEL_ADDRESS_5);
+        chan5KeyField.setText(SETTING_PARALLEL_CHANNEL_KEY_5);
+        chan6AddressField.setText(SETTING_PARALLEL_CHANNEL_ADDRESS_6);
+        chan6KeyField.setText(SETTING_PARALLEL_CHANNEL_KEY_6);
 
         // Handle save & closing
         cancelBtn.setOnAction(event -> cancelBtn.getScene().getWindow().hide());
@@ -155,6 +211,11 @@ public class SettingsController {
                         break;
                 }
             }
+        });
+
+        // Handle checkbox toggle for the parallel channels
+        checkboxParallelChannels.setOnAction(event -> {
+            SETTING_PARALLEL_CHANNELS_ENABLED = checkboxParallelChannels.isSelected();
         });
     }
 
@@ -184,11 +245,26 @@ public class SettingsController {
             SETTING_FEE = currentFee;
         }
 
-
+        // Horizon DB
         SETTING_HORIZON_DB_ADDRESS = horizonDbAddress.getText();
         SETTING_HORIZON_DB_PORT = horizonDbPort.getText();
         SETTING_HORIZON_DB_USER = horizonDbUser.getText();
         SETTING_HORIZON_DB_PASS = horizonDbPass.getText();
+
+        // Channels
+        SETTING_PARALLEL_CHANNELS_ENABLED = checkboxParallelChannels.isSelected();
+        SETTING_PARALLEL_CHANNEL_ADDRESS_1 = chan1AddressField.getText();
+        SETTING_PARALLEL_CHANNEL_KEY_1 = chan1KeyField.getText();
+        SETTING_PARALLEL_CHANNEL_ADDRESS_2 = chan2AddressField.getText();
+        SETTING_PARALLEL_CHANNEL_KEY_2 = chan2KeyField.getText();
+        SETTING_PARALLEL_CHANNEL_ADDRESS_3 = chan3AddressField.getText();
+        SETTING_PARALLEL_CHANNEL_KEY_3 = chan3KeyField.getText();
+        SETTING_PARALLEL_CHANNEL_ADDRESS_4 = chan4AddressField.getText();
+        SETTING_PARALLEL_CHANNEL_KEY_4 = chan4KeyField.getText();
+        SETTING_PARALLEL_CHANNEL_ADDRESS_5 = chan5AddressField.getText();
+        SETTING_PARALLEL_CHANNEL_KEY_5 = chan5KeyField.getText();
+        SETTING_PARALLEL_CHANNEL_ADDRESS_6 = chan6AddressField.getText();
+        SETTING_PARALLEL_CHANNEL_KEY_6 = chan6KeyField.getText();
 
         // Trigger settings save
         try {

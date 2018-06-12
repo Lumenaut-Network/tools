@@ -35,6 +35,21 @@ public class Settings {
     public static int SETTING_OPERATIONS_PER_TRANSACTION_BATCH = 100;
     public static String SETTING_DONATION_DATANAME_PREFIX = "";
 
+    // Channels
+    public static boolean SETTING_PARALLEL_CHANNELS_ENABLED = false;
+    public static String SETTING_PARALLEL_CHANNEL_ADDRESS_1 = "";
+    public static String SETTING_PARALLEL_CHANNEL_KEY_1 = "";
+    public static String SETTING_PARALLEL_CHANNEL_ADDRESS_2 = "";
+    public static String SETTING_PARALLEL_CHANNEL_KEY_2 = "";
+    public static String SETTING_PARALLEL_CHANNEL_ADDRESS_3 = "";
+    public static String SETTING_PARALLEL_CHANNEL_KEY_3 = "";
+    public static String SETTING_PARALLEL_CHANNEL_ADDRESS_4 = "";
+    public static String SETTING_PARALLEL_CHANNEL_KEY_4 = "";
+    public static String SETTING_PARALLEL_CHANNEL_ADDRESS_5 = "";
+    public static String SETTING_PARALLEL_CHANNEL_KEY_5 = "";
+    public static String SETTING_PARALLEL_CHANNEL_ADDRESS_6 = "";
+    public static String SETTING_PARALLEL_CHANNEL_KEY_6 = "";
+
     // Non persistent settings
     public static RoundingMode ROUNDING_MODE = RoundingMode.HALF_DOWN;
 
@@ -85,19 +100,35 @@ public class Settings {
             PROPERTIES.load(new FileInputStream("data/settings.ini"));
 
             // Bring the settings in the runtime
-            SETTING_OPERATIONS_NETWORK = PROPERTIES.getProperty("operationsNetwork");
+            SETTING_OPERATIONS_NETWORK = PROPERTIES.getProperty("operationsNetwork", "TEST");
             SETTING_INFLATION_POOL_ADDRESS = XLMUtils.isPublicKeyValidFormat(PROPERTIES.getProperty("inflationPoolAddress")) ? PROPERTIES.getProperty("inflationPoolAddress") : "";
-            SETTING_FEDERATION_NETWORK_INFLATION_URL = PROPERTIES.getProperty("fedNetworkInflationUrl");
-            SETTING_MEMO = PROPERTIES.getProperty("memoText");
+            SETTING_FEDERATION_NETWORK_INFLATION_URL = PROPERTIES.getProperty("fedNetworkInflationUrl", "https://fed.network/inflation/");
+            SETTING_MEMO = PROPERTIES.getProperty("memoText", "Thanks from lumenaut.net");
             SETTING_FEE = Long.parseLong(PROPERTIES.getProperty("fee")) < 100 ? 100 : Long.parseLong(PROPERTIES.getProperty("fee"));
-            SETTING_DONATION_DATANAME_PREFIX = PROPERTIES.getProperty("donationsPrefix");
+            SETTING_DONATION_DATANAME_PREFIX = PROPERTIES.getProperty("donationsPrefix", "lumenaut.net donation");
 
-            SETTING_HORIZON_DB_ADDRESS = PROPERTIES.getProperty("horizonDbAddress");
-            SETTING_HORIZON_DB_PORT = PROPERTIES.getProperty("horizonDbPort");
-            SETTING_HORIZON_DB_USER = PROPERTIES.getProperty("horizonDbUser");
-            SETTING_HORIZON_DB_PASS = PROPERTIES.getProperty("horizonDbPass");
-        } catch (Exception ignore) {
-            // Init defaults
+            // Horizon database
+            SETTING_HORIZON_DB_ADDRESS = PROPERTIES.getProperty("horizonDbAddress", "");
+            SETTING_HORIZON_DB_PORT = PROPERTIES.getProperty("horizonDbPort", "");
+            SETTING_HORIZON_DB_USER = PROPERTIES.getProperty("horizonDbUser", "");
+            SETTING_HORIZON_DB_PASS = PROPERTIES.getProperty("horizonDbPass", "");
+
+            // Channels
+            SETTING_PARALLEL_CHANNELS_ENABLED = Boolean.parseBoolean(PROPERTIES.getProperty("useParallelChannels", "false"));
+            SETTING_PARALLEL_CHANNEL_ADDRESS_1 = PROPERTIES.getProperty("channelAddress1", "");
+            SETTING_PARALLEL_CHANNEL_KEY_1 = PROPERTIES.getProperty("channelKey1", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_2 = PROPERTIES.getProperty("channelAddress2", "");
+            SETTING_PARALLEL_CHANNEL_KEY_2 = PROPERTIES.getProperty("channelKey2", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_3 = PROPERTIES.getProperty("channelAddress3", "");
+            SETTING_PARALLEL_CHANNEL_KEY_3 = PROPERTIES.getProperty("channelKey3", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_4 = PROPERTIES.getProperty("channelAddress4", "");
+            SETTING_PARALLEL_CHANNEL_KEY_4 = PROPERTIES.getProperty("channelKey4", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_5 = PROPERTIES.getProperty("channelAddress5", "");
+            SETTING_PARALLEL_CHANNEL_KEY_5 = PROPERTIES.getProperty("channelKey5", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_6 = PROPERTIES.getProperty("channelAddress6", "");
+            SETTING_PARALLEL_CHANNEL_KEY_6 = PROPERTIES.getProperty("channelKey6", "");
+        } catch (Exception e) {
+            // Init defaults (ONLY EXECUTED WHEN the "settings ini file doesn't exist)
             SETTING_OPERATIONS_NETWORK = PROPERTIES.getProperty("operationsNetwork", "TEST");
             SETTING_INFLATION_POOL_ADDRESS = PROPERTIES.getProperty("inflationPoolAddress", "");
             SETTING_FEDERATION_NETWORK_INFLATION_URL = PROPERTIES.getProperty("fedNetworkInflationUrl", "https://fed.network/inflation/");
@@ -107,7 +138,7 @@ public class Settings {
             // Try to parse the fee, or just default to 100
             try {
                 SETTING_FEE = Long.parseLong(PROPERTIES.getProperty("fee", "100"));
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException ne) {
                 SETTING_FEE = 100;
             }
 
@@ -115,6 +146,20 @@ public class Settings {
             SETTING_HORIZON_DB_PORT = PROPERTIES.getProperty("horizonDbPort", "");
             SETTING_HORIZON_DB_USER = PROPERTIES.getProperty("horizonDbUser", "");
             SETTING_HORIZON_DB_PASS = PROPERTIES.getProperty("horizonDbPass", "");
+
+            SETTING_PARALLEL_CHANNELS_ENABLED = Boolean.parseBoolean(PROPERTIES.getProperty("useParallelChannels", "false"));
+            SETTING_PARALLEL_CHANNEL_ADDRESS_1 = PROPERTIES.getProperty("channelAddress1", "");
+            SETTING_PARALLEL_CHANNEL_KEY_1 = PROPERTIES.getProperty("channelKey1", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_2 = PROPERTIES.getProperty("channelAddress2", "");
+            SETTING_PARALLEL_CHANNEL_KEY_2 = PROPERTIES.getProperty("channelKey2", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_3 = PROPERTIES.getProperty("channelAddress3", "");
+            SETTING_PARALLEL_CHANNEL_KEY_3 = PROPERTIES.getProperty("channelKey3", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_4 = PROPERTIES.getProperty("channelAddress4", "");
+            SETTING_PARALLEL_CHANNEL_KEY_4 = PROPERTIES.getProperty("channelKey4", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_5 = PROPERTIES.getProperty("channelAddress5", "");
+            SETTING_PARALLEL_CHANNEL_KEY_5 = PROPERTIES.getProperty("channelKey5", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_6 = PROPERTIES.getProperty("channelAddress6", "");
+            SETTING_PARALLEL_CHANNEL_KEY_6 = PROPERTIES.getProperty("channelKey6", "");
 
             // Save defaults
             saveSettings();
@@ -135,10 +180,26 @@ public class Settings {
         PROPERTIES.setProperty("fee", SETTING_FEE >= 100 ? String.valueOf(SETTING_FEE) : "100");
         PROPERTIES.setProperty("donationsPrefix", SETTING_DONATION_DATANAME_PREFIX);
 
+        // Horizon DB
         PROPERTIES.setProperty("horizonDbAddress", SETTING_HORIZON_DB_ADDRESS);
         PROPERTIES.setProperty("horizonDbPort", SETTING_HORIZON_DB_PORT);
         PROPERTIES.setProperty("horizonDbUser", SETTING_HORIZON_DB_USER);
         PROPERTIES.setProperty("horizonDbPass", SETTING_HORIZON_DB_PASS);
+
+        // Channels
+        PROPERTIES.setProperty("useParallelChannels", String.valueOf(SETTING_PARALLEL_CHANNELS_ENABLED));
+        PROPERTIES.setProperty("channelAddress1", SETTING_PARALLEL_CHANNEL_ADDRESS_1);
+        PROPERTIES.setProperty("channelKey1", SETTING_PARALLEL_CHANNEL_KEY_1);
+        PROPERTIES.setProperty("channelAddress2", SETTING_PARALLEL_CHANNEL_ADDRESS_2);
+        PROPERTIES.setProperty("channelKey2", SETTING_PARALLEL_CHANNEL_KEY_2);
+        PROPERTIES.setProperty("channelAddress3", SETTING_PARALLEL_CHANNEL_ADDRESS_3);
+        PROPERTIES.setProperty("channelKey3", SETTING_PARALLEL_CHANNEL_KEY_3);
+        PROPERTIES.setProperty("channelAddress4", SETTING_PARALLEL_CHANNEL_ADDRESS_4);
+        PROPERTIES.setProperty("channelKey4", SETTING_PARALLEL_CHANNEL_KEY_4);
+        PROPERTIES.setProperty("channelAddress5", SETTING_PARALLEL_CHANNEL_ADDRESS_5);
+        PROPERTIES.setProperty("channelKey5", SETTING_PARALLEL_CHANNEL_KEY_5);
+        PROPERTIES.setProperty("channelAddress6", SETTING_PARALLEL_CHANNEL_ADDRESS_6);
+        PROPERTIES.setProperty("channelKey6", SETTING_PARALLEL_CHANNEL_KEY_6);
 
         // Store
         PROPERTIES.store(new FileOutputStream("data/settings.ini"), "Settings");

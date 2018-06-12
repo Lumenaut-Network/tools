@@ -590,7 +590,7 @@ public class MainController {
             settingsStage.initModality(Modality.WINDOW_MODAL);
             settingsStage.initOwner(primaryStage.getScene().getWindow());
             settingsStage.setWidth(700);
-            settingsStage.setHeight(500);
+            settingsStage.setHeight(600);
             settingsStage.setResizable(false);
             settingsStage.show();
         } catch (IOException e) {

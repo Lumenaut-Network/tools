@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
@@ -8,7 +9,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane maxHeight="483.0" maxWidth="700.0" minHeight="350.0" minWidth="700.0" prefHeight="483.0" prefWidth="700.0"
+<AnchorPane maxHeight="600.0" maxWidth="700.0" minHeight="350.0" minWidth="700.0" prefHeight="639.0" prefWidth="600.0"
             xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.lumenaut.poolmanager.SettingsController">
     <children>
@@ -16,47 +17,94 @@
                AnchorPane.topAnchor="24.0"/>
         <ChoiceBox fx:id="activeNetworkChoiceBox" layoutX="189.0" layoutY="20.0" prefHeight="25.0" prefWidth="496.0"
                    AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="20.0"/>
-        <Label layoutX="11.0" layoutY="59.0" text="Default Pool Address (optional)" AnchorPane.leftAnchor="11.0"
-               AnchorPane.topAnchor="59.0"/>
-        <TextField fx:id="defaultPoolAddressTextField" layoutX="189.0" layoutY="55.0" prefHeight="25.0"
+        <Label layoutX="11.0" layoutY="51.0" text="Default Pool Address (optional)" AnchorPane.leftAnchor="11.0"
+               AnchorPane.topAnchor="51.0"/>
+        <TextField fx:id="defaultPoolAddressTextField" layoutX="210.0" layoutY="47.0" prefHeight="25.0"
                    prefWidth="496.0" AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0"
-                   AnchorPane.topAnchor="55.0"/>
-        <TextField fx:id="defaultFedNetworkInflationUrlTextField" layoutX="189.0" layoutY="90.0" prefHeight="25.0"
+                   AnchorPane.topAnchor="47.0"/>
+        <TextField fx:id="defaultFedNetworkInflationUrlTextField" layoutX="210.0" layoutY="74.0" prefHeight="25.0"
                    prefWidth="496.0" AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0"
-                   AnchorPane.topAnchor="90.0"/>
-        <Label layoutX="46.0" layoutY="94.0" text="Federation Network URL" AnchorPane.leftAnchor="46.0"
-               AnchorPane.topAnchor="94.0"/>
+                   AnchorPane.topAnchor="74.0"/>
+        <Label layoutX="46.0" layoutY="78.0" text="Federation Network URL" AnchorPane.leftAnchor="46.0"
+               AnchorPane.topAnchor="78.0"/>
         <Button fx:id="saveBtn" layoutX="534.0" layoutY="361.0" mnemonicParsing="false" prefHeight="25.0"
                 prefWidth="151.0" text="Save" AnchorPane.bottomAnchor="14.0" AnchorPane.rightAnchor="15.0"/>
         <Button fx:id="cancelBtn" layoutX="460.0" layoutY="361.0" mnemonicParsing="false" prefHeight="25.0"
                 prefWidth="64.0" text="Cancel" AnchorPane.bottomAnchor="14.0" AnchorPane.rightAnchor="176.0"/>
-        <Label layoutX="83.0" layoutY="254.0" text="Horizon DB Host" AnchorPane.leftAnchor="83.0"
-               AnchorPane.topAnchor="254.0"/>
-        <TextField fx:id="horizonDbAddress" layoutX="210.0" layoutY="250.0" prefHeight="25.0" prefWidth="342.0"
-                   promptText="localhost" AnchorPane.leftAnchor="210.0" AnchorPane.topAnchor="250.0"/>
-        <TextField fx:id="horizonDbPort" layoutX="604.0" layoutY="250.0" prefHeight="25.0" prefWidth="82.0"
+        <Label layoutX="83.0" layoutY="198.0" text="Horizon DB Host" AnchorPane.leftAnchor="83.0"
+               AnchorPane.topAnchor="198.0"/>
+        <TextField fx:id="horizonDbAddress" layoutX="210.0" layoutY="194.0" prefHeight="25.0" prefWidth="342.0"
+                   promptText="localhost" AnchorPane.leftAnchor="210.0" AnchorPane.topAnchor="194.0"/>
+        <TextField fx:id="horizonDbPort" layoutX="604.0" layoutY="194.0" prefHeight="25.0" prefWidth="82.0"
                    promptText="5432" AnchorPane.leftAnchor="604.0" AnchorPane.rightAnchor="14.0"
-                   AnchorPane.topAnchor="250.0"/>
-        <Label layoutX="561.0" layoutY="254.0" text="Port" AnchorPane.leftAnchor="561.0" AnchorPane.topAnchor="254.0"/>
-        <Label layoutX="118.0" layoutY="287.0" text="Username" AnchorPane.leftAnchor="118.0"
-               AnchorPane.topAnchor="287.0"/>
-        <Label layoutX="448.0" layoutY="287.0" text="Pass" AnchorPane.leftAnchor="448.0" AnchorPane.topAnchor="287.0"/>
-        <TextField fx:id="horizonDbUser" layoutX="210.0" layoutY="283.0" prefHeight="25.0" prefWidth="225.0"
-                   AnchorPane.leftAnchor="210.0" AnchorPane.topAnchor="283.0"/>
-        <Separator layoutY="234.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"/>
-        <Label layoutX="60.0" layoutY="129.0" text="Memo Text (28 chars)"/>
-        <TextField fx:id="defaultMemoTextField" layoutX="189.0" layoutY="125.0" prefHeight="25.0" prefWidth="496.0"
-                   AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="125.0"/>
-        <Label layoutX="60.0" layoutY="164.0" text="Fee (min 100 stroops)" AnchorPane.leftAnchor="60.0"
-               AnchorPane.topAnchor="164.0"/>
-        <TextField fx:id="defaultFeeTextField" layoutX="190.0" layoutY="160.0" prefHeight="25.0" prefWidth="496.0"
-                   AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="160.0"/>
-        <PasswordField fx:id="horizonDbPass" layoutX="486.0" layoutY="283.0" prefHeight="25.0" prefWidth="199.0"
+                   AnchorPane.topAnchor="194.0"/>
+        <Label layoutX="561.0" layoutY="198.0" text="Port" AnchorPane.leftAnchor="561.0" AnchorPane.topAnchor="198.0"/>
+        <Label layoutX="118.0" layoutY="231.0" text="Username" AnchorPane.leftAnchor="118.0"
+               AnchorPane.topAnchor="231.0"/>
+        <Label layoutX="448.0" layoutY="231.0" text="Pass" AnchorPane.leftAnchor="448.0" AnchorPane.topAnchor="231.0"/>
+        <TextField fx:id="horizonDbUser" layoutX="210.0" layoutY="227.0" prefHeight="25.0" prefWidth="225.0"
+                   AnchorPane.leftAnchor="210.0" AnchorPane.topAnchor="227.0"/>
+        <Separator layoutY="185.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"/>
+        <Label layoutX="60.0" layoutY="105.0" text="Memo Text (28 chars)"/>
+        <TextField fx:id="defaultMemoTextField" layoutX="210.0" layoutY="101.0" prefHeight="25.0" prefWidth="496.0"
+                   AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="101.0"/>
+        <Label layoutX="60.0" layoutY="132.0" text="Fee (min 100 stroops)" AnchorPane.leftAnchor="60.0"
+               AnchorPane.topAnchor="132.0"/>
+        <TextField fx:id="defaultFeeTextField" layoutX="210.0" layoutY="128.0" prefHeight="25.0" prefWidth="496.0"
+                   AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="128.0"/>
+        <PasswordField fx:id="horizonDbPass" layoutX="486.0" layoutY="227.0" prefHeight="25.0" prefWidth="199.0"
                        AnchorPane.leftAnchor="486.0" AnchorPane.rightAnchor="15.0"/>
-        <TextField fx:id="defaultDonationsStringTextField" layoutX="210.0" layoutY="195.0" prefHeight="25.0"
+        <TextField fx:id="defaultDonationsStringTextField" layoutX="210.0" layoutY="156.0" prefHeight="25.0"
                    prefWidth="475.0" AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0"
-                   AnchorPane.topAnchor="195.0"/>
-        <Label layoutX="68.0" layoutY="199.0" text="Donations identifier" AnchorPane.leftAnchor="68.0"
-               AnchorPane.topAnchor="199.0"/>
+                   AnchorPane.topAnchor="156.0"/>
+        <Label layoutX="68.0" layoutY="160.0" text="Donations identifier" AnchorPane.leftAnchor="68.0"
+               AnchorPane.topAnchor="160.0"/>
+        <Separator layoutY="261.0" prefHeight="3.0" prefWidth="659.0" AnchorPane.leftAnchor="0.0"
+                   AnchorPane.rightAnchor="0.0"/>
+        <Label layoutX="62.0" layoutY="274.0" text="Use Parallel Channels"/>
+        <CheckBox fx:id="checkboxParallelChannels" layoutX="210.0" layoutY="274.0" mnemonicParsing="false"
+                  text="Enabled"/>
+        <Label layoutX="123.0" layoutY="306.0" text="Channel 1" AnchorPane.leftAnchor="123.0"/>
+        <TextField fx:id="chan1AddressField" layoutX="267.0" layoutY="302.0" AnchorPane.leftAnchor="267.0"
+                   AnchorPane.rightAnchor="284.0"/>
+        <TextField fx:id="chan1KeyField" layoutX="466.0" layoutY="302.0" prefHeight="25.0" prefWidth="219.0"
+                   AnchorPane.rightAnchor="15.0"/>
+        <Label layoutX="213.0" layoutY="306.0" text="Address" AnchorPane.leftAnchor="213.0"/>
+        <Label layoutX="438.0" layoutY="306.0" text="Key" AnchorPane.rightAnchor="242.0"/>
+        <Label layoutX="123.0" layoutY="333.0" text="Channel 2" AnchorPane.leftAnchor="123.0"/>
+        <TextField fx:id="chan2AddressField" layoutX="267.0" layoutY="329.0" AnchorPane.leftAnchor="267.0"
+                   AnchorPane.rightAnchor="284.0"/>
+        <TextField fx:id="chan2KeyField" layoutX="466.0" layoutY="329.0" prefHeight="25.0" prefWidth="219.0"
+                   AnchorPane.rightAnchor="15.0"/>
+        <Label layoutX="213.0" layoutY="333.0" text="Address" AnchorPane.leftAnchor="213.0"/>
+        <Label layoutX="438.0" layoutY="333.0" text="Key" AnchorPane.rightAnchor="242.0"/>
+        <Label layoutX="123.0" layoutY="360.0" text="Channel 3" AnchorPane.leftAnchor="123.0"/>
+        <TextField fx:id="chan3AddressField" layoutX="267.0" layoutY="356.0" AnchorPane.leftAnchor="267.0"
+                   AnchorPane.rightAnchor="284.0"/>
+        <TextField fx:id="chan3KeyField" layoutX="466.0" layoutY="356.0" prefHeight="25.0" prefWidth="219.0"
+                   AnchorPane.rightAnchor="15.0"/>
+        <Label layoutX="213.0" layoutY="360.0" text="Address" AnchorPane.leftAnchor="213.0"/>
+        <Label layoutX="438.0" layoutY="360.0" text="Key" AnchorPane.rightAnchor="242.0"/>
+        <Label layoutX="123.0" layoutY="387.0" text="Channel 4" AnchorPane.leftAnchor="123.0"/>
+        <TextField fx:id="chan4AddressField" layoutX="267.0" layoutY="383.0" AnchorPane.leftAnchor="267.0"
+                   AnchorPane.rightAnchor="284.0"/>
+        <TextField fx:id="chan4KeyField" layoutX="466.0" layoutY="383.0" prefHeight="25.0" prefWidth="219.0"
+                   AnchorPane.rightAnchor="15.0"/>
+        <Label layoutX="213.0" layoutY="387.0" text="Address" AnchorPane.leftAnchor="213.0"/>
+        <Label layoutX="123.0" layoutY="414.0" text="Channel 5" AnchorPane.leftAnchor="123.0"/>
+        <TextField fx:id="chan5AddressField" layoutX="267.0" layoutY="410.0" AnchorPane.leftAnchor="267.0"
+                   AnchorPane.rightAnchor="284.0"/>
+        <TextField fx:id="chan5KeyField" layoutX="466.0" layoutY="410.0" prefHeight="25.0" prefWidth="219.0"
+                   AnchorPane.rightAnchor="15.0"/>
+        <Label layoutX="213.0" layoutY="414.0" text="Address" AnchorPane.leftAnchor="213.0"/>
+        <Label layoutX="438.0" layoutY="414.0" text="Key" AnchorPane.rightAnchor="242.0"/>
+        <Label layoutX="123.0" layoutY="441.0" text="Channel 6" AnchorPane.leftAnchor="123.0"/>
+        <TextField fx:id="chan6AddressField" layoutX="267.0" layoutY="437.0" AnchorPane.leftAnchor="267.0"
+                   AnchorPane.rightAnchor="284.0"/>
+        <TextField fx:id="chan6KeyField" layoutX="466.0" layoutY="437.0" prefHeight="25.0" prefWidth="219.0"
+                   AnchorPane.rightAnchor="15.0"/>
+        <Label layoutX="213.0" layoutY="441.0" text="Address" AnchorPane.leftAnchor="213.0"/>
+        <Label layoutX="438.0" layoutY="441.0" text="Key" AnchorPane.rightAnchor="242.0"/>
+        <Label layoutX="438.0" layoutY="387.0" text="Key" AnchorPane.rightAnchor="242.0"/>
     </children>
 </AnchorPane>
