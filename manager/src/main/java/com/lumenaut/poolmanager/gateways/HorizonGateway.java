@@ -1,16 +1,17 @@
 package com.lumenaut.poolmanager.gateways;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.lumenaut.poolmanager.DataFormats.VoterCustomDataEntry;
+import com.lumenaut.poolmanager.DataFormats.VoterDataEntry;
+import com.lumenaut.poolmanager.DataFormats.VotersData;
 import org.postgresql.util.Base64;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 
-import static com.lumenaut.poolmanager.DataFormats.OBJECT_MAPPER;
 import static com.lumenaut.poolmanager.Settings.*;
 
 /**
@@ -28,6 +29,7 @@ public class HorizonGateway {
     private Connection conn;
     private boolean connected;
     private final StringBuilder sb = new StringBuilder();
+    private final VotersData votersData;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,7 +56,7 @@ public class HorizonGateway {
      * Constructor
      */
     public HorizonGateway() {
-
+        votersData = new VotersData();
     }
 
     //endregion
@@ -161,7 +163,10 @@ public class HorizonGateway {
      * @return A JsonNode object containing the full structure of the extracted data
      * @throws SQLException
      */
-    public JsonNode getVotersData(final String inflationDestination) throws SQLException {
+    public VotersData getVotersData(final String inflationDestination) throws SQLException {
+        // Reset voters data
+        votersData.reset();
+
         // Get donations data
         final HashMap<String, HashMap<String, String>> donationsData = getVotersCustomData(inflationDestination, "lumenaut.net donation%");
         final long poolBalance = getBalance(inflationDestination);
@@ -178,57 +183,51 @@ public class HorizonGateway {
             return null;
         } else {
             // Extract votes
-            final HashMap<String, Long> votes = new HashMap<>();
             while (inflationRs.next()) {
                 final String publicKey = inflationRs.getString("accountid");
                 final long balance = inflationRs.getLong("balance");
-                votes.put(publicKey, balance);
+                final VoterDataEntry entry = new VoterDataEntry();
+                entry.setAccount(publicKey);
+                entry.setBalance(balance);
+
+                // Append
+                votersData.getEntries().add(entry);
             }
 
-            // Prepare JSON tree
-            final ObjectNode rootNode = OBJECT_MAPPER.createObjectNode();
-            final ArrayNode entriesNode = OBJECT_MAPPER.createArrayNode();
-
             // Append entries
-            votes.forEach((voterAddress, balance) -> {
-                final ObjectNode entryNode = OBJECT_MAPPER.createObjectNode();
-                entryNode.put("balance", balance);
-                entryNode.put("account", voterAddress);
+            votersData.getEntries().forEach((voterDataEntry) -> {
+                if (donationsData.containsKey(voterDataEntry.getAccount())) {
+                    final HashMap<String, String> voterAdditionalData = donationsData.get(voterDataEntry.getAccount());
 
-                if (donationsData.containsKey(voterAddress)) {
-                    final HashMap<String, String> voterData = donationsData.get(voterAddress);
-                    final ArrayNode voterDataEntriesArray = OBJECT_MAPPER.createArrayNode();
+                    // Add all custom data to the entry data node array
+                    final List<VoterCustomDataEntry> voterCustomData = new ArrayList<>();
+                    for (HashMap.Entry<String, String> entry : voterAdditionalData.entrySet()) {
+                        final VoterCustomDataEntry customData = new VoterCustomDataEntry();
+                        customData.setDataname(entry.getKey());
+                        customData.setDatavalue(entry.getValue());
 
-                    // Add all data to the entry data node array
-                    for (HashMap.Entry<String, String> entry : voterData.entrySet()) {
-                        final ObjectNode voterDataEntryNode = OBJECT_MAPPER.createObjectNode();
-                        voterDataEntryNode.put("dataname", entry.getKey());
-                        voterDataEntryNode.put("datavalue", entry.getValue());
-                        voterDataEntriesArray.add(voterDataEntryNode);
+                        // Append to the voter's custom data
+                        voterCustomData.add(customData);
+
+                        // Integrate voter data with all the custom data found
+                        voterDataEntry.setData(voterCustomData);
                     }
-
-                    // Add the entry data array to the entry node
-                    entryNode.set("data", voterDataEntriesArray);
                 } else {
                     // No data
-                    entryNode.set("data", null);
+                    voterDataEntry.setData(null);
                 }
-
-                // Push to the entries array
-                entriesNode.add(entryNode);
             });
 
             // Add root nodes
-            rootNode.put("inflationdest", inflationDestination);
-            rootNode.put("balance", poolBalance);
-            rootNode.set("entries", entriesNode);
+            votersData.setInflationdest(inflationDestination);
+            votersData.setBalance(poolBalance);
 
             // Release resources
             inflationRs.close();
             inflationStm.close();
 
             // Return generated structure
-            return rootNode;
+            return votersData;
         }
     }
 

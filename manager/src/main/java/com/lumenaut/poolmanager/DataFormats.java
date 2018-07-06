@@ -133,6 +133,28 @@ public class DataFormats {
         public void setEntries(List<VoterDataEntry> entries) {
             this.entries = entries;
         }
+
+        /**
+         * Reset this data structure
+         */
+        public void reset() {
+            inflationdest = "";
+            balance = 0L;
+            inflation = 0L;
+            created = "";
+            expires = "";
+            operation = "";
+            txhash = "";
+
+            if (entries == null) {
+                entries = new ArrayList<>();
+            } else {
+                entries.clear();
+            }
+
+            // Issue a request for garbage collection, we're likely freeing a lot of memory here
+            System.gc();
+        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

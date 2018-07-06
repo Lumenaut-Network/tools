@@ -37,9 +37,6 @@ public class SettingsController {
     private TextField defaultPoolAddressTextField;
 
     @FXML
-    private TextField defaultFedNetworkInflationUrlTextField;
-
-    @FXML
     public TextField defaultMemoTextField;
 
     @FXML
@@ -187,7 +184,6 @@ public class SettingsController {
         defaultDonationsStringTextField.setText(SETTING_DONATION_DATANAME_PREFIX);
         defaultDonationsStringTextField.setTooltip(new Tooltip("The prefix of the data name field that will be recognized as a donation"));
 
-        defaultFedNetworkInflationUrlTextField.setText(SETTING_FEDERATION_NETWORK_INFLATION_URL);
         defaultFeeTextField.setText(String.valueOf(SETTING_FEE));
 
         // Horizon DB
@@ -246,9 +242,7 @@ public class SettingsController {
         });
 
         // Handle checkbox toggle for the parallel channels
-        checkboxParallelChannels.setOnAction(event -> {
-            SETTING_PARALLEL_CHANNELS_ENABLED = checkboxParallelChannels.isSelected();
-        });
+        checkboxParallelChannels.setOnAction(event -> SETTING_PARALLEL_CHANNELS_ENABLED = checkboxParallelChannels.isSelected());
     }
 
     /**
@@ -265,7 +259,6 @@ public class SettingsController {
         // Update settings from the textfields
         SETTING_OPERATIONS_NETWORK = activeNetworkChoiceBox.getValue();
         SETTING_INFLATION_POOL_ADDRESS = defaultPoolAddressTextField.getText();
-        SETTING_FEDERATION_NETWORK_INFLATION_URL = defaultFedNetworkInflationUrlTextField.getText();
         SETTING_MEMO = defaultMemoTextField.getText();
         SETTING_DONATION_DATANAME_PREFIX = defaultDonationsStringTextField.getText();
 

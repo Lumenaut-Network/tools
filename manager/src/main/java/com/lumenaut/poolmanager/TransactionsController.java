@@ -1,7 +1,6 @@
 package com.lumenaut.poolmanager;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.lumenaut.poolmanager.DataFormats.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -133,7 +132,7 @@ public class TransactionsController {
 
     // Data bindings from the MainController
     public TextField poolAddressTextField;
-    public JsonNode currentVotersData;
+    public VotersData currentVotersData;
     public BigDecimal currentPoolBalance;
     public AnchorPane primaryStage;
 

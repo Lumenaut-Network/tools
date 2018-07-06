@@ -1,19 +1,14 @@
 package com.lumenaut.poolmanager;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.lumenaut.poolmanager.DataFormats.VoterDataEntry;
 import com.lumenaut.poolmanager.DataFormats.VotersData;
-import com.lumenaut.poolmanager.gateways.FederationGateway;
 import com.lumenaut.poolmanager.gateways.HorizonGateway;
-import com.lumenaut.poolmanager.gateways.StellarGateway;
 import javafx.application.Platform;
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
@@ -21,7 +16,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -62,13 +56,7 @@ public class MainController {
     private MenuItem closeBtn;
 
     @FXML
-    private Button getFederationDataBtn;
-
-    @FXML
     private Button getHorizonDataBtn;
-
-    @FXML
-    private Button refreshPoolBalanceBtn;
 
     @FXML
     private Button buildTransactionBtn;
@@ -115,8 +103,7 @@ public class MainController {
     private HorizonGateway horizonGateway;
 
     // Current voters data
-    private JsonNode currentVotersData;
-    private BigDecimal currentPoolBalance;
+    private VotersData currentVotersData;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -170,14 +157,10 @@ public class MainController {
         }
 
         // Init tooltips
-        getFederationDataBtn.setTooltip(new Tooltip("Retrieve voters data and pool balance using Fed.network.\n !!! No donations data will be available !!!"));
         getHorizonDataBtn.setTooltip(new Tooltip("Retrieve voters data, pool balance and donations data using\n the specified Horizon database connection."));
-        refreshPoolBalanceBtn.setTooltip(new Tooltip("Will update the pool balance using the SDF horizon servers.\n Based on the configured network (LIVE/TEST)"));
 
         // Add all buttons that should react to the application "busy" state
-        statefulButtons.add(getFederationDataBtn);
         statefulButtons.add(getHorizonDataBtn);
-        statefulButtons.add(refreshPoolBalanceBtn);
         statefulButtons.add(buildTransactionBtn);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -192,109 +175,12 @@ public class MainController {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // BUTTON HANDLERS
 
-        getFederationDataBtn.setOnAction(event -> fetchFedNetworkData());
         getHorizonDataBtn.setOnAction(event -> fetchHorizonData());
-        refreshPoolBalanceBtn.setOnAction(event -> fetchPoolBalanceViaStellar());
         buildTransactionBtn.setOnAction(event -> {
-            if (currentVotersData != null && currentPoolBalance != null) {
+            if (currentVotersData != null && currentVotersData.getEntries().size() > 0 && currentVotersData.getBalance() > 0L) {
                 openTransactionBuilderWindow();
             } else {
-                showError("You must first fetch the voters data and the pool balance");
-            }
-        });
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // DATA HANDLERS
-
-        // Prevent direct input in the pool data text area
-        inflationPoolDataTextArea.setOnKeyTyped(Event::consume);
-
-        // Filter key presses to only allow CTRL+A/C/V through
-        inflationPoolDataTextArea.setOnKeyPressed(event -> {
-            if (!event.isControlDown()) {
-                if (event.getCode() == KeyCode.DELETE || event.getCode() == KeyCode.BACK_SPACE) {
-                    // Let Backspace and delete clear the whole textarea
-                    inflationPoolDataTextArea.setText("");
-                } else {
-                    event.consume();
-                }
-            } else if (event.getCode() != KeyCode.C && event.getCode() != KeyCode.V && event.getCode() != KeyCode.A) {
-                event.consume();
-            }
-        });
-
-        // Detect changes in the text area, if the JSON is valid, enable the transaction builder button
-        inflationPoolDataTextArea.textProperty().addListener((observableValue, oldValue, newValue) -> {
-            if (newValue != null && !newValue.isEmpty()) {
-                // The data has changed and it's not empty, process it
-                handleVotersDataChange(newValue);
-            } else {
-                // Reset data labels and disable the transaction builder button
-                buildTransactionBtn.setDisable(true);
-                poolDataBalanceLabel.setText("0 XLM");
-                poolDataVotersLabel.setText("0");
-                poolDataTotalVotesLabel.setText("0");
-            }
-        });
-    }
-
-    /**
-     * Handles changes in the voters data textarea
-     *
-     * @param newValue
-     */
-    private void handleVotersDataChange(final String newValue) {
-        Platform.runLater(() -> {
-            // Start spinning
-            setBusyState(true);
-
-            try {
-                final VotersData votersData = OBJECT_MAPPER.readValue(newValue, VotersData.class);
-                if (votersData != null) {
-                    // Only update the runtime data if we have both balance and inflation destination entries.
-                    // If these two are missing it means that the data has been fetched via fed.network, otherwise
-                    // the data either comes from our horizon network implementation or has been pasted from a snapshot
-                    if (votersData.getInflationdest() != null && !votersData.getInflationdest().isEmpty() && votersData.getBalance() != 0L) {
-                        // The transaction data has parsed, enable transaction button
-                        buildTransactionBtn.setDisable(false);
-
-                        // Update inflation destination
-                        poolAddressTextField.setText(votersData.getInflationdest());
-
-                        // Update the balance label
-                        currentPoolBalance = XLMUtils.stroopToXLM(votersData.getBalance());
-                        poolDataBalanceLabel.setText(XLMUtils.formatBalance(votersData.getBalance()) + " XLM");
-
-                        // Update the current voters data
-                        currentVotersData = OBJECT_MAPPER.valueToTree(votersData);
-
-                        // Update the pool counters (voters number and votes)
-                        refreshPoolCounters();
-                    }
-
-                    // Stop spinning
-                    setBusyState(false);
-                } else {
-                    // Stop spinning
-                    setBusyState(false);
-
-                    // Reset data labels and disable the transaction builder button
-                    buildTransactionBtn.setDisable(true);
-                    poolDataBalanceLabel.setText("0 XLM");
-                    poolDataVotersLabel.setText("0");
-                    poolDataTotalVotesLabel.setText("0");
-                    showError("Error parsing voters data response, unable to map object data");
-                }
-            } catch (IOException e) {
-                // Stop spinning
-                setBusyState(false);
-
-                // Reset data labels and disable the transaction builder button
-                buildTransactionBtn.setDisable(true);
-                poolDataBalanceLabel.setText("0 XLM");
-                poolDataVotersLabel.setText("0");
-                poolDataTotalVotesLabel.setText("0");
-                showError("Error parsing voters data response: " + e.getMessage());
+                showError("You must first fetch the voters data");
             }
         });
     }
@@ -303,21 +189,18 @@ public class MainController {
      * Updates the pool data counters
      */
     private void refreshPoolCounters() {
-        final String inflationPoolData = inflationPoolDataTextArea.getText();
-        if (inflationPoolData != null && !inflationPoolData.isEmpty() && !inflationPoolData.equals("null")) {
-            try {
-                final VotersData inflationData = OBJECT_MAPPER.readValue(inflationPoolData, VotersData.class);
-                poolDataVotersLabel.setText(String.valueOf(inflationData.getEntries().size()));
+        if (currentVotersData != null && currentVotersData.getEntries().size() > 0) {
+            poolDataVotersLabel.setText(String.valueOf(currentVotersData.getEntries().size()));
 
-                Long totalVotes = 0L;
-                for (VoterDataEntry voter : inflationData.getEntries()) {
-                    totalVotes += voter.getBalance();
-                }
-
-                poolDataTotalVotesLabel.setText(XLMUtils.formatBalance(totalVotes) + " XLM");
-            } catch (IOException e) {
-                showError("Cannot compute pool data: " + e.getMessage());
+            Long totalVotes = 0L;
+            for (VoterDataEntry voter : currentVotersData.getEntries()) {
+                totalVotes += voter.getBalance();
             }
+
+            poolDataTotalVotesLabel.setText(XLMUtils.formatBalance(totalVotes) + " XLM");
+            poolDataBalanceLabel.setText(XLMUtils.formatBalanceFullPrecision(currentVotersData.getBalance()));
+        } else {
+            showError("Cannot compute pool data, voters data is empty");
         }
     }
 
@@ -394,7 +277,10 @@ public class MainController {
             // Clear existing data
             inflationPoolDataTextArea.clear();
             poolDataBalanceLabel.setText("0 XLM");
-            currentVotersData = null;
+            if (currentVotersData != null) {
+                currentVotersData.reset();
+            }
+
             resetPoolCounters();
 
             // Start spinning
@@ -404,7 +290,7 @@ public class MainController {
             final CompletableFuture<String> request = CompletableFuture.supplyAsync(() -> {
                 try {
                     // Fetch the voters from the federation network
-                    final JsonNode votersData = horizonGateway.getVotersData(poolAddress);
+                    final VotersData votersData = horizonGateway.getVotersData(poolAddress);
 
                     // Update the current voters data
                     currentVotersData = votersData;
@@ -439,128 +325,10 @@ public class MainController {
                 // Cancel applicationBusy state
                 Platform.runLater(() -> {
                     // Update with the pool data
-                    inflationPoolDataTextArea.setText(inflationPoolData);
+                    // inflationPoolDataTextArea.setText(inflationPoolData);
 
                     setBusyState(false);
                     refreshPoolCounters();
-                });
-            });
-        }
-    }
-
-    /**
-     * Fetch data from the federation network
-     */
-    private void fetchFedNetworkData() {
-        if (SETTING_OPERATIONS_NETWORK.equals("TEST")) {
-            showError("Cannot fetch inflation pool's data from " + SETTING_FEDERATION_NETWORK_INFLATION_URL + " while on the TEST network!");
-            return;
-        }
-
-        // Get the target pool key
-        final String poolAddress = poolAddressTextField.getText();
-
-        // Check if we have an address
-        if (poolAddress == null || poolAddress.isEmpty()) {
-            showError("You must specify the inflation pool's address below");
-        } else {
-            // Clear existing data
-            inflationPoolDataTextArea.clear();
-            poolDataBalanceLabel.setText("0 XLM");
-            currentVotersData = null;
-            resetPoolCounters();
-
-            // Start spinning
-            setBusyState(true);
-
-            // Build and submit async task
-            final CompletableFuture<String> request = CompletableFuture.supplyAsync(() -> {
-                try {
-                    // Fetch the voters from the federation network
-                    final JsonNode voters = FederationGateway.getVoters(poolAddress);
-
-                    // Update the current voters data
-                    currentVotersData = voters;
-
-                    // Format and return
-                    return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(voters);
-                } catch (Exception e) {
-                    // Cancel applicationBusy state and show error
-                    Platform.runLater(() -> {
-                        setBusyState(false);
-                        showError("Unable to retrieve data for the pool address you specified (" + poolAddress + "):\n\n" + e.getMessage() +
-                                  "\n\nPlease check that the address exists in the same network as your settings!");
-                    });
-                }
-
-                return null;
-            });
-
-            // Process task completion
-            request.thenAccept(inflationPoolData -> {
-                if (inflationPoolData != null) {
-                    // Update text area
-                    inflationPoolDataTextArea.setText(inflationPoolData);
-
-                    // Cancel applicationBusy state
-                    Platform.runLater(() -> {
-                        refreshPoolCounters();
-                        fetchPoolBalanceViaStellar(); // This will cancel the busy state we initiated once it completes
-                    });
-                }
-            });
-        }
-    }
-
-    /**
-     * Fetch the pool balance and update the counter
-     */
-    private void fetchPoolBalanceViaStellar() {
-        // Get the target pool key
-        final String poolAddress = poolAddressTextField.getText();
-
-        // Check if we have an address
-        if (poolAddress == null || poolAddress.isEmpty()) {
-            showError("You must specify the inflation pool's address below");
-        } else {
-            // Reset balance
-            poolDataBalanceLabel.setText("0 XLM");
-            currentPoolBalance = null;
-
-            // Start spinning
-            setBusyState(true);
-
-            // Build and submit async task
-            final CompletableFuture<BigDecimal> request = CompletableFuture.supplyAsync(() -> {
-                try {
-                    final BigDecimal balance = StellarGateway.getBalance(poolAddress);
-
-                    // Update current balance
-                    currentPoolBalance = balance;
-
-                    return balance;
-                } catch (Exception e) {
-                    Platform.runLater(() -> {
-                        // Return to normal operation
-                        setBusyState(false);
-
-                        // Show the error
-                        showError(e.getMessage());
-                    });
-                }
-
-                return null;
-            });
-
-            // Process task completion
-            request.thenAccept(poolBalance -> {
-                // Cancel applicationBusy state
-                Platform.runLater(() -> {
-                    // Return to normal operation
-                    setBusyState(false);
-
-                    // Update label
-                    poolDataBalanceLabel.setText(XLMUtils.formatBalance(poolBalance) + " XLM");
                 });
             });
         }
@@ -613,7 +381,7 @@ public class MainController {
 
             // Bind references in the settings controller
             transactionsController.currentVotersData = currentVotersData;
-            transactionsController.currentPoolBalance = currentPoolBalance;
+            transactionsController.currentPoolBalance = XLMUtils.stroopToXLM(currentVotersData.getBalance());
             transactionsController.primaryStage = primaryStage;
             transactionsController.poolAddressTextField = poolAddressTextField;
 
