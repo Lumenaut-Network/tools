@@ -139,7 +139,7 @@ public class TransactionsController {
     // Data
     private HashMap<String, Long> votesAndBalances;
     private HashMap<String, Long> votesAndPayments;
-    private TransactionPlan transactionPlan;
+    private TransactionPlan currentPlan;
     private DonationsData donationsData;
 
     //endregion
@@ -184,7 +184,7 @@ public class TransactionsController {
         // Load default data for exclusions, rerouting and donations
         loadSavedExclusionsData();
         loadSavedReroutingData();
-        loadPlaceholderDonationsData();
+        loadDonationsData();
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // TEXTFIELD HANDLERS
@@ -225,8 +225,8 @@ public class TransactionsController {
             }
 
             // Check the transaction plan has a positive amount to pay
-            if (transactionPlan.getTotalPayouts() <= 0) {
-                showError("This transaction plan has nothing to pay!");
+            if (currentPlan == null || currentPlan.getTotalPayouts() <= 0) {
+                showError("The current transaction plan has nothing to pay!");
 
                 return;
             }
@@ -251,7 +251,7 @@ public class TransactionsController {
 
                     // Bind references in the settings controller
                     processingController.primaryStage = primaryStage;
-                    processingController.transactionPlan = transactionPlan;
+                    processingController.transactionPlan = currentPlan;
                     processingController.executeTransactionBtn = executeTransactionBtn;
                     processingController.executedTransactionsLabel = executedTransactionsLabel;
                     processingController.rebuildTransactionPlanBtn = rebuildTransactionPlanBtn;
@@ -318,7 +318,7 @@ public class TransactionsController {
     private void updatePlanUIandActivateExecution() {
         // Update plan text area
         try {
-            transactionPlanTextArea.setText(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(transactionPlan));
+            transactionPlanTextArea.setText(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(currentPlan));
         } catch (JsonProcessingException e) {
             showError(e.getMessage());
 
@@ -326,22 +326,22 @@ public class TransactionsController {
         }
 
         // Update planned total operations
-        plannedTransactionsLabel.setText(String.valueOf(transactionPlan.getEntries().size()));
+        plannedTransactionsLabel.setText(String.valueOf(currentPlan.getEntries().size()));
 
         // Update total amount to pay
-        totalToBePaidLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalPayouts()) + " XLM");
-        totalFeesPaidLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalFees()) + " XLM");
-        totalPaidLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalPayment()) + " XLM");
-        plannedDonationsAmountLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalDonationsPayment()) + " XLM");
-        totalPoolDonationsLabel.setText(XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalPoolDonations()) + " XLM");
+        totalToBePaidLabel.setText(XLMUtils.formatBalanceFullPrecision(currentPlan.getTotalPayouts()) + " XLM");
+        totalFeesPaidLabel.setText(XLMUtils.formatBalanceFullPrecision(currentPlan.getTotalFees()) + " XLM");
+        totalPaidLabel.setText(XLMUtils.formatBalanceFullPrecision(currentPlan.getTotalPayment()) + " XLM");
+        plannedDonationsAmountLabel.setText(XLMUtils.formatBalanceFullPrecision(currentPlan.getTotalDonationsPayment()) + " XLM");
+        totalPoolDonationsLabel.setText(XLMUtils.formatBalanceFullPrecision(currentPlan.getTotalPoolDonations()) + " XLM");
 
         // Update the rerouting and exclusion labels
-        reroutedTransactionsLabel.setText(String.valueOf(transactionPlan.getRerouted()));
-        excludedTransactionsLabel.setText(String.valueOf(transactionPlan.getExcluded()));
+        reroutedTransactionsLabel.setText(String.valueOf(currentPlan.getRerouted()));
+        excludedTransactionsLabel.setText(String.valueOf(currentPlan.getExcluded()));
 
         // Update donations labels
-        plannedDonationsLabel.setText(String.valueOf(transactionPlan.getDonations()));
-        plannedBeneficiariesLabel.setText(String.valueOf(transactionPlan.getDonationBeneficiaries()));
+        plannedDonationsLabel.setText(String.valueOf(currentPlan.getDonations()));
+        plannedBeneficiariesLabel.setText(String.valueOf(currentPlan.getDonationBeneficiaries()));
 
         // Activate execution
         executeTransactionBtn.setDisable(false);
@@ -361,7 +361,7 @@ public class TransactionsController {
         plannedDonationsAmountLabel.setText("0 XLM");
         totalPoolDonationsLabel.setText("0 XLM");
         executeTransactionBtn.setDisable(true);
-        transactionPlan = null;
+        currentPlan = null;
     }
 
     /**
@@ -542,37 +542,29 @@ public class TransactionsController {
             }
 
             // Prepare voters data structure
-            final VotersData votersData;
-            try {
-                votersData = OBJECT_MAPPER.readValue(OBJECT_MAPPER.writeValueAsString(currentVotersData), VotersData.class);
-                if (votersData.getEntries().size() > 0) {
-                    for (VoterDataEntry entry : votersData.getEntries()) {
-                        // Pull balance and account data
-                        final Long balance = entry.getBalance();
-                        final String voterAddress = entry.getAccount();
+            if (currentVotersData.getEntries().size() > 0) {
+                for (VoterDataEntry entry : currentVotersData.getEntries()) {
+                    // Pull balance and account data
+                    final Long balance = entry.getBalance();
+                    final String voterAddress = entry.getAccount();
 
-                        // !!! Important !!!
-                        // Exclude the pool's own vote, this will prevent the pool balance (which includes the inflation amount)
-                        // from adding itself to the computations on payments.
-                        if (voterAddress.equals(poolAddress)) {
-                            // Exclude
-                            numExcluded.getAndIncrement();
+                    // !!! Important !!!
+                    // Exclude the pool's own vote, this will prevent the pool balance (which includes the inflation amount)
+                    // from adding itself to the computations on payments.
+                    if (voterAddress.equals(poolAddress)) {
+                        // Exclude
+                        numExcluded.getAndIncrement();
 
-                            // Flag pool exclusion
-                            excludedPoolSelfVote.set(true);
+                        // Flag pool exclusion
+                        excludedPoolSelfVote.set(true);
 
-                            // Skip it
-                            continue;
-                        }
-
-                        // Append to the votes list
-                        votesAndBalances.put(voterAddress, balance);
+                        // Skip it
+                        continue;
                     }
-                }
-            } catch (IOException e) {
-                showError("Voters data format is invalid: " + e.getMessage());
 
-                return false;
+                    // Append to the votes list
+                    votesAndBalances.put(voterAddress, balance);
+                }
             }
 
             // !!! IMPORTANT !!!
@@ -799,7 +791,7 @@ public class TransactionsController {
                 }
             });
 
-            // Update the rerouting and exclusion
+            // Update computed totals
             newPlan.setRerouted(numRerouted.get());
             newPlan.setExcluded(numExcluded.get());
             newPlan.setTotalPayouts(totalVoterPayout.get());
@@ -811,7 +803,7 @@ public class TransactionsController {
             newPlan.setTotalPayment(totalTransactionsPayment.get());
 
             // Update the transaction plan
-            transactionPlan = newPlan;
+            currentPlan = newPlan;
 
             // Notify of pool exclusion
             if (excludedPoolSelfVote.get()) {
@@ -824,9 +816,9 @@ public class TransactionsController {
             }
 
             // Notify of pool donations
-            if (transactionPlan.getTotalPoolDonations() > 0) {
+            if (currentPlan.getTotalPoolDonations() > 0) {
                 // Inform the user that the pool has received donations
-                showInfo("The pool has received a total donation of: " + XLMUtils.formatBalanceFullPrecision(transactionPlan.getTotalPoolDonations()) + " XLM");
+                showInfo("The pool has received a total donation of: " + XLMUtils.formatBalanceFullPrecision(currentPlan.getTotalPoolDonations()) + " XLM");
             }
 
             // Plan ready
@@ -972,7 +964,7 @@ public class TransactionsController {
     /**
      * Load the existing donations file
      */
-    private boolean loadPlaceholderDonationsData() {
+    private boolean loadDonationsData() {
         final StringBuilder contents = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new FileReader(DATA_DONATIONS_JSON_PATH))) {
             String line;

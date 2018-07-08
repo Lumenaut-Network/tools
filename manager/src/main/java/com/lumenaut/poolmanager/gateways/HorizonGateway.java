@@ -173,8 +173,9 @@ public class HorizonGateway {
 
         // Prepared statement
         final PreparedStatement inflationStm = conn.prepareStatement("SELECT * FROM core.public.accounts WHERE inflationdest = ?");
+        // Fetch in batches of 100 records
+        inflationStm.setFetchSize(100);
         inflationStm.setString(1, inflationDestination);
-        inflationStm.setFetchSize(50);  // Fetch in batches of 50 records
 
         // Extract results
         final ResultSet inflationRs = inflationStm.executeQuery();
