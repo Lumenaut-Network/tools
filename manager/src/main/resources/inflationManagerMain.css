@@ -1,6 +1,5 @@
 .text-area {
     -fx-font-family: Monotype;
-    -fx-font-size: 14pt;
     -fx-text-fill: #eeeed9;
     -fx-display-caret: false;
 }

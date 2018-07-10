@@ -1,6 +1,5 @@
 package com.lumenaut.poolmanager;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.lumenaut.poolmanager.DataFormats.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -200,16 +199,19 @@ public class TransactionsController {
         rebuildTransactionPlanBtn.setOnAction(event -> {
             // Don't even attempt to build the plan if the amount to pay is not valid
             if (!validateAmountToPay()) {
-                resetPlanUI();
+                planFailed();
 
                 return;
             }
 
-            // Try to make a new plan
+            // Update textarea
+            transactionPlanTextArea.clear();
+            transactionPlanTextArea.appendText("Building transactions plan... ");
+
             if (buildTransactionPlan()) {
-                updatePlanUIandActivateExecution();
+                planningSuccessful();
             } else {
-                resetPlanUI();
+                planFailed();
             }
         });
 
@@ -312,18 +314,10 @@ public class TransactionsController {
 
     /**
      * Updates the planner ui with the data from the currently planned transactions
-     *
-     * @throws JsonProcessingException
      */
-    private void updatePlanUIandActivateExecution() {
-        // Update plan text area
-        try {
-            transactionPlanTextArea.setText(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(currentPlan));
-        } catch (JsonProcessingException e) {
-            showError(e.getMessage());
-
-            return;
-        }
+    private void planningSuccessful() {
+        // Update textarea
+        transactionPlanTextArea.appendText(" DONE!\nREADY TO EXECUTE!");
 
         // Update planned total operations
         plannedTransactionsLabel.setText(String.valueOf(currentPlan.getEntries().size()));
@@ -351,7 +345,11 @@ public class TransactionsController {
     /**
      * Reset the current transaction plan and all the counters
      */
-    private void resetPlanUI() {
+    private void planFailed() {
+        // Update textarea
+        transactionPlanTextArea.appendText(" FAILED!");
+
+        // Update
         plannedTransactionsLabel.setText("0");
         executedTransactionsLabel.setText("0");
         reroutedTransactionsLabel.setText("0");
@@ -991,18 +989,17 @@ public class TransactionsController {
      * Saves the current transaction plan
      */
     private boolean saveTransactionPlan(boolean quietMode) {
-        // Read the current contents of the text area
-        final String contents = transactionPlanTextArea.getText();
-
-        if (contents.isEmpty()) {
+        // Check if the current plan is valid
+        if (currentPlan == null) {
             showInfo("Nothing to save. Build a transaction plan first!");
 
             return false;
         }
 
         // Try to decode them to see if they are in a valid format
+        final String contents;
         try {
-            OBJECT_MAPPER.readValue(contents, TransactionPlan.class);
+            contents = OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(currentPlan);
         } catch (IOException e) {
             showError("Transaction plan format error: " + e.getMessage());
 
