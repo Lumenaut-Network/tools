@@ -36,8 +36,8 @@
                     <content>
                         <AnchorPane>
                             <children>
-                                <TextArea fx:id="inflationPoolDataTextArea" layoutY="37.0" prefHeight="804.0"
-                                          prefWidth="766.0" stylesheets="@inflationManagerMain.css"
+                                <TextArea fx:id="inflationPoolDataTextArea" editable="false" layoutY="37.0"
+                                          prefHeight="804.0" prefWidth="766.0" stylesheets="@inflationManagerMain.css"
                                           AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0"
                                           AnchorPane.rightAnchor="229.0" AnchorPane.topAnchor="37.0"/>
                                 <AnchorPane layoutX="880.0" layoutY="32.0" prefHeight="809.0" prefWidth="215.0"

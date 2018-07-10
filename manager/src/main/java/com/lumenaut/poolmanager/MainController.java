@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.lumenaut.poolmanager.DataFormats.OBJECT_MAPPER;
 import static com.lumenaut.poolmanager.Settings.*;
 import static com.lumenaut.poolmanager.UIUtils.showError;
 
@@ -283,40 +282,46 @@ public class MainController {
 
             resetPoolCounters();
 
-            // Start spinning
+            // Disable buttons and start spinner
             setBusyState(true);
 
+            // Notify user
+            inflationPoolDataTextArea.clear();
+            inflationPoolDataTextArea.appendText("Fetching data...");
+
             // Build and submit async task
-            final CompletableFuture<String> request = CompletableFuture.supplyAsync(() -> {
+            final CompletableFuture<VotersData> request = CompletableFuture.supplyAsync(() -> {
+                final VotersData votersData;
                 try {
-                    // Fetch the voters from the federation network
-                    final VotersData votersData = horizonGateway.getVotersData(poolAddress);
+                    // Fetch
+                    votersData = horizonGateway.getVotersData(poolAddress);
 
                     // Update the current voters data
                     currentVotersData = votersData;
-
-                    // Format and return
-                    return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(votersData);
-                } catch (Exception e) {
-                    // Cancel applicationBusy state and show error
-                    Platform.runLater(() -> {
-                        setBusyState(false);
-                        showError(e.getMessage());
-                    });
+                } catch (Exception ignored) {
+                    // Fetch has failed
+                    currentVotersData = null;
                 }
 
-                return null;
+                // Return
+                return currentVotersData;
             });
 
             // Process task completion
-            request.thenAccept(inflationPoolData -> {
+            request.thenAccept(votersData -> {
                 // Update text area
-                if (inflationPoolData == null || inflationPoolData.isEmpty() || inflationPoolData.equals("null")) {
-                    showError("The horizon database does not contain any data for the specified address");
-
+                if (votersData == null) {
                     Platform.runLater(() -> {
+                        // Re-enable buttons and update counters
                         setBusyState(false);
                         resetPoolCounters();
+
+                        // Manually disable the transaction build button, we have no data!
+                        buildTransactionBtn.setDisable(true);
+
+                        // Notify user
+                        inflationPoolDataTextArea.appendText(" FAILED!");
+                        showError("The horizon database does not contain any data for the specified address");
                     });
 
                     return;
@@ -324,11 +329,12 @@ public class MainController {
 
                 // Cancel applicationBusy state
                 Platform.runLater(() -> {
-                    // Update with the pool data
-                    // inflationPoolDataTextArea.setText(inflationPoolData);
-
+                    // Re-enable buttons and update counters
                     setBusyState(false);
                     refreshPoolCounters();
+
+                    // Notify user
+                    inflationPoolDataTextArea.appendText(" DONE!\nREADY TO BUILD!");
                 });
             });
         }
