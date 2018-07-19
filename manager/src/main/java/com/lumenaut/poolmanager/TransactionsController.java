@@ -257,6 +257,7 @@ public class TransactionsController {
                     processingController.executeTransactionBtn = executeTransactionBtn;
                     processingController.executedTransactionsLabel = executedTransactionsLabel;
                     processingController.rebuildTransactionPlanBtn = rebuildTransactionPlanBtn;
+                    processingController.poolAddress = poolAddressTextField.getText();
                     processingController.signingKey = signingKey;
 
                     // Initialize the transactions stage and show it

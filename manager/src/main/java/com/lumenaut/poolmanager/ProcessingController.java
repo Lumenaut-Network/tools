@@ -56,6 +56,7 @@ public class ProcessingController {
     // Transaction plan
     public TransactionPlan transactionPlan;
     public String signingKey;
+    public String poolAddress;
 
     // References to other stages
     public AnchorPane primaryStage;
@@ -161,8 +162,10 @@ public class ProcessingController {
             // Build server object
             final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? HORIZON_LIVE_NETWORK : HORIZON_TEST_NETWORK);
             final KeyPair source;
+            final KeyPair[] signers = new KeyPair[1];
             try {
-                source = KeyPair.fromSecretSeed(signingKey);
+                source = KeyPair.fromAccountId(poolAddress);
+                signers[0] = KeyPair.fromSecretSeed(signingKey);
             } catch (Throwable e) {
                 appendMessage("[ERROR] invalid signing key: " + signingKey);
 
@@ -218,7 +221,7 @@ public class ProcessingController {
                 if (operationsCount % SETTING_OPERATIONS_PER_TRANSACTION_BATCH == 0) {
                     // The batch is full, time to execute
                     try {
-                        final TransactionBatchResponse batchResponse = StellarGateway.executeTransactionBatch(server, source, tmpBatchResult);
+                        final TransactionBatchResponse batchResponse = StellarGateway.executeTransactionBatch(server, source, signers, tmpBatchResult);
                         if (batchResponse.success) {
                             // Update payment counters
                             for (TransactionResultEntry resultEntry : tmpBatchResult.getEntries()) {
@@ -283,7 +286,7 @@ public class ProcessingController {
             // Process last batch, if it has any entries
             if (!tmpBatchResult.getEntries().isEmpty()) {
                 try {
-                    final TransactionBatchResponse batchResponse = StellarGateway.executeTransactionBatch(server, source, tmpBatchResult);
+                    final TransactionBatchResponse batchResponse = StellarGateway.executeTransactionBatch(server, source, signers, tmpBatchResult);
                     if (batchResponse.success) {
                         // Update payment counters
                         for (TransactionResultEntry resultEntry : tmpBatchResult.getEntries()) {

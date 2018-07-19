@@ -347,7 +347,7 @@ public class StellarGateway {
 	 * @return
 	 * @throws IOException
 	 */
-	public static TransactionBatchResponse executeTransactionBatch(final Server server, final KeyPair source, final TransactionResult transactionResult) throws IOException {
+    public static TransactionBatchResponse executeTransactionBatch(final Server server, final KeyPair source, final KeyPair[] signers, final TransactionResult transactionResult) throws IOException {
 		// Prepare response object
 		final TransactionBatchResponse response = new TransactionBatchResponse();
 
@@ -358,6 +358,22 @@ public class StellarGateway {
 
 			return response;
 		}
+
+        // Source must be provided
+        if (source == null) {
+            response.success = false;
+            response.errorMessages.add("Refusing to execute the transaction batch. No source was provided");
+
+            return response;
+        }
+
+        // We need at least 1 signer
+        if (signers.length == 0) {
+            response.success = false;
+            response.errorMessages.add("Refusing to execute the transaction batch. No signers were provided");
+
+            return response;
+        }
 
 		// Prepare a new transaction builder
 		final AccountResponse sourceAccount = server.accounts().account(source);
@@ -376,10 +392,11 @@ public class StellarGateway {
 			entry.setTimestamp(System.currentTimeMillis());
 		}
 
-
 		// Finalize the transaction
 		final Transaction transaction = transactionBuilder.build();
-		transaction.sign(source);
+        for (KeyPair signer : signers) {
+            transaction.sign(signer);
+        }
 
 		// Submit
 		final SubmitTransactionResponse transactionResponse = server.submitTransaction(transaction);
