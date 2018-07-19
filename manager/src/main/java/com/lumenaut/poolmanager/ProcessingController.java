@@ -15,6 +15,7 @@ import java.io.*;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.lumenaut.poolmanager.DataFormats.*;
 import static com.lumenaut.poolmanager.Settings.*;
@@ -131,267 +132,280 @@ public class ProcessingController {
             closeBtn.setDisable(true);
 
             // Start async processing
-            final CompletableFuture<Boolean> processing = CompletableFuture.supplyAsync(() -> {
-                if (transactionPlan != null) {
-                    ////////////////////////////////////////////////////////////////////////////////////////////////////
-                    // INIT
+            if (!SETTING_PARALLEL_CHANNELS_ENABLED) {
+                serialProcessing();
+            } else {
+                parallelProcessing();
+            }
+        }
+    }
 
-                    // Init network to be used
-                    switch (SETTING_OPERATIONS_NETWORK) {
-                        case "LIVE":
-                            Network.usePublicNetwork();
-                            break;
-                        case "TEST":
-                            Network.useTestNetwork();
-                            break;
-                    }
+    /**
+     * Single threaded transaction processing
+     */
+    private void serialProcessing() {
+        final CompletableFuture<Boolean> processing = CompletableFuture.supplyAsync(() -> {
+            ////////////////////////////////////////////////////////////////////////////////////////////////////
+            // INIT
 
-                    // Build server object
-                    final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? HORIZON_LIVE_NETWORK : HORIZON_TEST_NETWORK);
-                    final KeyPair source;
+            // Init network to be used
+            switch (SETTING_OPERATIONS_NETWORK) {
+                case "LIVE":
+                    Network.usePublicNetwork();
+                    break;
+                case "TEST":
+                    Network.useTestNetwork();
+                    break;
+            }
+
+            // Build server object
+            final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? HORIZON_LIVE_NETWORK : HORIZON_TEST_NETWORK);
+            final KeyPair source;
+            try {
+                source = KeyPair.fromSecretSeed(signingKey);
+            } catch (Throwable e) {
+                appendMessage("[ERROR] invalid signing key: " + signingKey);
+
+                return false;
+            }
+
+            // Build overall result
+            final TransactionResult transactionResult = new TransactionResult();
+            transactionResult.setEntries(new LinkedList<>());
+            transactionResult.setUuid(transactionPlan.getUuid());
+
+            // Build tmp batch buffer
+            final TransactionResult tmpBatchResult = new TransactionResult();
+            tmpBatchResult.setEntries(new LinkedList<>());
+
+            // Payment counters
+            final AtomicLong paidTotal = new AtomicLong(0L);
+            final AtomicLong totalFees = new AtomicLong(0L);
+            final AtomicLong totalPayment = new AtomicLong(0L);
+            final AtomicLong remainingPayment = new AtomicLong(transactionPlan.getTotalPayment());
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////
+            // BATCH ENTRIES
+
+            // Init progress tracking
+            final int totalEntries = transactionPlan.getEntries().size();
+            final int totalBatches = totalEntries / SETTING_OPERATIONS_PER_TRANSACTION_BATCH + (totalEntries % SETTING_OPERATIONS_PER_TRANSACTION_BATCH > 0 ? 1 : 0);
+
+            // Update result total entries planned
+            transactionResult.setPlannedOperations(totalEntries);
+
+            // Update progress bar
+            updateProgressBar(totalEntries, 0);
+
+            // Start processing
+            int operationsCount = 0;
+            int batchCount = 0;
+            for (TransactionPlanEntry entry : transactionPlan.getEntries()) {
+                // Create new entry for the temporary result (which we're using as a buffer for batches)
+                final TransactionResultEntry transactionResultEntry = new TransactionResultEntry();
+                transactionResultEntry.setDestination(entry.getDestination());
+                transactionResultEntry.setRecordedBalance(entry.getRecordedBalance());
+                transactionResultEntry.setAmount(entry.getAmount());
+                transactionResultEntry.setDonation(entry.getDonation());
+
+                // Append to the temporary buffer
+                tmpBatchResult.getEntries().add(transactionResultEntry);
+
+                // Another one bites the dust..
+                operationsCount++;
+
+                // If the batch is full, execute it
+                if (operationsCount % SETTING_OPERATIONS_PER_TRANSACTION_BATCH == 0) {
+                    // The batch is full, time to execute
                     try {
-                        source = KeyPair.fromSecretSeed(signingKey);
-                    } catch (Throwable e) {
-                        appendMessage("[ERROR] invalid signing key: " + signingKey);
-
-                        return false;
-                    }
-
-                    // Build overall result
-                    final TransactionResult transactionResult = new TransactionResult();
-                    transactionResult.setEntries(new LinkedList<>());
-                    transactionResult.setUuid(transactionPlan.getUuid());
-
-                    // Build tmp batch buffer
-                    final TransactionResult tmpBatchResult = new TransactionResult();
-                    tmpBatchResult.setEntries(new LinkedList<>());
-
-                    // Payment counters
-                    long paidTotal = 0L;
-                    long totalFees = 0L;
-                    long totalPayment = 0L;
-                    long remainingPayment = transactionPlan.getTotalPayment();
-
-                    ////////////////////////////////////////////////////////////////////////////////////////////////////
-                    // BATCH ENTRIES
-
-                    // Init progress tracking
-                    final int totalEntries = transactionPlan.getEntries().size();
-                    final int totalBatches = totalEntries / SETTING_OPERATIONS_PER_TRANSACTION_BATCH + (totalEntries % SETTING_OPERATIONS_PER_TRANSACTION_BATCH > 0 ? 1 : 0);
-
-                    // Update result total entries planned
-                    transactionResult.setPlannedOperations(totalEntries);
-
-                    // Update progress bar
-                    updateProgressBar(totalEntries, 0);
-
-                    // Start processing
-                    int operationsCount = 0;
-                    int batchCount = 0;
-                    for (TransactionPlanEntry entry : transactionPlan.getEntries()) {
-                        // Create new entry for the temporary result (which we're using as a buffer for batches)
-                        final TransactionResultEntry transactionResultEntry = new TransactionResultEntry();
-                        transactionResultEntry.setDestination(entry.getDestination());
-                        transactionResultEntry.setRecordedBalance(entry.getRecordedBalance());
-                        transactionResultEntry.setAmount(entry.getAmount());
-                        transactionResultEntry.setDonation(entry.getDonation());
-
-                        // Append to the temporary buffer
-                        tmpBatchResult.getEntries().add(transactionResultEntry);
-
-                        // Another one bites the dust..
-                        operationsCount++;
-
-                        // If the batch is full, execute it
-                        if (operationsCount % SETTING_OPERATIONS_PER_TRANSACTION_BATCH == 0) {
-                            // The batch is full, time to execute
-                            try {
-                                final TransactionBatchResponse batchResponse = StellarGateway.executeTransactionBatch(server, source, tmpBatchResult);
-                                if (batchResponse.success) {
-                                    // Update payment counters
-                                    for (TransactionResultEntry resultEntry : tmpBatchResult.getEntries()) {
-                                        paidTotal += resultEntry.getAmount();
-                                        totalFees += SETTING_FEE;
-                                        totalPayment += resultEntry.getAmount() + SETTING_FEE;
-                                        remainingPayment -= resultEntry.getAmount() + SETTING_FEE;
-                                    }
-
-                                    // Append completed batch to the final result
-                                    transactionResult.getEntries().addAll(tmpBatchResult.getEntries());
-                                    transactionResult.setExecutedOperations(operationsCount);
-
-                                    // Clear the tmp buffer
-                                    tmpBatchResult.getEntries().clear();
-
-                                    // Update counters
-                                    batchCount++;
-
-                                    // Append progress
-                                    appendMessage("Batch [" + batchCount + " of " + totalBatches + "] of [" + operationsCount + "/" + totalEntries + "] operations: Submitted successfully");
-
-                                    // Update progress bar
-                                    updateProgressBar(totalEntries, operationsCount);
-                                } else {
-                                    // Clear the tmp buffer
-                                    tmpBatchResult.getEntries().clear();
-
-                                    // Update result outcome
-                                    transactionResult.setResultOutcome(operationsCount > 0 ? "PARTIALLY EXECUTED" : "NOT EXECUTED");
-
-                                    // Push out the error to the console
-                                    appendMessage("Batch [" + batchCount + " of " + totalBatches + "] of [" + operationsCount + "/" + totalEntries + "] operations: FAILED");
-                                    printBatchError(batchResponse);
-
-                                    // Save the transaction results
-                                    saveTransactionResult(transactionResult, paidTotal, totalFees, totalPayment, remainingPayment, false);
-
-                                    return false;
-                                }
-                            } catch (IOException e) {
-                                // Update batch counter, if the exception triggered it would have not been updated
-                                batchCount++;
-
-                                // Clear the tmp buffer
-                                tmpBatchResult.getEntries().clear();
-
-                                // Append progress
-                                appendMessage("Batch [" + batchCount + " of " + totalBatches + "] of [" + operationsCount + "/" + totalEntries + "] operations: FAILED");
-
-                                // Update result outcome
-                                transactionResult.setResultOutcome(operationsCount > 0 ? "PARTIALLY EXECUTED" : "NOT EXECUTED");
-
-                                // Save the transaction results
-                                saveTransactionResult(transactionResult, paidTotal, totalFees, totalPayment, remainingPayment, false);
-
-                                return false;
+                        final TransactionBatchResponse batchResponse = StellarGateway.executeTransactionBatch(server, source, tmpBatchResult);
+                        if (batchResponse.success) {
+                            // Update payment counters
+                            for (TransactionResultEntry resultEntry : tmpBatchResult.getEntries()) {
+                                paidTotal.getAndAdd(resultEntry.getAmount());
+                                totalFees.getAndAdd(SETTING_FEE);
+                                totalPayment.getAndAdd(resultEntry.getAmount() + SETTING_FEE);
+                                remainingPayment.getAndAdd(-1 * (resultEntry.getAmount() + SETTING_FEE));
                             }
-                        }
-                    }
 
-                    // Process last batch, if it has any entries
-                    if (!tmpBatchResult.getEntries().isEmpty()) {
-                        try {
-                            final TransactionBatchResponse batchResponse = StellarGateway.executeTransactionBatch(server, source, tmpBatchResult);
-                            if (batchResponse.success) {
-                                // Update payment counters
-                                for (TransactionResultEntry resultEntry : tmpBatchResult.getEntries()) {
-                                    paidTotal += resultEntry.getAmount();
-                                    totalFees += SETTING_FEE;
-                                    totalPayment += resultEntry.getAmount() + SETTING_FEE;
-                                    remainingPayment -= resultEntry.getAmount() + SETTING_FEE;
-                                }
+                            // Append completed batch to the final result
+                            transactionResult.getEntries().addAll(tmpBatchResult.getEntries());
+                            transactionResult.setExecutedOperations(operationsCount);
 
-                                // Append completed batch to the final result
-                                transactionResult.getEntries().addAll(tmpBatchResult.getEntries());
-                                transactionResult.setExecutedOperations(operationsCount);
+                            // Clear the tmp buffer
+                            tmpBatchResult.getEntries().clear();
 
-                                // Add to the progress tracker
-                                batchCount++;
-
-                                // Append progress
-                                appendMessage("Batch [" + batchCount + " of " + totalBatches + "] of [" + operationsCount + "/" + totalEntries + "] operations: Submitted successfully");
-
-                                // Update progress bar
-                                updateProgressBar(totalEntries, operationsCount);
-                            } else {
-                                // Update result outcome
-                                transactionResult.setResultOutcome(operationsCount > 0 ? "PARTIALLY EXECUTED" : "NOT EXECUTED");
-
-                                // Push out the error to the console
-                                appendMessage("Batch [" + batchCount + " of " + totalBatches + "] of [" + operationsCount + "/" + totalEntries + "] operations: FAILED");
-                                printBatchError(batchResponse);
-
-                                // Save the transaction results
-                                saveTransactionResult(transactionResult, paidTotal, totalFees, totalPayment, remainingPayment, false);
-
-                                return false;
-                            }
-                        } catch (Exception e) {
-                            // Update batch counter, if the exception triggered it would have not been updated
+                            // Update counters
                             batchCount++;
+
+                            // Append progress
+                            appendMessage("Batch [" + batchCount + " of " + totalBatches + "] of [" + operationsCount + "/" + totalEntries + "] operations: Submitted successfully");
+
+                            // Update progress bar
+                            updateProgressBar(totalEntries, operationsCount);
+                        } else {
+                            // Clear the tmp buffer
+                            tmpBatchResult.getEntries().clear();
 
                             // Update result outcome
                             transactionResult.setResultOutcome(operationsCount > 0 ? "PARTIALLY EXECUTED" : "NOT EXECUTED");
 
-                            // Append progress
+                            // Push out the error to the console
                             appendMessage("Batch [" + batchCount + " of " + totalBatches + "] of [" + operationsCount + "/" + totalEntries + "] operations: FAILED");
+                            printBatchError(batchResponse);
 
                             // Save the transaction results
-                            saveTransactionResult(transactionResult, paidTotal, totalFees, totalPayment, remainingPayment, false);
+                            saveTransactionResult(transactionResult, paidTotal.get(), totalFees.get(), totalPayment.get(), remainingPayment.get(), false);
 
                             return false;
                         }
-                    }
+                    } catch (IOException e) {
+                        // Update batch counter, if the exception triggered it would have not been updated
+                        batchCount++;
 
-                    // Update the paid label in the transaction planner
-                    final int totalTransactionsPaid = operationsCount;
-                    Platform.runLater(() -> executedTransactionsLabel.setText(String.valueOf(totalTransactionsPaid)));
+                        // Clear the tmp buffer
+                        tmpBatchResult.getEntries().clear();
+
+                        // Append progress
+                        appendMessage("Batch [" + batchCount + " of " + totalBatches + "] of [" + operationsCount + "/" + totalEntries + "] operations: FAILED");
+
+                        // Update result outcome
+                        transactionResult.setResultOutcome(operationsCount > 0 ? "PARTIALLY EXECUTED" : "NOT EXECUTED");
+
+                        // Save the transaction results
+                        saveTransactionResult(transactionResult, paidTotal.get(), totalFees.get(), totalPayment.get(), remainingPayment.get(), false);
+
+                        return false;
+                    }
+                }
+            }
+
+            // Process last batch, if it has any entries
+            if (!tmpBatchResult.getEntries().isEmpty()) {
+                try {
+                    final TransactionBatchResponse batchResponse = StellarGateway.executeTransactionBatch(server, source, tmpBatchResult);
+                    if (batchResponse.success) {
+                        // Update payment counters
+                        for (TransactionResultEntry resultEntry : tmpBatchResult.getEntries()) {
+                            paidTotal.getAndAdd(resultEntry.getAmount());
+                            totalFees.getAndAdd(SETTING_FEE);
+                            totalPayment.getAndAdd(resultEntry.getAmount() + SETTING_FEE);
+                            remainingPayment.getAndAdd(-1 * (resultEntry.getAmount() + SETTING_FEE));
+                        }
+
+                        // Append completed batch to the final result
+                        transactionResult.getEntries().addAll(tmpBatchResult.getEntries());
+                        transactionResult.setExecutedOperations(operationsCount);
+
+                        // Add to the progress tracker
+                        batchCount++;
+
+                        // Append progress
+                        appendMessage("Batch [" + batchCount + " of " + totalBatches + "] of [" + operationsCount + "/" + totalEntries + "] operations: Submitted successfully");
+
+                        // Update progress bar
+                        updateProgressBar(totalEntries, operationsCount);
+                    } else {
+                        // Update result outcome
+                        transactionResult.setResultOutcome(operationsCount > 0 ? "PARTIALLY EXECUTED" : "NOT EXECUTED");
+
+                        // Push out the error to the console
+                        appendMessage("Batch [" + batchCount + " of " + totalBatches + "] of [" + operationsCount + "/" + totalEntries + "] operations: FAILED");
+                        printBatchError(batchResponse);
+
+                        // Save the transaction results
+                        saveTransactionResult(transactionResult, paidTotal.get(), totalFees.get(), totalPayment.get(), remainingPayment.get(), false);
+
+                        return false;
+                    }
+                } catch (Exception e) {
+                    // Update batch counter, if the exception triggered it would have not been updated
+                    batchCount++;
 
                     // Update result outcome
-                    if (operationsCount == totalEntries) {
-                        transactionResult.setResultOutcome("SUCCESSFULLY EXECUTED");
-                    } else {
-                        transactionResult.setResultOutcome("EXECUTION ERROR, NOT ALL OPERATIONS EXECUTED");
-                    }
+                    transactionResult.setResultOutcome(operationsCount > 0 ? "PARTIALLY EXECUTED" : "NOT EXECUTED");
+
+                    // Append progress
+                    appendMessage("Batch [" + batchCount + " of " + totalBatches + "] of [" + operationsCount + "/" + totalEntries + "] operations: FAILED");
 
                     // Save the transaction results
-                    saveTransactionResult(transactionResult, paidTotal, totalFees, totalPayment, remainingPayment, false);
-
-                    // Sleep for a few ms to allow the progress bar and message to update
-                    try {
-                        Thread.sleep(200);
-                    } catch (InterruptedException ignored) {
-                    }
-
-                    return true;
-                } else {
-                    processingOutputTextArea.appendText("[ERROR] Empty transaction plan\n");
-                    scrollToEnd();
+                    saveTransactionResult(transactionResult, paidTotal.get(), totalFees.get(), totalPayment.get(), remainingPayment.get(), false);
 
                     return false;
                 }
-            });
 
-            // Completion handler
-            processing.thenAccept(success -> {
-                if (success) {
-                    Platform.runLater(() -> {
-                        // Append final message
-                        appendMessage("[FINISHED] Process completed successfully\n");
+                // Update the paid label in the transaction planner
+                final int totalTransactionsPaid = operationsCount;
+                Platform.runLater(() -> executedTransactionsLabel.setText(String.valueOf(totalTransactionsPaid)));
 
-                        // Fill the progress bar and colorize it
-                        processingProgressBar.setProgress(1);
-                        processingProgressBar.getStyleClass().removeAll();
-                        processingProgressBar.getStyleClass().add("green-bar");
-
-                        // Update transaction planner UI
-                        executeTransactionBtn.setText("EXECUTED");
-                        executeTransactionBtn.setDisable(true);
-                        rebuildTransactionPlanBtn.setDisable(true);
-                    });
+                // Update result outcome
+                if (operationsCount == totalEntries) {
+                    transactionResult.setResultOutcome("SUCCESSFULLY EXECUTED");
                 } else {
-                    Platform.runLater(() -> {
-                        // Append final message
-                        appendMessage("[FINISHED] Process finished with ERRORS\n");
-
-                        // Fill the progress bar and colorize it
-                        processingProgressBar.setProgress(1);
-                        processingProgressBar.getStyleClass().removeAll();
-                        processingProgressBar.getStyleClass().add("red-bar");
-
-                        executeTransactionBtn.setText("EXECUTED WITH ERRORS");
-                        executeTransactionBtn.setTooltip(new Tooltip("The transaction executed with errors, you might want to use the transaction results as an exclusions list and build a new transaction plan!"));
-                        executeTransactionBtn.setDisable(true);
-                        rebuildTransactionPlanBtn.setDisable(false);
-                    });
+                    transactionResult.setResultOutcome("EXECUTION ERROR, NOT ALL OPERATIONS EXECUTED");
                 }
 
+                // Save the transaction results
+                saveTransactionResult(transactionResult, paidTotal.get(), totalFees.get(), totalPayment.get(), remainingPayment.get(), false);
+
+                // Sleep for a few ms to allow the progress bar and message to update
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException ignored) {
+                }
+
+                return true;
+            } else {
+                processingOutputTextArea.appendText("[ERROR] Empty transaction plan\n");
                 scrollToEnd();
 
-                // Enable close button
-                closeBtn.setDisable(false);
-            });
-        }
+                return false;
+            }
+        });
+
+        // Completion handler
+        processing.thenAccept(success -> {
+            if (success) {
+                Platform.runLater(() -> {
+                    // Append final message
+                    appendMessage("[FINISHED] Process completed successfully\n");
+
+                    // Fill the progress bar and colorize it
+                    processingProgressBar.setProgress(1);
+                    processingProgressBar.getStyleClass().removeAll();
+                    processingProgressBar.getStyleClass().add("green-bar");
+
+                    // Update transaction planner UI
+                    executeTransactionBtn.setText("EXECUTED");
+                    executeTransactionBtn.setDisable(true);
+                    rebuildTransactionPlanBtn.setDisable(true);
+                });
+            } else {
+                Platform.runLater(() -> {
+                    // Append final message
+                    appendMessage("[FINISHED] Process finished with ERRORS\n");
+
+                    // Fill the progress bar and colorize it
+                    processingProgressBar.setProgress(1);
+                    processingProgressBar.getStyleClass().removeAll();
+                    processingProgressBar.getStyleClass().add("red-bar");
+
+                    executeTransactionBtn.setText("EXECUTED WITH ERRORS");
+                    executeTransactionBtn.setTooltip(new Tooltip("The transaction executed with errors, you might want to use the transaction results as an exclusions list and build a new transaction plan!"));
+                    executeTransactionBtn.setDisable(true);
+                    rebuildTransactionPlanBtn.setDisable(false);
+                });
+            }
+
+            scrollToEnd();
+
+            // Enable close button
+            closeBtn.setDisable(false);
+        });
+    }
+
+    private void parallelProcessing() {
+
     }
 
     /**
