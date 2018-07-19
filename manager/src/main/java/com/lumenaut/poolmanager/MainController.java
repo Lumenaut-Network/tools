@@ -3,6 +3,7 @@ package com.lumenaut.poolmanager;
 import com.lumenaut.poolmanager.DataFormats.VoterDataEntry;
 import com.lumenaut.poolmanager.DataFormats.VotersData;
 import com.lumenaut.poolmanager.gateways.HorizonGateway;
+import com.lumenaut.poolmanager.gateways.StellarGateway;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -287,12 +288,32 @@ public class MainController {
 
             // Notify user
             inflationPoolDataTextArea.clear();
-            inflationPoolDataTextArea.appendText("Fetching data...");
 
             // Build and submit async task
             final CompletableFuture<VotersData> request = CompletableFuture.supplyAsync(() -> {
                 final VotersData votersData;
                 try {
+                    // Initialize payment channels if required
+                    if (SETTING_PARALLEL_CHANNELS_ENABLED) {
+                        Platform.runLater(() -> inflationPoolDataTextArea.appendText("Verifying payment channels...\n"));
+                        StellarGateway.initParallelSubmission(inflationPoolDataTextArea);
+
+                        final int validChannelsNum = StellarGateway.getChannelAccounts().size();
+
+                        if (validChannelsNum > 0) {
+                            Platform.runLater(() -> inflationPoolDataTextArea.appendText("SUCCESS: Initialized [" + validChannelsNum + "] valid channels for parallel submission!\n\n"));
+                        } else {
+                            Platform.runLater(() -> inflationPoolDataTextArea.appendText("ERROR: No valid channels found for parallel submission! Please check your settings!\n\n"));
+
+                            // Reset current voters data
+                            currentVotersData = null;
+                            return null;
+                        }
+                    }
+
+                    // Notify user that data fetch is starting
+                    Platform.runLater(() -> inflationPoolDataTextArea.appendText("Fetching data..."));
+
                     // Fetch
                     votersData = horizonGateway.getVotersData(poolAddress);
 
