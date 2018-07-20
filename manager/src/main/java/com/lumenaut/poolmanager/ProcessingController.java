@@ -6,6 +6,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
+import org.jctools.queues.atomic.SpscAtomicArrayQueue;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Network;
 import org.stellar.sdk.Server;
@@ -15,6 +16,7 @@ import java.io.*;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.lumenaut.poolmanager.DataFormats.*;
@@ -161,6 +163,8 @@ public class ProcessingController {
 
             // Build server object
             final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? HORIZON_LIVE_NETWORK : HORIZON_TEST_NETWORK);
+
+            // Build key pairs
             final KeyPair source;
             final KeyPair[] signers = new KeyPair[1];
             try {
@@ -358,12 +362,9 @@ public class ProcessingController {
                 }
 
                 return true;
-            } else {
-                processingOutputTextArea.appendText("[ERROR] Empty transaction plan\n");
-                scrollToEnd();
-
-                return false;
             }
+
+            return true;
         });
 
         // Completion handler
@@ -408,7 +409,137 @@ public class ProcessingController {
     }
 
     private void parallelProcessing() {
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // INIT
+        final int availableChannels = StellarGateway.getChannelAccounts().size();
 
+        // Check if we have enough channels
+        if (availableChannels < 2) {
+            appendMessage("[ERROR] You need to setup at least 2 valid payment channels to process parallel transactions");
+        }
+
+        // Init network to be used
+        switch (SETTING_OPERATIONS_NETWORK) {
+            case "LIVE":
+                Network.usePublicNetwork();
+                break;
+            case "TEST":
+                Network.useTestNetwork();
+                break;
+        }
+
+        // Build server object and key pairs
+        final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? HORIZON_LIVE_NETWORK : HORIZON_TEST_NETWORK);
+        final KeyPair source;
+        final KeyPair signer;
+        try {
+            source = KeyPair.fromAccountId(poolAddress);
+            signer = KeyPair.fromSecretSeed(signingKey);
+        } catch (Throwable e) {
+            appendMessage("[ERROR] invalid account ID or signing keys: " + signingKey);
+
+            return;
+        }
+
+        // Build overall result
+        final TransactionResult finalResults = new TransactionResult();
+        finalResults.setEntries(new LinkedList<>());
+        finalResults.setUuid(transactionPlan.getUuid());
+
+        // Operations counters
+        final int totalEntries = transactionPlan.getEntries().size();
+        final int totalBatches = totalEntries / SETTING_OPERATIONS_PER_TRANSACTION_BATCH + (totalEntries % SETTING_OPERATIONS_PER_TRANSACTION_BATCH > 0 ? 1 : 0);
+        final int maxBatchesPerChannel = totalBatches / availableChannels + (totalBatches % availableChannels > 0 ? 1 : 0);
+
+        // Payment counters
+        final AtomicLong paidTotal = new AtomicLong(0L);
+        final AtomicLong totalFees = new AtomicLong(0L);
+        final AtomicLong totalPayment = new AtomicLong(0L);
+        final AtomicLong remainingPayment = new AtomicLong(transactionPlan.getTotalPayment());
+
+        // Channels queues init
+        final SpscAtomicArrayQueue<TransactionResult>[] channelsQueues = new SpscAtomicArrayQueue[availableChannels];
+        for (int i = 0; i < channelsQueues.length; i++) {
+            channelsQueues[i] = new SpscAtomicArrayQueue<>(maxBatchesPerChannel);
+        }
+
+        // Channels progress init
+        final AtomicInteger[] channelsProgress = new AtomicInteger[availableChannels];
+        for (int i = 0; i < availableChannels; i++) {
+            channelsProgress[i] = new AtomicInteger(0);
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // BATCH ENTRIES AND FILL CHANNELS QUEUES
+
+        // Update result total entries planned
+        finalResults.setPlannedOperations(totalEntries);
+
+        // Update progress bar
+        updateProgressBar(totalEntries, 0);
+
+        // Build temporary transaction result (batch) buffer
+        final TransactionResult tmpBatchBuffer = new TransactionResult();
+        tmpBatchBuffer.setEntries(new LinkedList<>());
+
+        // Start processing
+        int currentChannelIndex = 0;
+        int operationsCount = 0;
+        for (TransactionPlanEntry entry : transactionPlan.getEntries()) {
+            // Create new entry for the temporary result (which we're using as a buffer for batches)
+            final TransactionResultEntry transactionResultEntry = new TransactionResultEntry();
+            transactionResultEntry.setDestination(entry.getDestination());
+            transactionResultEntry.setRecordedBalance(entry.getRecordedBalance());
+            transactionResultEntry.setAmount(entry.getAmount());
+            transactionResultEntry.setDonation(entry.getDonation());
+
+            // Append to the temporary buffer
+            tmpBatchBuffer.getEntries().add(transactionResultEntry);
+
+            // Another one bites the dust..
+            operationsCount++;
+
+            // If the batch is full, execute it
+            if (operationsCount % SETTING_OPERATIONS_PER_TRANSACTION_BATCH == 0) {
+                // Create channel batch
+                final TransactionResult channelBatchResult = new TransactionResult();
+                channelBatchResult.setEntries(new LinkedList<>());
+
+                // Copy the entries from the tmp batch buffer
+                tmpBatchBuffer.getEntries().forEach(transactionEntry -> channelBatchResult.getEntries().add(transactionEntry));
+
+                // Append to the current channel
+                channelsQueues[currentChannelIndex++].offer(channelBatchResult);
+
+                // Loop back
+                if (currentChannelIndex == availableChannels) {
+                    currentChannelIndex = 0;
+                }
+
+                // Start new tmp batch
+                tmpBatchBuffer.getEntries().clear();
+            }
+        }
+
+        // If we have leftovers, append them to one last batch
+        if (tmpBatchBuffer.getEntries().size() > 0) {
+            // Create channel batch
+            final TransactionResult channelBatchResult = new TransactionResult();
+            channelBatchResult.setEntries(new LinkedList<>());
+
+            // Copy the entries from the tmp batch buffer
+            tmpBatchBuffer.getEntries().forEach(transactionEntry -> channelBatchResult.getEntries().add(transactionEntry));
+
+            // Append to the current channel if it has enough space
+            channelsQueues[currentChannelIndex].offer(channelBatchResult);
+
+            // Final cleanup
+            tmpBatchBuffer.getEntries().clear();
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // CREATE TASKS FOR EACH CHANNEL AND EXECUTE THEM
+        int breakHere = 0;
     }
 
     /**

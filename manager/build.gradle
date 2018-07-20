@@ -17,6 +17,7 @@ buildscript {
         stellarSdkVersion = '0.1.14'
         jacksonVersion = '2.9.3'
         pgsqlDriverVersion = '42.1.4'
+        jctoolsVersion = '2.1.1'
     }
 
     // Repositories for build scripts
@@ -83,6 +84,9 @@ dependencies {
 
     // PostgreSQL JDBC driver
     compile "org.postgresql:postgresql:$pgsqlDriverVersion"
+
+    // Concurrency tools
+    compile "org.jctools:jctools-core:$jctoolsVersion"
 
     // Stellar SDK
     compile "stellar-sdk:stellar-sdk:$stellarSdkVersion"
