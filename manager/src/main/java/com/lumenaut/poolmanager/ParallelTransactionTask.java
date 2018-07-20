@@ -1,8 +1,11 @@
 package com.lumenaut.poolmanager;
 
 import com.lumenaut.poolmanager.DataFormats.TransactionResult;
+import org.jctools.queues.atomic.SpscAtomicArrayQueue;
 import org.stellar.sdk.KeyPair;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -14,19 +17,36 @@ public class ParallelTransactionTask implements Runnable {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FIELDS
 
-    //
-    final TransactionResult finalResults;
-    final AtomicLong paidTotal;
-    final AtomicLong totalFees;
-    final AtomicLong totalPayment;
-    final AtomicLong remainingPayment;
+    // Config
+    private final ParallelTransactionTaskConfig config;
 
-    // Signing
-    final KeyPair source;
-    final KeyPair signer;
-    final int channelIndex;
-    final String channelAccount;
-    final String channelKey;
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region SUBCLASSES
+
+    /**
+     * Config class
+     */
+    public static class ParallelTransactionTaskConfig {
+        // Out
+        public TransactionResult finalResults;
+        public AtomicLong paidTotal;
+        public AtomicLong totalFees;
+        public AtomicLong totalPayment;
+        public AtomicLong remainingPayment;
+
+        // Signing
+        public KeyPair source;
+        public KeyPair signer;
+        public int channelIndex;
+        public String channelAccount;
+        public String channelKey;
+        public AtomicInteger progress;
+        public SpscAtomicArrayQueue<TransactionResult> batchQueue;
+        public AtomicBoolean error;
+    }
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,19 +63,8 @@ public class ParallelTransactionTask implements Runnable {
     /**
      * Constructor
      */
-    public ParallelTransactionTask(final TransactionResult finalResults, final AtomicLong paidTotal, final AtomicLong totalFees, final AtomicLong totalPayment, final AtomicLong remainingPayment,
-                                   final KeyPair source, final KeyPair signer, final int channelIndex, final String channelAccount, final String channelKey) {
-        this.finalResults = finalResults;
-        this.paidTotal = paidTotal;
-        this.totalFees = totalFees;
-        this.totalPayment = totalPayment;
-        this.remainingPayment = remainingPayment;
-
-        this.source = source;
-        this.signer = signer;
-        this.channelIndex = channelIndex;
-        this.channelAccount = channelAccount;
-        this.channelKey = channelKey;
+    public ParallelTransactionTask(final ParallelTransactionTaskConfig config) {
+        this.config = config;
     }
 
     //endregion
@@ -66,7 +75,16 @@ public class ParallelTransactionTask implements Runnable {
 
     @Override
     public void run() {
-        // Execute
+        // Test
+        while (config.progress.get() < 100) {
+            config.progress.getAndAdd(5);
+
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     //endregion

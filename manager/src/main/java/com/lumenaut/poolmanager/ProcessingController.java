@@ -1,6 +1,7 @@
 package com.lumenaut.poolmanager;
 
 import com.lumenaut.poolmanager.DataFormats.*;
+import com.lumenaut.poolmanager.ParallelTransactionTask.ParallelTransactionTaskConfig;
 import com.lumenaut.poolmanager.gateways.StellarGateway;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -13,9 +14,13 @@ import org.stellar.sdk.Server;
 import org.stellar.sdk.responses.SubmitTransactionResponse.Extras.ResultCodes;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -441,6 +446,9 @@ public class ProcessingController {
             return;
         }
 
+        // Init threadpool
+        final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(availableChannels);
+
         // Build overall result
         final TransactionResult finalResults = new TransactionResult();
         finalResults.setEntries(new LinkedList<>());
@@ -457,6 +465,10 @@ public class ProcessingController {
         final AtomicLong totalPayment = new AtomicLong(0L);
         final AtomicLong remainingPayment = new AtomicLong(transactionPlan.getTotalPayment());
 
+        // Channels data
+        final ArrayList<String> channelAccounts = StellarGateway.getChannelAccounts();
+        final ArrayList<String> channelKeys = StellarGateway.getChannelKeys();
+
         // Channels queues init
         final SpscAtomicArrayQueue<TransactionResult>[] channelsQueues = new SpscAtomicArrayQueue[availableChannels];
         for (int i = 0; i < channelsQueues.length; i++) {
@@ -467,6 +479,12 @@ public class ProcessingController {
         final AtomicInteger[] channelsProgress = new AtomicInteger[availableChannels];
         for (int i = 0; i < availableChannels; i++) {
             channelsProgress[i] = new AtomicInteger(0);
+        }
+
+        // Channels errors init
+        final AtomicBoolean[] channelsErrors = new AtomicBoolean[availableChannels];
+        for (int i = 0; i < availableChannels; i++) {
+            channelsErrors[i] = new AtomicBoolean(false);
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -539,6 +557,95 @@ public class ProcessingController {
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // CREATE TASKS FOR EACH CHANNEL AND EXECUTE THEM
+        for (int i = 0; i < availableChannels; i++) {
+            // Configure task
+            final ParallelTransactionTaskConfig config = new ParallelTransactionTaskConfig();
+            config.finalResults = finalResults;
+            config.paidTotal = paidTotal;
+            config.totalFees = totalFees;
+            config.totalPayment = totalPayment;
+            config.remainingPayment = remainingPayment;
+            config.source = source;
+            config.signer = signer;
+            config.channelIndex = i;
+            config.channelAccount = channelAccounts.get(i);
+            config.channelKey = channelKeys.get(i);
+            config.progress = channelsProgress[i];
+            config.error = channelsErrors[i];
+            config.batchQueue = channelsQueues[i];
+
+            // Create and run
+            final ParallelTransactionTask task = new ParallelTransactionTask(config);
+            executor.execute(task);
+        }
+
+        // Monitoring thread
+        new Thread(() -> {
+            boolean processing = true;
+
+            while (processing) {
+                // Check for completion
+                boolean completed = true;
+                for (int i = 0; i < availableChannels; i++) {
+                    if (channelsProgress[i].get() != 100) {
+                        completed = false;
+                    }
+                }
+
+                // Update progress
+                Platform.runLater(() -> {
+                    // Refresh progress state
+                    processingOutputTextArea.clear();
+
+                    // Update each channel
+                    for (int i = 0; i < availableChannels; i++) {
+                        final int currentProgress = channelsProgress[i].get();
+                        final boolean error = channelsErrors[i].get();
+
+                        // Channel status row start
+                        processingOutputTextArea.appendText("Channel [" + i + "] progress: " + currentProgress + "%");
+
+                        if (error) {
+                            processingOutputTextArea.appendText(" FAILED!\n");
+                        } else if (channelsProgress[i].get() < 100) {
+                            processingOutputTextArea.appendText(" processing ...\n");
+                        } else {
+                            processingOutputTextArea.appendText(" COMPLETED!\n");
+                        }
+                    }
+                });
+
+                // Exit if we completed
+                if (completed) {
+                    // Flag completion, this thread will exit
+                    processing = false;
+
+                    // Status update
+                    Platform.runLater(() -> {
+                        // Append final message
+                        appendMessage("[FINISHED] Process completed successfully\n");
+
+                        // Fill the progress bar and colorize it
+                        processingProgressBar.setProgress(1);
+                        processingProgressBar.getStyleClass().removeAll();
+                        processingProgressBar.getStyleClass().add("green-bar");
+
+                        // Update transaction planner UI
+                        executeTransactionBtn.setText("EXECUTED");
+                        executeTransactionBtn.setDisable(true);
+                        rebuildTransactionPlanBtn.setDisable(true);
+                    });
+                } else {
+                    // Defer new update in a second
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
+
         int breakHere = 0;
     }
 
