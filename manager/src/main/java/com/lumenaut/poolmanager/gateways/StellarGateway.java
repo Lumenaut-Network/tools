@@ -362,12 +362,12 @@ public class StellarGateway {
         // Source must be provided
         if (source == null) {
             response.success = false;
-            response.errorMessages.add("Refusing to execute the transaction batch. No source was provided");
+            response.errorMessages.add("Refusing to execute the transaction batch. No sourceAccount was provided");
 
             return response;
         }
 
-        // We need at least 1 signer
+        // We need at least 1 sourceAccountMasterKey
         if (signers.length == 0) {
             response.success = false;
             response.errorMessages.add("Refusing to execute the transaction batch. No signers were provided");
@@ -412,6 +412,81 @@ public class StellarGateway {
 
 		return response;
 	}
+
+    /**
+     * Execute the given transactions in a single batch from the specified channel
+     *
+     * @param server
+     * @param sourceAccount
+     * @param transactionResult
+     * @return
+     * @throws IOException
+     */
+    public static TransactionBatchResponse executeChannelTransactionBatch(final Server server, final KeyPair sourceAccount, final KeyPair channelAccount, final KeyPair[] signers, final TransactionResult transactionResult) throws IOException {
+        // Prepare response object
+        final TransactionBatchResponse response = new TransactionBatchResponse();
+
+        // Refuse batches with more than 100 operations
+        if (transactionResult.getEntries().size() > SETTING_OPERATIONS_PER_TRANSACTION_BATCH) {
+            response.success = false;
+            response.errorMessages.add("Refusing to execute a transaction batch with more than [" + SETTING_OPERATIONS_PER_TRANSACTION_BATCH + "] entries. The batch contains [" + transactionResult.getEntries().size() + "] entries");
+
+            return response;
+        }
+
+        // Source must be provided
+        if (sourceAccount == null) {
+            response.success = false;
+            response.errorMessages.add("Refusing to execute the transaction batch. No sourceAccount was provided");
+
+            return response;
+        }
+
+        // We need at least 1 sourceAccountMasterKey
+        if (signers.length == 0) {
+            response.success = false;
+            response.errorMessages.add("Refusing to execute the transaction batch. No signers were provided");
+
+            return response;
+        }
+
+        // Prepare a new transaction builder for the channel
+        final AccountResponse channelAccountResponse = server.accounts().account(channelAccount);
+        final Builder transactionBuilder = new Transaction.Builder(channelAccountResponse);
+
+        // Add memo to the transaction
+        transactionBuilder.addMemo(Memo.text(Settings.SETTING_MEMO));
+
+        // Process all entries
+        for (TransactionResultEntry entry : transactionResult.getEntries()) {
+            // Append operation
+            // !!! IMPORTANT !!! the amount must be specified in XLM as a string in decimal format e.g. 10.0000001 -> 10 lumens, 1 stroop
+            transactionBuilder.addOperation(new PaymentOperation.Builder(KeyPair.fromAccountId(entry.getDestination()), new AssetTypeNative(), XLMUtils.stroopToXLM(entry.getAmount()).toString()).setSourceAccount(sourceAccount).build());
+
+            // Update entry operation timestamp
+            entry.setTimestamp(System.currentTimeMillis());
+        }
+
+        // Finalize the transaction
+        final Transaction transaction = transactionBuilder.build();
+        for (KeyPair signer : signers) {
+            transaction.sign(signer);
+        }
+
+        // Submit
+        final SubmitTransactionResponse transactionResponse = server.submitTransaction(transaction);
+        if (transactionResponse.isSuccess()) {
+            // Transaction batch was successful
+            response.success = true;
+        } else {
+            // Transaction batch failed
+            response.success = false;
+            response.transactionResponse = transactionResponse;
+            response.errorMessages.add("The transaction response from the horizon network reported an unsuccessful outcome");
+        }
+
+        return response;
+    }
 
 	/**
 	 * Verify all the accounts in the specified transactions plan

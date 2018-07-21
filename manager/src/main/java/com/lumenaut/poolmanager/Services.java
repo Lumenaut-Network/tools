@@ -1,20 +1,21 @@
 package com.lumenaut.poolmanager;
 
-import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.image.Image;
-import javafx.stage.Stage;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+
+import static com.lumenaut.poolmanager.Settings.MAX_THREADS;
 
 /**
  * @Author Luca Vignaroli
  * @Email luca@burning.it
- * @Date 10/01/2018 - 2:30 AM
+ * @Date 21/07/2018 - 4:18 PM
  */
-public class Main extends Application {
+public class Services {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FIELDS
+
+    // Init threadpool
+    public static final ThreadPoolExecutor EXECUTOR = (ThreadPoolExecutor) Executors.newFixedThreadPool(MAX_THREADS);
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,9 +32,15 @@ public class Main extends Application {
     /**
      * Constructor
      */
-    public Main() {
+    private Services() {
 
     }
+
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region INTERFACES IMPLEMENTATIONS
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -41,39 +48,13 @@ public class Main extends Application {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region METHOD OVERRIDES
 
-    @Override
-    public void start(Stage primaryStage) throws Exception {
-        // Build root
-        final Parent root = FXMLLoader.load(getClass().getResource("/inflationManagerMain.fxml"));
-
-        // Initialize the primary stage and show it
-        primaryStage.setTitle("Inflation Pool Manager");
-        primaryStage.setScene(new Scene(root, 1000, 600));
-        primaryStage.getIcons().add(new Image(Main.class.getResourceAsStream("/inflationManager.png")));
-        primaryStage.setMinWidth(1000);
-        primaryStage.setMinHeight(600);
-        primaryStage.show();
-    }
-
-    @Override
-    public void stop() throws Exception {
-        // Shutdown the threadpool
-        Services.EXECUTOR.shutdownNow();
-
-        // Proceed to application close
-        super.stop();
-    }
-
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region METHODS
 
-    public static void main(String[] args) {
-        launch(args);
-    }
-
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
+

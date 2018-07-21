@@ -1,5 +1,5 @@
 .text-area {
-    -fx-font-family: Monotype;
+    -fx-font-family: Monospaced;
     -fx-text-fill: #eeeed9;
     -fx-display-caret: false;
 }

@@ -15,6 +15,12 @@ public class Settings {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FIELDS
 
+    // Multi-Threading
+    // This setting should be as high as the maximum number of supported channels that the application can use.
+    // The transactions' threads (ParallelTransactionTask.java) are super lightweight and will spend 99% of the time I/O blocked,
+    // don't worry if your CPU doesn't an equal amount of cores, your kernel's scheduler will manage just fine.
+    public static final int MAX_THREADS = 10;
+
     // Horizon networks
     public static final String HORIZON_TEST_NETWORK = "https://horizon-testnet.stellar.org";
     public static final String HORIZON_LIVE_NETWORK = "https://horizon.stellar.org";

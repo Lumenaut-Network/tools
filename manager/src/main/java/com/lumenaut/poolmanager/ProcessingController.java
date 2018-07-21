@@ -18,13 +18,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.lumenaut.poolmanager.DataFormats.*;
+import static com.lumenaut.poolmanager.Services.EXECUTOR;
 import static com.lumenaut.poolmanager.Settings.*;
 import static com.lumenaut.poolmanager.TransactionsController.*;
 import static com.lumenaut.poolmanager.UIUtils.showError;
@@ -446,9 +445,6 @@ public class ProcessingController {
             return;
         }
 
-        // Init threadpool
-        final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(availableChannels);
-
         // Build overall result
         final TransactionResult finalResults = new TransactionResult();
         finalResults.setEntries(new LinkedList<>());
@@ -565,21 +561,22 @@ public class ProcessingController {
             config.totalFees = totalFees;
             config.totalPayment = totalPayment;
             config.remainingPayment = remainingPayment;
-            config.source = source;
-            config.signer = signer;
+            config.sourceAccount = source;
+            config.sourceAccountMasterKey = signer;
             config.channelIndex = i;
             config.channelAccount = channelAccounts.get(i);
-            config.channelKey = channelKeys.get(i);
+            config.channelAccountKey = channelKeys.get(i);
             config.progress = channelsProgress[i];
             config.error = channelsErrors[i];
+            config.errorMessage = new ArrayList<>();
             config.batchQueue = channelsQueues[i];
 
             // Create and run
             final ParallelTransactionTask task = new ParallelTransactionTask(config);
-            executor.execute(task);
+            EXECUTOR.execute(task);
         }
 
-        // Monitoring thread
+        // Monitor the progress in a dedicated thread
         new Thread(() -> {
             boolean processing = true;
 
@@ -603,14 +600,42 @@ public class ProcessingController {
                         final boolean error = channelsErrors[i].get();
 
                         // Channel status row start
-                        processingOutputTextArea.appendText("Channel [" + i + "] progress: " + currentProgress + "%");
+                        processingOutputTextArea.appendText("Channel [" + i + "] [");
 
                         if (error) {
-                            processingOutputTextArea.appendText(" FAILED!\n");
+                            // Completed
+                            for (int j = 0; j < currentProgress; j++) {
+                                processingOutputTextArea.appendText("#");
+                            }
+
+                            // Remaining
+                            for (int j = 0; j < 100 - currentProgress; j++) {
+                                processingOutputTextArea.appendText(".");
+                            }
+
+                            // State
+                            processingOutputTextArea.appendText("] [ " + currentProgress + "% ] [FAILED]\n");
                         } else if (channelsProgress[i].get() < 100) {
-                            processingOutputTextArea.appendText(" processing ...\n");
+                            // Completed
+                            for (int j = 0; j < currentProgress; j++) {
+                                processingOutputTextArea.appendText("#");
+                            }
+
+                            // Remaining
+                            for (int j = 0; j < 100 - currentProgress; j++) {
+                                processingOutputTextArea.appendText(".");
+                            }
+
+                            // State
+                            processingOutputTextArea.appendText("] [ " + currentProgress + "% ] [PROCESSING]\n");
                         } else {
-                            processingOutputTextArea.appendText(" COMPLETED!\n");
+                            // Completed
+                            for (int j = 0; j < currentProgress; j++) {
+                                processingOutputTextArea.appendText("#");
+                            }
+
+                            // State
+                            processingOutputTextArea.appendText("] [ " + currentProgress + "% ] [COMPLETED]\n");
                         }
                     }
                 });
@@ -623,7 +648,7 @@ public class ProcessingController {
                     // Status update
                     Platform.runLater(() -> {
                         // Append final message
-                        appendMessage("[FINISHED] Process completed successfully\n");
+                        appendMessage("[FINISHED] Process completed!\n");
 
                         // Fill the progress bar and colorize it
                         processingProgressBar.setProgress(1);
@@ -634,6 +659,9 @@ public class ProcessingController {
                         executeTransactionBtn.setText("EXECUTED");
                         executeTransactionBtn.setDisable(true);
                         rebuildTransactionPlanBtn.setDisable(true);
+
+                        // Enable close button
+                        closeBtn.setDisable(false);
                     });
                 } else {
                     // Defer new update in a second
@@ -645,8 +673,6 @@ public class ProcessingController {
                 }
             }
         }).start();
-
-        int breakHere = 0;
     }
 
     /**

@@ -713,7 +713,7 @@ public class TransactionsController {
                 }
 
                 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-                // STEP 5 (executes per voter): Scan donations data for a matching voter source
+                // STEP 5 (executes per voter): Scan donations data for a matching voter sourceAccount
                 for (DonationDataEntry donationEntry : donationDataEntries) {
                     if (donationEntry.getSource().equals(voterAccount)) {
                         // Extract donation data and compute donation amount
