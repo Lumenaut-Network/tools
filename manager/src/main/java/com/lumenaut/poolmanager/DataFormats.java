@@ -7,6 +7,7 @@ import org.stellar.sdk.responses.SubmitTransactionResponse;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @Author Luca Vignaroli
@@ -396,7 +397,7 @@ public class DataFormats {
     public static class TransactionResult {
         private String uuid;
         private int plannedOperations;
-        private int executedOperations;
+        private AtomicInteger executedOperations;
         private String totalPayout;
         private String totalFees;
         private String totalPayment;
@@ -420,11 +421,11 @@ public class DataFormats {
             this.plannedOperations = plannedOperations;
         }
 
-        public int getExecutedOperations() {
+        public AtomicInteger getExecutedOperations() {
             return executedOperations;
         }
 
-        public void setExecutedOperations(int executedOperations) {
+        public void setExecutedOperations(final AtomicInteger executedOperations) {
             this.executedOperations = executedOperations;
         }
 

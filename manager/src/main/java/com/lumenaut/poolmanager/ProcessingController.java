@@ -182,6 +182,7 @@ public class ProcessingController {
 
             // Build overall result
             final TransactionResult transactionResult = new TransactionResult();
+            transactionResult.setExecutedOperations(new AtomicInteger(0));
             transactionResult.setEntries(new LinkedList<>());
             transactionResult.setUuid(transactionPlan.getUuid());
 
@@ -241,7 +242,7 @@ public class ProcessingController {
 
                             // Append completed batch to the final result
                             transactionResult.getEntries().addAll(tmpBatchResult.getEntries());
-                            transactionResult.setExecutedOperations(operationsCount);
+                            transactionResult.getExecutedOperations().getAndSet(operationsCount);
 
                             // Clear the tmp buffer
                             tmpBatchResult.getEntries().clear();
@@ -306,7 +307,7 @@ public class ProcessingController {
 
                         // Append completed batch to the final result
                         transactionResult.getEntries().addAll(tmpBatchResult.getEntries());
-                        transactionResult.setExecutedOperations(operationsCount);
+                        transactionResult.getExecutedOperations().getAndSet(operationsCount);
 
                         // Add to the progress tracker
                         batchCount++;
@@ -447,6 +448,7 @@ public class ProcessingController {
 
         // Build overall result
         final TransactionResult finalResults = new TransactionResult();
+        finalResults.setExecutedOperations(new AtomicInteger(0));
         finalResults.setEntries(new LinkedList<>());
         finalResults.setUuid(transactionPlan.getUuid());
 
@@ -497,8 +499,8 @@ public class ProcessingController {
         tmpBatchBuffer.setEntries(new LinkedList<>());
 
         // Start processing
-        int currentChannelIndex = 0;
-        int operationsCount = 0;
+        final AtomicInteger currentChannelIndex = new AtomicInteger(0);
+        final AtomicInteger operationsCount = new AtomicInteger(0);
         for (TransactionPlanEntry entry : transactionPlan.getEntries()) {
             // Create new entry for the temporary result (which we're using as a buffer for batches)
             final TransactionResultEntry transactionResultEntry = new TransactionResultEntry();
@@ -511,23 +513,26 @@ public class ProcessingController {
             tmpBatchBuffer.getEntries().add(transactionResultEntry);
 
             // Another one bites the dust..
-            operationsCount++;
+            operationsCount.getAndIncrement();
 
             // If the batch is full, execute it
-            if (operationsCount % SETTING_OPERATIONS_PER_TRANSACTION_BATCH == 0) {
+            if (operationsCount.get() % SETTING_OPERATIONS_PER_TRANSACTION_BATCH == 0) {
                 // Create channel batch
                 final TransactionResult channelBatchResult = new TransactionResult();
+
+                // Initialize the executed operations counter (unused), just in case we need to serialize this structure)
+                channelBatchResult.setExecutedOperations(new AtomicInteger(0));
                 channelBatchResult.setEntries(new LinkedList<>());
 
                 // Copy the entries from the tmp batch buffer
                 tmpBatchBuffer.getEntries().forEach(transactionEntry -> channelBatchResult.getEntries().add(transactionEntry));
 
-                // Append to the current channel
-                channelsQueues[currentChannelIndex++].offer(channelBatchResult);
+                // Append to the next available channel
+                channelsQueues[currentChannelIndex.getAndIncrement()].offer(channelBatchResult);
 
-                // Loop back
-                if (currentChannelIndex == availableChannels) {
-                    currentChannelIndex = 0;
+                // Loop back if we moved past the last channel
+                if (currentChannelIndex.get() == availableChannels) {
+                    currentChannelIndex.getAndSet(0);
                 }
 
                 // Start new tmp batch
@@ -539,13 +544,16 @@ public class ProcessingController {
         if (tmpBatchBuffer.getEntries().size() > 0) {
             // Create channel batch
             final TransactionResult channelBatchResult = new TransactionResult();
+
+            // Initialize the executed operations counter (unused), just in case we need to serialize this structure)
+            channelBatchResult.setExecutedOperations(new AtomicInteger(0));
             channelBatchResult.setEntries(new LinkedList<>());
 
             // Copy the entries from the tmp batch buffer
             tmpBatchBuffer.getEntries().forEach(transactionEntry -> channelBatchResult.getEntries().add(transactionEntry));
 
             // Append to the current channel if it has enough space
-            channelsQueues[currentChannelIndex].offer(channelBatchResult);
+            channelsQueues[currentChannelIndex.get()].offer(channelBatchResult);
 
             // Final cleanup
             tmpBatchBuffer.getEntries().clear();
@@ -555,8 +563,7 @@ public class ProcessingController {
         // CREATE TASKS FOR EACH CHANNEL AND EXECUTE THEM
         for (int i = 0; i < availableChannels; i++) {
             // Configure task
-            final ParallelTransactionTaskConfig config = new ParallelTransactionTaskConfig();
-            config.finalResults = finalResults;
+            final ParallelTransactionTaskConfig config = new ParallelTransactionTaskConfig(finalResults);
             config.paidTotal = paidTotal;
             config.totalFees = totalFees;
             config.totalPayment = totalPayment;
@@ -644,6 +651,22 @@ public class ProcessingController {
                 if (completed) {
                     // Flag completion, this thread will exit
                     processing = false;
+
+                    // Update the paid label in the transaction planner
+                    final int totalTransactionsPaid = operationsCount.get();
+                    Platform.runLater(() -> executedTransactionsLabel.setText(String.valueOf(totalTransactionsPaid)));
+
+                    // Save the transaction results
+                    synchronized (finalResults) {
+                        // Update result outcome
+                        if (operationsCount.get() == totalEntries) {
+                            finalResults.setResultOutcome("SUCCESSFULLY EXECUTED");
+                        } else {
+                            finalResults.setResultOutcome("EXECUTION ERROR, NOT ALL OPERATIONS EXECUTED");
+                        }
+
+                        saveTransactionResult(finalResults, paidTotal.get(), totalFees.get(), totalPayment.get(), remainingPayment.get(), false);
+                    }
 
                     // Status update
                     Platform.runLater(() -> {

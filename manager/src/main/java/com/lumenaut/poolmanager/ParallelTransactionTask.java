@@ -2,6 +2,7 @@ package com.lumenaut.poolmanager;
 
 import com.lumenaut.poolmanager.DataFormats.TransactionBatchResponse;
 import com.lumenaut.poolmanager.DataFormats.TransactionResult;
+import com.lumenaut.poolmanager.DataFormats.TransactionResultEntry;
 import com.lumenaut.poolmanager.gateways.StellarGateway;
 import org.jctools.queues.atomic.SpscAtomicArrayQueue;
 import org.stellar.sdk.KeyPair;
@@ -13,9 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.lumenaut.poolmanager.Settings.HORIZON_LIVE_NETWORK;
-import static com.lumenaut.poolmanager.Settings.HORIZON_TEST_NETWORK;
-import static com.lumenaut.poolmanager.Settings.SETTING_OPERATIONS_NETWORK;
+import static com.lumenaut.poolmanager.Settings.*;
 
 /**
  * @Author Luca Vignaroli
@@ -40,7 +39,7 @@ public class ParallelTransactionTask implements Runnable {
      */
     public static class ParallelTransactionTaskConfig {
         // Out
-        public TransactionResult finalResults;
+        public final TransactionResult finalResults;
         public AtomicLong paidTotal;
         public AtomicLong totalFees;
         public AtomicLong totalPayment;
@@ -56,6 +55,15 @@ public class ParallelTransactionTask implements Runnable {
         public SpscAtomicArrayQueue<TransactionResult> batchQueue;
         public AtomicBoolean error;
         public ArrayList<String> errorMessage;
+
+        /**
+         * Constructor
+         *
+         * @param finalResults The results object that collects the overall operations data
+         */
+        public ParallelTransactionTaskConfig(final TransactionResult finalResults) {
+            this.finalResults = finalResults;
+        }
     }
 
     //endregion
@@ -118,6 +126,8 @@ public class ParallelTransactionTask implements Runnable {
 
             // Bail on null or empty batch
             if (batch == null || batch.getEntries().size() == 0) {
+                System.err.println("Empty batch found in channel [" + config.channelIndex + "]");
+
                 // This batch was empty but we need to update progress anyway
                 currentBatch++;
 
@@ -133,6 +143,20 @@ public class ParallelTransactionTask implements Runnable {
                     // Append error and update error state
                     config.error.getAndSet(true);
                     config.errorMessage = batchResponse.errorMessages;
+                } else {
+                    // Update payment counters
+                    for (TransactionResultEntry resultEntry : batch.getEntries()) {
+                        config.paidTotal.getAndAdd(resultEntry.getAmount());
+                        config.totalFees.getAndAdd(SETTING_FEE);
+                        config.totalPayment.getAndAdd(resultEntry.getAmount() + SETTING_FEE);
+                        config.remainingPayment.getAndAdd(-1 * (resultEntry.getAmount() + SETTING_FEE));
+                    }
+
+                    // Append completed batch to the final result
+                    synchronized (config.finalResults) {
+                        config.finalResults.getEntries().addAll(batch.getEntries());
+                        config.finalResults.getExecutedOperations().getAndAdd(batch.getEntries().size());
+                    }
                 }
 
                 // Increment batch counter and update progress
