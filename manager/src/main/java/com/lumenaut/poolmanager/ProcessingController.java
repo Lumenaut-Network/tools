@@ -414,6 +414,9 @@ public class ProcessingController {
         });
     }
 
+    /**
+     * Multi threaded transaction processing
+     */
     private void parallelProcessing() {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // INIT
@@ -435,7 +438,6 @@ public class ProcessingController {
         }
 
         // Build server object and key pairs
-        final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? HORIZON_LIVE_NETWORK : HORIZON_TEST_NETWORK);
         final KeyPair source;
         final KeyPair signer;
         try {
@@ -524,7 +526,7 @@ public class ProcessingController {
                 // Create channel batch
                 final TransactionResult channelBatchResult = new TransactionResult();
 
-                // Initialize the executed operations counter (unused), just in case we need to serialize this structure)
+                // Initialize the executed operations counter (unused), just in case we need to serialize this structure
                 channelBatchResult.setExecutedOperations(new AtomicInteger(0));
                 channelBatchResult.setEntries(new LinkedList<>());
 

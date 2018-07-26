@@ -123,17 +123,19 @@ public class ParallelTransactionTask implements Runnable {
         // Build server object
         final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? HORIZON_LIVE_NETWORK : HORIZON_TEST_NETWORK);
 
-        // Create KeyPair for the channel and build an account response object (reusable)
+        // Create KeyPair for the channel
         final KeyPair channelAccount = KeyPair.fromAccountId(config.channelAccount);
+
+        // Build an AccountResponse object for the channel (used to fetch sequence numbers, can be reused)
         final AccountResponse channelAccountResponse;
         try {
             channelAccountResponse = server.accounts().account(channelAccount);
         } catch (IOException e) {
             config.error.getAndSet(true);
-            config.errorMessage.add("Unable to create account response object");
+            config.errorMessage.add("Unable to create AccountResponse object for the channel account: " + config.channelAccount);
             config.errorMessage.add(e.getMessage());
 
-            // Set progress to completion and exit this thread
+            // Set progress to completion and exit this task
             config.progress.getAndSet(100);
 
             return;
@@ -180,7 +182,7 @@ public class ParallelTransactionTask implements Runnable {
                         saveTransactionResponse(batch.getUuid(), batchResponse.transactionResponse);
                     }
                 } else {
-                    // This should really never happen, it means the there's a BIG issue with our queues
+                    // This should really NEVER happen, it means the there's a BIG issue with our queues or the way we're using them
                     Platform.runLater(() -> showError("Channel [" + config.channelIndex + "] has skipped a transaction batch, the batch object fetched from the queue was NULL!"));
                 }
 

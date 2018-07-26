@@ -21,6 +21,6 @@ out/
 
 # Temporary files
 .*~
-/data/settings.ini
+/data/*.ini
 /data/*/
 
