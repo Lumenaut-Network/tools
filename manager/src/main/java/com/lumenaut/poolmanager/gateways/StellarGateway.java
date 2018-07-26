@@ -592,7 +592,7 @@ public class StellarGateway {
      * @return
      * @throws IOException
      */
-    public static TransactionBatchResponse executeChannelTransactionBatch(final Server server, final KeyPair sourceAccount, final KeyPair channelAccount, final KeyPair[] signers, final TransactionResult transactionResult) throws IOException {
+    public static TransactionBatchResponse executeChannelTransactionBatch(final Server server, final AccountResponse channelAccountResponse, final KeyPair sourceAccount, final KeyPair channelAccount, final KeyPair[] signers, final TransactionResult transactionResult) throws IOException {
         // Prepare response object
         final TransactionBatchResponse response = new TransactionBatchResponse();
 
@@ -621,7 +621,6 @@ public class StellarGateway {
         }
 
         // Prepare a new transaction builder for the channel
-        final AccountResponse channelAccountResponse = server.accounts().account(channelAccount);
         final Builder transactionBuilder = new Transaction.Builder(channelAccountResponse);
 
         // Add memo to the transaction

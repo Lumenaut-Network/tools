@@ -12,6 +12,7 @@ import javafx.application.Platform;
 import org.jctools.queues.atomic.SpscAtomicArrayQueue;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Server;
+import org.stellar.sdk.responses.AccountResponse;
 import org.stellar.sdk.responses.SubmitTransactionResponse;
 
 import java.io.*;
@@ -122,8 +123,21 @@ public class ParallelTransactionTask implements Runnable {
         // Build server object
         final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? HORIZON_LIVE_NETWORK : HORIZON_TEST_NETWORK);
 
-        // Create KeyPair for the channel
+        // Create KeyPair for the channel and build an account response object (reusable)
         final KeyPair channelAccount = KeyPair.fromAccountId(config.channelAccount);
+        final AccountResponse channelAccountResponse;
+        try {
+            channelAccountResponse = server.accounts().account(channelAccount);
+        } catch (IOException e) {
+            config.error.getAndSet(true);
+            config.errorMessage.add("Unable to create account response object");
+            config.errorMessage.add(e.getMessage());
+
+            // Set progress to completion and exit this thread
+            config.progress.getAndSet(100);
+
+            return;
+        }
 
         // Bundle signers for the transaction
         final KeyPair[] signers = new KeyPair[2];
@@ -139,7 +153,7 @@ public class ParallelTransactionTask implements Runnable {
             final TransactionResult batch = config.batchQueue.poll();
             try {
                 if (batch != null) {
-                    final TransactionBatchResponse batchResponse = StellarGateway.executeChannelTransactionBatch(server, config.sourceAccount, channelAccount, signers, batch);
+                    final TransactionBatchResponse batchResponse = StellarGateway.executeChannelTransactionBatch(server, channelAccountResponse, config.sourceAccount, channelAccount, signers, batch);
                     if (!batchResponse.success) {
                         // Append error and update error state
                         config.error.getAndSet(true);
