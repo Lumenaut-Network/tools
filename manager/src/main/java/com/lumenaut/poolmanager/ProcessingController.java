@@ -848,7 +848,7 @@ public class ProcessingController {
 
         // Create folder if missing
         final String destinationFolder = "data/" + FOLDER_DATE_FORMATTER.format(new Date());
-        final String destinationFileName = FILE_DATE_FORMATTER.format(new Date()) + "_" + result.getUuid() + "_" + TRANSACTION_RESULT_JSON_SUFFIX;
+        final String destinationFileName = FILE_DATE_FORMATTER.format(new Date()) + "_" + result.getUuid() + "_" + TRANSACTIONS_RESULT_JSON_SUFFIX;
         final File destinationDir = new File(destinationFolder);
         boolean destinationReady;
         if (!destinationDir.exists()) {

@@ -125,7 +125,9 @@ public class TransactionsController {
     public static final String DATA_REROUTING_JSON_PATH = "data/rerouting.json";
     public static final String DATA_DONATIONS_JSON_PATH = "data/donations.json";
     public static final String TRANSACTION_PLAN_JSON_SUFFIX = "transaction_plan.json";
-    public static final String TRANSACTION_RESULT_JSON_SUFFIX = "transaction_result.json";
+    public static final String TRANSACTIONS_RESULT_JSON_SUFFIX = "transactions_result.json";
+    public static final String TRANSACTION_SUCCESSFUL_JSON_SUFFIX = "transaction_successful.json";
+    public static final String TRANSACTION_ERROR_JSON_SUFFIX = "transaction_error.json";
     public static final DateFormat FOLDER_DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd");
     public static final DateFormat FILE_DATE_FORMATTER = new SimpleDateFormat("HH'h'mm'm'ss's'");
 

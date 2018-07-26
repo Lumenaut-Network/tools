@@ -478,6 +478,7 @@ public class StellarGateway {
         if (transactionResponse.isSuccess()) {
             // Transaction batch was successful
             response.success = true;
+            response.transactionResponse = transactionResponse;
         } else {
             // Transaction batch failed
             response.success = false;

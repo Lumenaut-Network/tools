@@ -1,20 +1,31 @@
 package com.lumenaut.poolmanager;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.lumenaut.poolmanager.DataFormats.TransactionBatchResponse;
 import com.lumenaut.poolmanager.DataFormats.TransactionResult;
 import com.lumenaut.poolmanager.DataFormats.TransactionResultEntry;
 import com.lumenaut.poolmanager.gateways.StellarGateway;
+import javafx.application.Platform;
 import org.jctools.queues.atomic.SpscAtomicArrayQueue;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Server;
+import org.stellar.sdk.responses.SubmitTransactionResponse;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static com.lumenaut.poolmanager.DataFormats.OBJECT_MAPPER;
 import static com.lumenaut.poolmanager.Settings.*;
+import static com.lumenaut.poolmanager.TransactionsController.*;
+import static com.lumenaut.poolmanager.UIUtils.showError;
 
 /**
  * @Author Luca Vignaroli
@@ -27,6 +38,9 @@ public class ParallelTransactionTask implements Runnable {
 
     // Config
     private final ParallelTransactionTaskConfig config;
+
+    // JSON
+    private final ObjectMapper mapper = new ObjectMapper();
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -124,25 +138,36 @@ public class ParallelTransactionTask implements Runnable {
         while (config.batchQueue.peek() != null) {
             final TransactionResult batch = config.batchQueue.poll();
             try {
-                final TransactionBatchResponse batchResponse = StellarGateway.executeChannelTransactionBatch(server, config.sourceAccount, channelAccount, signers, batch);
-                if (!batchResponse.success) {
-                    // Append error and update error state
-                    config.error.getAndSet(true);
-                    config.errorMessage = batchResponse.errorMessages;
-                } else {
-                    // Update payment counters
-                    for (TransactionResultEntry resultEntry : batch.getEntries()) {
-                        config.paidTotal.getAndAdd(resultEntry.getAmount());
-                        config.totalFees.getAndAdd(SETTING_FEE);
-                        config.totalPayment.getAndAdd(resultEntry.getAmount() + SETTING_FEE);
-                        config.remainingPayment.getAndAdd(-1 * (resultEntry.getAmount() + SETTING_FEE));
-                    }
+                if (batch != null) {
+                    final TransactionBatchResponse batchResponse = StellarGateway.executeChannelTransactionBatch(server, config.sourceAccount, channelAccount, signers, batch);
+                    if (!batchResponse.success) {
+                        // Append error and update error state
+                        config.error.getAndSet(true);
+                        config.errorMessage = batchResponse.errorMessages;
 
-                    // Append completed batch to the final result
-                    synchronized (config.finalResults) {
-                        config.finalResults.getEntries().addAll(batch.getEntries());
-                        config.finalResults.getExecutedOperations().getAndAdd(batch.getEntries().size());
+                        // Save the response
+                        saveTransactionResponse(batch.getUuid(), batchResponse.transactionResponse);
+                    } else {
+                        // Update payment counters
+                        for (TransactionResultEntry resultEntry : batch.getEntries()) {
+                            config.paidTotal.getAndAdd(resultEntry.getAmount());
+                            config.totalFees.getAndAdd(SETTING_FEE);
+                            config.totalPayment.getAndAdd(resultEntry.getAmount() + SETTING_FEE);
+                            config.remainingPayment.getAndAdd(-1 * (resultEntry.getAmount() + SETTING_FEE));
+                        }
+
+                        // Append completed batch to the final result
+                        synchronized (config.finalResults) {
+                            config.finalResults.getEntries().addAll(batch.getEntries());
+                            config.finalResults.getExecutedOperations().getAndAdd(batch.getEntries().size());
+                        }
+
+                        // Save the response
+                        saveTransactionResponse(batch.getUuid(), batchResponse.transactionResponse);
                     }
+                } else {
+                    // This should really never happen, it means the there's a BIG issue with our queues
+                    Platform.runLater(() -> showError("Channel [" + config.channelIndex + "] has skipped a transaction batch, the batch object fetched from the queue was NULL!"));
                 }
 
                 // Increment batch counter and update progress
@@ -171,13 +196,68 @@ public class ParallelTransactionTask implements Runnable {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //region METHOD OVERRIDES
-
-    //endregion
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region METHODS
+
+    /**
+     * Save the complete state of a transaction response
+     *
+     * @param transactionResponse
+     */
+    private void saveTransactionResponse(final String uuid, final SubmitTransactionResponse transactionResponse) {
+        // Read the current contents of the text area
+        if (transactionResponse == null) {
+            return;
+        }
+
+        // Gather data
+        String envelopeXdr = transactionResponse.getEnvelopeXdr();
+        String resultXdr = transactionResponse.getResultXdr();
+        Long ledger = transactionResponse.getLedger();
+
+        // Create JSON structure
+        final JsonNode rootNode = mapper.createObjectNode();
+        ((ObjectNode) rootNode).put("ledget", ledger);
+        ((ObjectNode) rootNode).put("envelopeXdr", envelopeXdr);
+        ((ObjectNode) rootNode).put("resultXdr", resultXdr);
+
+        if (!transactionResponse.isSuccess()) {
+            // Append transaction result code
+            ((ObjectNode) rootNode).put("transactionResultCode", transactionResponse.getExtras().getResultCodes().getTransactionResultCode());
+
+            // Append operations result codes
+            final ArrayList<String> operationsResultCodes = transactionResponse.getExtras().getResultCodes().getOperationsResultCodes();
+            final JsonNode operationsResults = mapper.createArrayNode();
+            for (String operationResultCode : operationsResultCodes) {
+                ((ArrayNode) operationsResults).add(operationResultCode);
+            }
+            ((ObjectNode) rootNode).set("operationsResultCodes", operationsResults);
+        }
+
+        // Create folder if missing
+        final String destinationFolder = "data/" + FOLDER_DATE_FORMATTER.format(new Date()) + "/transactions";
+        final String destinationFileName = FILE_DATE_FORMATTER.format(new Date()) + "_" + UUID.randomUUID().toString() + "_" + (transactionResponse.isSuccess() ? TRANSACTION_SUCCESSFUL_JSON_SUFFIX : TRANSACTION_ERROR_JSON_SUFFIX);
+        final File destinationDir = new File(destinationFolder);
+        boolean destinationReady;
+        if (!destinationDir.exists()) {
+            destinationReady = destinationDir.mkdirs();
+        } else {
+            destinationReady = true;
+        }
+
+        // Save to file
+        if (destinationReady) {
+            // Save to file
+            final String outPutFilePath = destinationFolder + "/" + destinationFileName;
+            try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(outPutFilePath), "UTF-8");
+                 BufferedWriter bufWriter = new BufferedWriter(writer)
+            ) {
+                bufWriter.write(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode));
+            } catch (IOException e) {
+                showError("Cannot write transaction result file [" + outPutFilePath + "]: " + e.getMessage());
+            }
+        }
+
+    }
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
