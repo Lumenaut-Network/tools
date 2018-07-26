@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -562,6 +563,9 @@ public class ProcessingController {
             tmpBatchBuffer.getEntries().clear();
         }
 
+        // Start time profiling
+        final long startTime = System.currentTimeMillis();
+
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // CREATE TASKS FOR EACH CHANNEL AND EXECUTE THEM
         for (int i = 0; i < availableChannels; i++) {
@@ -620,7 +624,7 @@ public class ProcessingController {
                         final SpscAtomicArrayQueue<TransactionResult> channelQueue = channelsQueues[i];
 
                         // Channel status row start
-                        processingOutputTextArea.appendText("Channel [" + i + "] [");
+                        processingOutputTextArea.appendText("Channel [" + (i < 10 ? "0" : "") + i + "] [" + channelQueue.size() + "] [");
 
                         if (emptyChannels.contains(i)) {
                             // Empty channel, fill the progress bar
@@ -629,7 +633,7 @@ public class ProcessingController {
                             }
 
                             // State
-                            processingOutputTextArea.appendText("] [ " + currentProgress + "% ] [NO WORK TO DO]\n");
+                            processingOutputTextArea.appendText("][ " + currentProgress + "%] [NO WORK TO DO]\n");
                         } else if (error) {
                             // Completed
                             for (int j = 0; j < currentProgress; j++) {
@@ -642,7 +646,7 @@ public class ProcessingController {
                             }
 
                             // State
-                            processingOutputTextArea.appendText("] [ " + currentProgress + "% ] [SOME ERRORS OCCURRED]\n");
+                            processingOutputTextArea.appendText("] [" + currentProgress + "%] [SOME ERRORS OCCURRED]\n");
                         } else if (channelsProgress[i].get() < 100) {
                             // Completed
                             for (int j = 0; j < currentProgress; j++) {
@@ -655,7 +659,7 @@ public class ProcessingController {
                             }
 
                             // State
-                            processingOutputTextArea.appendText("] [ " + currentProgress + "% ] [PROCESSING]\n");
+                            processingOutputTextArea.appendText("] [" + currentProgress + "%] [PROCESSING]\n");
                         } else {
                             // Completed
                             for (int j = 0; j < currentProgress; j++) {
@@ -663,7 +667,7 @@ public class ProcessingController {
                             }
 
                             // State
-                            processingOutputTextArea.appendText("] [ " + currentProgress + "% ] [COMPLETED]\n");
+                            processingOutputTextArea.appendText("] [" + currentProgress + "%] [COMPLETED]\n");
                         }
                     }
                 });
@@ -697,11 +701,16 @@ public class ProcessingController {
                         }
                     }
 
+                    // Execution time
+                    final long stopTime = System.currentTimeMillis();
+                    final long elapsedTime = stopTime - startTime;
+
                     // Status update
                     if (!errorsOccurred) {
                         Platform.runLater(() -> {
                             // Append final message
-                            appendMessage("[FINISHED] Process completed!\n");
+                            appendMessage("[FINISHED] Process completed in (" + (TimeUnit.MILLISECONDS.toHours(elapsedTime) % 24) + "h " +
+                                          (TimeUnit.MILLISECONDS.toMinutes(elapsedTime) % 60) + "m " + (TimeUnit.MILLISECONDS.toSeconds(elapsedTime) % 60) + "s )\n");
 
                             // Fill the progress bar and colorize it
                             processingProgressBar.setProgress(1);
@@ -719,7 +728,8 @@ public class ProcessingController {
                     } else {
                         Platform.runLater(() -> {
                             // Append final message
-                            appendMessage("[FINISHED] Process finished with ERRORS\n");
+                            appendMessage("[FINISHED] Process completed in (" + (TimeUnit.MILLISECONDS.toHours(elapsedTime) % 24) + "h " +
+                                          (TimeUnit.MILLISECONDS.toMinutes(elapsedTime) % 60) + "m " + (TimeUnit.MILLISECONDS.toSeconds(elapsedTime) % 60) + "s )\n");
 
                             // Fill the progress bar and colorize it
                             processingProgressBar.setProgress(1);
