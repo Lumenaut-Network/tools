@@ -1,6 +1,5 @@
 package com.lumenaut.poolmanager;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -16,6 +15,7 @@ import org.stellar.sdk.responses.AccountResponse;
 import org.stellar.sdk.responses.SubmitTransactionResponse;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
@@ -231,22 +231,22 @@ public class ParallelTransactionTask implements Runnable {
         Long ledger = transactionResponse.getLedger();
 
         // Create JSON structure
-        final JsonNode rootNode = mapper.createObjectNode();
-        ((ObjectNode) rootNode).put("ledget", ledger);
-        ((ObjectNode) rootNode).put("envelopeXdr", envelopeXdr);
-        ((ObjectNode) rootNode).put("resultXdr", resultXdr);
+        final ObjectNode rootNode = mapper.createObjectNode();
+        rootNode.put("ledger", ledger);
+        rootNode.put("envelopeXdr", envelopeXdr);
+        rootNode.put("resultXdr", resultXdr);
 
         if (!transactionResponse.isSuccess()) {
             // Append transaction result code
-            ((ObjectNode) rootNode).put("transactionResultCode", transactionResponse.getExtras().getResultCodes().getTransactionResultCode());
+            rootNode.put("transactionResultCode", transactionResponse.getExtras().getResultCodes().getTransactionResultCode());
 
             // Append operations result codes
             final ArrayList<String> operationsResultCodes = transactionResponse.getExtras().getResultCodes().getOperationsResultCodes();
-            final JsonNode operationsResults = mapper.createArrayNode();
+            final ArrayNode operationsResults = mapper.createArrayNode();
             for (String operationResultCode : operationsResultCodes) {
-                ((ArrayNode) operationsResults).add(operationResultCode);
+                operationsResults.add(operationResultCode);
             }
-            ((ObjectNode) rootNode).set("operationsResultCodes", operationsResults);
+            rootNode.set("operationsResultCodes", operationsResults);
         }
 
         // Create folder if missing
@@ -264,8 +264,9 @@ public class ParallelTransactionTask implements Runnable {
         if (destinationReady) {
             // Save to file
             final String outPutFilePath = destinationFolder + "/" + destinationFileName;
-            try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(outPutFilePath), "UTF-8");
-                 BufferedWriter bufWriter = new BufferedWriter(writer)
+            try (
+            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(outPutFilePath), StandardCharsets.UTF_8);
+            BufferedWriter bufWriter = new BufferedWriter(writer)
             ) {
                 bufWriter.write(OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode));
             } catch (IOException e) {
