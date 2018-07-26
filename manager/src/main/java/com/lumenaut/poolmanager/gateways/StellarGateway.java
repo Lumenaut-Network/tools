@@ -105,7 +105,7 @@ public class StellarGateway {
                 }
             } else {
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [1] not specified, skipping! "));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [1] not specified, skipping!\n"));
             }
 
             // Channel 2
@@ -122,7 +122,7 @@ public class StellarGateway {
                 }
             } else {
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [2] not specified, skipping! "));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [2] not specified, skipping!\n"));
             }
 
             // Channel 3
@@ -139,7 +139,7 @@ public class StellarGateway {
                 }
             } else {
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [3] not specified, skipping! "));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [3] not specified, skipping!\n"));
             }
 
             // Channel 4
@@ -156,7 +156,7 @@ public class StellarGateway {
                 }
             } else {
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [4] not specified, skipping! "));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [4] not specified, skipping!\n"));
             }
 
             // Channel 5
@@ -173,7 +173,7 @@ public class StellarGateway {
                 }
             } else {
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [5] not specified, skipping! "));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [5] not specified, skipping!\n"));
             }
 
             // Channel 6
@@ -190,7 +190,7 @@ public class StellarGateway {
                 }
             } else {
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [6] not specified, skipping! "));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [6] not specified, skipping!\n"));
             }
 
             // Channel 7
@@ -206,7 +206,7 @@ public class StellarGateway {
                 }
             } else {
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [7] not specified, skipping! "));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [7] not specified, skipping!\n"));
             }
 
             // Channel 8
@@ -223,7 +223,7 @@ public class StellarGateway {
                 }
             } else {
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [8] not specified, skipping! "));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [8] not specified, skipping!\n"));
             }
 
             // Channel 9
@@ -240,7 +240,7 @@ public class StellarGateway {
                 }
             } else {
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [9] not specified, skipping! "));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [9] not specified, skipping!\n"));
             }
 
             // Channel 10
@@ -257,7 +257,177 @@ public class StellarGateway {
                 }
             } else {
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [10] not specified, skipping! "));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [10] not specified, skipping!\n"));
+            }
+
+            // Channel 11
+            if (SETTING_PARALLEL_CHANNEL_ADDRESS_11 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_11.isEmpty() &&
+                SETTING_PARALLEL_CHANNEL_KEY_11 != null && !SETTING_PARALLEL_CHANNEL_KEY_11.isEmpty()) {
+
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [11] init... "));
+
+                // Verify channel and balance
+                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_11, SETTING_PARALLEL_CHANNEL_KEY_11, outputTextArea)) {
+                    channelAccounts.add(10, SETTING_PARALLEL_CHANNEL_ADDRESS_11);
+                    channelKeys.add(10, SETTING_PARALLEL_CHANNEL_KEY_11);
+                }
+            } else {
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [11] not specified, skipping!\n"));
+            }
+
+            // Channel 12
+            if (SETTING_PARALLEL_CHANNEL_ADDRESS_12 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_12.isEmpty() &&
+                SETTING_PARALLEL_CHANNEL_KEY_12 != null && !SETTING_PARALLEL_CHANNEL_KEY_12.isEmpty()) {
+
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [12] init... "));
+
+                // Verify channel and balance
+                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_12, SETTING_PARALLEL_CHANNEL_KEY_12, outputTextArea)) {
+                    channelAccounts.add(11, SETTING_PARALLEL_CHANNEL_ADDRESS_12);
+                    channelKeys.add(11, SETTING_PARALLEL_CHANNEL_KEY_12);
+                }
+            } else {
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [12] not specified, skipping!\n"));
+            }
+
+            // Channel 13
+            if (SETTING_PARALLEL_CHANNEL_ADDRESS_13 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_13.isEmpty() &&
+                SETTING_PARALLEL_CHANNEL_KEY_13 != null && !SETTING_PARALLEL_CHANNEL_KEY_13.isEmpty()) {
+
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [13] init... "));
+
+                // Verify channel and balance
+                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_13, SETTING_PARALLEL_CHANNEL_KEY_13, outputTextArea)) {
+                    channelAccounts.add(12, SETTING_PARALLEL_CHANNEL_ADDRESS_13);
+                    channelKeys.add(12, SETTING_PARALLEL_CHANNEL_KEY_13);
+                }
+            } else {
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [13] not specified, skipping!\n"));
+            }
+
+            // Channel 14
+            if (SETTING_PARALLEL_CHANNEL_ADDRESS_14 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_14.isEmpty() &&
+                SETTING_PARALLEL_CHANNEL_KEY_14 != null && !SETTING_PARALLEL_CHANNEL_KEY_14.isEmpty()) {
+
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [14] init... "));
+
+                // Verify channel and balance
+                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_14, SETTING_PARALLEL_CHANNEL_KEY_14, outputTextArea)) {
+                    channelAccounts.add(13, SETTING_PARALLEL_CHANNEL_ADDRESS_14);
+                    channelKeys.add(13, SETTING_PARALLEL_CHANNEL_KEY_14);
+                }
+            } else {
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [14] not specified, skipping!\n"));
+            }
+
+            // Channel 15
+            if (SETTING_PARALLEL_CHANNEL_ADDRESS_15 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_15.isEmpty() &&
+                SETTING_PARALLEL_CHANNEL_KEY_15 != null && !SETTING_PARALLEL_CHANNEL_KEY_15.isEmpty()) {
+
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [15] init... "));
+
+                // Verify channel and balance
+                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_15, SETTING_PARALLEL_CHANNEL_KEY_15, outputTextArea)) {
+                    channelAccounts.add(14, SETTING_PARALLEL_CHANNEL_ADDRESS_15);
+                    channelKeys.add(14, SETTING_PARALLEL_CHANNEL_KEY_15);
+                }
+            } else {
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [15] not specified, skipping!\n"));
+            }
+
+            // Channel 16
+            if (SETTING_PARALLEL_CHANNEL_ADDRESS_16 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_16.isEmpty() &&
+                SETTING_PARALLEL_CHANNEL_KEY_16 != null && !SETTING_PARALLEL_CHANNEL_KEY_16.isEmpty()) {
+
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [16] init... "));
+
+                // Verify channel and balance
+                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_16, SETTING_PARALLEL_CHANNEL_KEY_16, outputTextArea)) {
+                    channelAccounts.add(15, SETTING_PARALLEL_CHANNEL_ADDRESS_16);
+                    channelKeys.add(15, SETTING_PARALLEL_CHANNEL_KEY_16);
+                }
+            } else {
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [16] not specified, skipping!\n"));
+            }
+
+            // Channel 17
+            if (SETTING_PARALLEL_CHANNEL_ADDRESS_17 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_17.isEmpty() &&
+                SETTING_PARALLEL_CHANNEL_KEY_17 != null && !SETTING_PARALLEL_CHANNEL_KEY_17.isEmpty()) {
+
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [17] init... "));
+
+                // Verify channel and balance
+                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_17, SETTING_PARALLEL_CHANNEL_KEY_17, outputTextArea)) {
+                    channelAccounts.add(16, SETTING_PARALLEL_CHANNEL_ADDRESS_17);
+                    channelKeys.add(16, SETTING_PARALLEL_CHANNEL_KEY_17);
+                }
+            } else {
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [17] not specified, skipping!\n"));
+            }
+
+            // Channel 18
+            if (SETTING_PARALLEL_CHANNEL_ADDRESS_18 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_18.isEmpty() &&
+                SETTING_PARALLEL_CHANNEL_KEY_18 != null && !SETTING_PARALLEL_CHANNEL_KEY_18.isEmpty()) {
+
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [18] init... "));
+
+                // Verify channel and balance
+                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_18, SETTING_PARALLEL_CHANNEL_KEY_18, outputTextArea)) {
+                    channelAccounts.add(17, SETTING_PARALLEL_CHANNEL_ADDRESS_18);
+                    channelKeys.add(17, SETTING_PARALLEL_CHANNEL_KEY_18);
+                }
+            } else {
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [18] not specified, skipping!\n"));
+            }
+
+            // Channel 19
+            if (SETTING_PARALLEL_CHANNEL_ADDRESS_19 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_19.isEmpty() &&
+                SETTING_PARALLEL_CHANNEL_KEY_19 != null && !SETTING_PARALLEL_CHANNEL_KEY_19.isEmpty()) {
+
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [19] init... "));
+
+                // Verify channel and balance
+                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_19, SETTING_PARALLEL_CHANNEL_KEY_19, outputTextArea)) {
+                    channelAccounts.add(18, SETTING_PARALLEL_CHANNEL_ADDRESS_19);
+                    channelKeys.add(18, SETTING_PARALLEL_CHANNEL_KEY_19);
+                }
+            } else {
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [19] not specified, skipping!\n"));
+            }
+
+            // Channel 20
+            if (SETTING_PARALLEL_CHANNEL_ADDRESS_20 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_20.isEmpty() &&
+                SETTING_PARALLEL_CHANNEL_KEY_20 != null && !SETTING_PARALLEL_CHANNEL_KEY_20.isEmpty()) {
+
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [20] init... "));
+
+                // Verify channel and balance
+                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_20, SETTING_PARALLEL_CHANNEL_KEY_20, outputTextArea)) {
+                    channelAccounts.add(19, SETTING_PARALLEL_CHANNEL_ADDRESS_20);
+                    channelKeys.add(19, SETTING_PARALLEL_CHANNEL_KEY_20);
+                }
+            } else {
+                // Verify channel and balance
+                Platform.runLater(() -> outputTextArea.appendText("Channel [20] not specified, skipping!\n"));
             }
         } else {
             channelAccounts = null;

@@ -19,7 +19,7 @@ public class Settings {
     // This setting should be as high as the maximum number of supported channels that the application can use.
     // The transactions' threads (ParallelTransactionTask.java) are super lightweight and will spend 99% of the time I/O blocked,
     // don't worry if your CPU doesn't an equal amount of cores, your kernel's scheduler will manage just fine.
-    public static final int MAX_THREADS = 10;
+    public static final int MAX_THREADS = 20;
 
     // Horizon networks
     public static final String HORIZON_TEST_NETWORK = "https://horizon-testnet.stellar.org";
@@ -63,6 +63,26 @@ public class Settings {
     public static String SETTING_PARALLEL_CHANNEL_KEY_9 = "";
     public static String SETTING_PARALLEL_CHANNEL_ADDRESS_10 = "";
     public static String SETTING_PARALLEL_CHANNEL_KEY_10 = "";
+    public static String SETTING_PARALLEL_CHANNEL_ADDRESS_11 = "";
+    public static String SETTING_PARALLEL_CHANNEL_KEY_11 = "";
+    public static String SETTING_PARALLEL_CHANNEL_ADDRESS_12 = "";
+    public static String SETTING_PARALLEL_CHANNEL_KEY_12 = "";
+    public static String SETTING_PARALLEL_CHANNEL_ADDRESS_13 = "";
+    public static String SETTING_PARALLEL_CHANNEL_KEY_13 = "";
+    public static String SETTING_PARALLEL_CHANNEL_ADDRESS_14 = "";
+    public static String SETTING_PARALLEL_CHANNEL_KEY_14 = "";
+    public static String SETTING_PARALLEL_CHANNEL_ADDRESS_15 = "";
+    public static String SETTING_PARALLEL_CHANNEL_KEY_15 = "";
+    public static String SETTING_PARALLEL_CHANNEL_ADDRESS_16 = "";
+    public static String SETTING_PARALLEL_CHANNEL_KEY_16 = "";
+    public static String SETTING_PARALLEL_CHANNEL_ADDRESS_17 = "";
+    public static String SETTING_PARALLEL_CHANNEL_KEY_17 = "";
+    public static String SETTING_PARALLEL_CHANNEL_ADDRESS_18 = "";
+    public static String SETTING_PARALLEL_CHANNEL_KEY_18 = "";
+    public static String SETTING_PARALLEL_CHANNEL_ADDRESS_19 = "";
+    public static String SETTING_PARALLEL_CHANNEL_KEY_19 = "";
+    public static String SETTING_PARALLEL_CHANNEL_ADDRESS_20 = "";
+    public static String SETTING_PARALLEL_CHANNEL_KEY_20 = "";
 
     // Non persistent settings
     public static RoundingMode ROUNDING_MODE = RoundingMode.HALF_DOWN;
@@ -149,6 +169,26 @@ public class Settings {
             SETTING_PARALLEL_CHANNEL_KEY_9 = PROPERTIES.getProperty("channelKey9", "");
             SETTING_PARALLEL_CHANNEL_ADDRESS_10 = PROPERTIES.getProperty("channelAddress10", "");
             SETTING_PARALLEL_CHANNEL_KEY_10 = PROPERTIES.getProperty("channelKey10", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_11 = PROPERTIES.getProperty("channelAddress11", "");
+            SETTING_PARALLEL_CHANNEL_KEY_11 = PROPERTIES.getProperty("channelKey11", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_12 = PROPERTIES.getProperty("channelAddress12", "");
+            SETTING_PARALLEL_CHANNEL_KEY_12 = PROPERTIES.getProperty("channelKey12", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_13 = PROPERTIES.getProperty("channelAddress13", "");
+            SETTING_PARALLEL_CHANNEL_KEY_13 = PROPERTIES.getProperty("channelKey13", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_14 = PROPERTIES.getProperty("channelAddress14", "");
+            SETTING_PARALLEL_CHANNEL_KEY_14 = PROPERTIES.getProperty("channelKey14", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_15 = PROPERTIES.getProperty("channelAddress15", "");
+            SETTING_PARALLEL_CHANNEL_KEY_15 = PROPERTIES.getProperty("channelKey15", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_16 = PROPERTIES.getProperty("channelAddress16", "");
+            SETTING_PARALLEL_CHANNEL_KEY_16 = PROPERTIES.getProperty("channelKey16", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_17 = PROPERTIES.getProperty("channelAddress17", "");
+            SETTING_PARALLEL_CHANNEL_KEY_17 = PROPERTIES.getProperty("channelKey17", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_18 = PROPERTIES.getProperty("channelAddress18", "");
+            SETTING_PARALLEL_CHANNEL_KEY_18 = PROPERTIES.getProperty("channelKey18", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_19 = PROPERTIES.getProperty("channelAddress19", "");
+            SETTING_PARALLEL_CHANNEL_KEY_19 = PROPERTIES.getProperty("channelKey19", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_20 = PROPERTIES.getProperty("channelAddress20", "");
+            SETTING_PARALLEL_CHANNEL_KEY_20 = PROPERTIES.getProperty("channelKey20", "");
         } catch (Exception e) {
             // Init defaults (ONLY EXECUTED WHEN the "settings ini file doesn't exist)
             SETTING_OPERATIONS_NETWORK = PROPERTIES.getProperty("operationsNetwork", "TEST");
@@ -190,6 +230,26 @@ public class Settings {
             SETTING_PARALLEL_CHANNEL_KEY_9 = PROPERTIES.getProperty("channelKey9", "");
             SETTING_PARALLEL_CHANNEL_ADDRESS_10 = PROPERTIES.getProperty("channelAddress10", "");
             SETTING_PARALLEL_CHANNEL_KEY_10 = PROPERTIES.getProperty("channelKey10", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_11 = PROPERTIES.getProperty("channelAddress11", "");
+            SETTING_PARALLEL_CHANNEL_KEY_11 = PROPERTIES.getProperty("channelKey11", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_12 = PROPERTIES.getProperty("channelAddress12", "");
+            SETTING_PARALLEL_CHANNEL_KEY_12 = PROPERTIES.getProperty("channelKey12", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_13 = PROPERTIES.getProperty("channelAddress13", "");
+            SETTING_PARALLEL_CHANNEL_KEY_13 = PROPERTIES.getProperty("channelKey13", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_14 = PROPERTIES.getProperty("channelAddress14", "");
+            SETTING_PARALLEL_CHANNEL_KEY_14 = PROPERTIES.getProperty("channelKey14", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_15 = PROPERTIES.getProperty("channelAddress15", "");
+            SETTING_PARALLEL_CHANNEL_KEY_15 = PROPERTIES.getProperty("channelKey15", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_16 = PROPERTIES.getProperty("channelAddress16", "");
+            SETTING_PARALLEL_CHANNEL_KEY_16 = PROPERTIES.getProperty("channelKey16", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_17 = PROPERTIES.getProperty("channelAddress17", "");
+            SETTING_PARALLEL_CHANNEL_KEY_17 = PROPERTIES.getProperty("channelKey17", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_18 = PROPERTIES.getProperty("channelAddress18", "");
+            SETTING_PARALLEL_CHANNEL_KEY_18 = PROPERTIES.getProperty("channelKey18", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_19 = PROPERTIES.getProperty("channelAddress19", "");
+            SETTING_PARALLEL_CHANNEL_KEY_19 = PROPERTIES.getProperty("channelKey19", "");
+            SETTING_PARALLEL_CHANNEL_ADDRESS_20 = PROPERTIES.getProperty("channelAddress20", "");
+            SETTING_PARALLEL_CHANNEL_KEY_20 = PROPERTIES.getProperty("channelKey20", "");
 
             // Save defaults
             saveSettings();
@@ -238,6 +298,26 @@ public class Settings {
         PROPERTIES.setProperty("channelKey9", SETTING_PARALLEL_CHANNEL_KEY_9);
         PROPERTIES.setProperty("channelAddress10", SETTING_PARALLEL_CHANNEL_ADDRESS_10);
         PROPERTIES.setProperty("channelKey10", SETTING_PARALLEL_CHANNEL_KEY_10);
+        PROPERTIES.setProperty("channelAddress11", SETTING_PARALLEL_CHANNEL_ADDRESS_11);
+        PROPERTIES.setProperty("channelKey11", SETTING_PARALLEL_CHANNEL_KEY_11);
+        PROPERTIES.setProperty("channelAddress12", SETTING_PARALLEL_CHANNEL_ADDRESS_12);
+        PROPERTIES.setProperty("channelKey12", SETTING_PARALLEL_CHANNEL_KEY_12);
+        PROPERTIES.setProperty("channelAddress13", SETTING_PARALLEL_CHANNEL_ADDRESS_13);
+        PROPERTIES.setProperty("channelKey13", SETTING_PARALLEL_CHANNEL_KEY_13);
+        PROPERTIES.setProperty("channelAddress14", SETTING_PARALLEL_CHANNEL_ADDRESS_14);
+        PROPERTIES.setProperty("channelKey14", SETTING_PARALLEL_CHANNEL_KEY_14);
+        PROPERTIES.setProperty("channelAddress15", SETTING_PARALLEL_CHANNEL_ADDRESS_15);
+        PROPERTIES.setProperty("channelKey15", SETTING_PARALLEL_CHANNEL_KEY_15);
+        PROPERTIES.setProperty("channelAddress16", SETTING_PARALLEL_CHANNEL_ADDRESS_16);
+        PROPERTIES.setProperty("channelKey16", SETTING_PARALLEL_CHANNEL_KEY_16);
+        PROPERTIES.setProperty("channelAddress17", SETTING_PARALLEL_CHANNEL_ADDRESS_17);
+        PROPERTIES.setProperty("channelKey17", SETTING_PARALLEL_CHANNEL_KEY_17);
+        PROPERTIES.setProperty("channelAddress18", SETTING_PARALLEL_CHANNEL_ADDRESS_18);
+        PROPERTIES.setProperty("channelKey18", SETTING_PARALLEL_CHANNEL_KEY_18);
+        PROPERTIES.setProperty("channelAddress19", SETTING_PARALLEL_CHANNEL_ADDRESS_19);
+        PROPERTIES.setProperty("channelKey19", SETTING_PARALLEL_CHANNEL_KEY_19);
+        PROPERTIES.setProperty("channelAddress20", SETTING_PARALLEL_CHANNEL_ADDRESS_20);
+        PROPERTIES.setProperty("channelKey20", SETTING_PARALLEL_CHANNEL_KEY_20);
 
         // Store
         PROPERTIES.store(new FileOutputStream("data/settings.ini"), "Settings");

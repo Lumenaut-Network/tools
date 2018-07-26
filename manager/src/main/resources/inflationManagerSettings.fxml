@@ -10,7 +10,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane maxHeight="600.0" maxWidth="700.0" minHeight="350.0" minWidth="700.0" prefHeight="639.0" prefWidth="600.0"
+<AnchorPane maxHeight="971.0" maxWidth="700.0" minHeight="350.0" minWidth="700.0" prefHeight="538.0" prefWidth="700.0"
             xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.lumenaut.poolmanager.SettingsController">
     <children>
@@ -61,10 +61,10 @@
                AnchorPane.topAnchor="274.0"/>
         <CheckBox fx:id="checkboxParallelChannels" layoutX="210.0" layoutY="274.0" mnemonicParsing="false"
                   text="Enabled" AnchorPane.leftAnchor="210.0" AnchorPane.topAnchor="274.0"/>
-        <ScrollPane layoutX="3.0" layoutY="300.0" prefHeight="256.0" prefWidth="696.0" AnchorPane.bottomAnchor="45.0"
+        <ScrollPane layoutX="2.0" layoutY="300.0" prefHeight="278.0" prefWidth="696.0" AnchorPane.bottomAnchor="45.0"
                     AnchorPane.leftAnchor="2.0" AnchorPane.rightAnchor="2.0" AnchorPane.topAnchor="300.0">
             <content>
-                <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" prefHeight="290.0"
+                <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" prefHeight="551.0"
                             prefWidth="678.0">
                     <children>
                         <Label layoutX="10.0" layoutY="8.0" text="Channel 1:" AnchorPane.leftAnchor="10.0"/>
@@ -137,6 +137,76 @@
                                    prefWidth="219.0" AnchorPane.leftAnchor="356.0" AnchorPane.rightAnchor="10.0"/>
                         <Label layoutX="82.0" layoutY="251.0" text="Address" AnchorPane.leftAnchor="82.0"/>
                         <Label layoutX="330.0" layoutY="251.0" text="Key" AnchorPane.rightAnchor="328.0"/>
+                        <Label layoutX="10.0" layoutY="278.0" text="Channel 11:"/>
+                        <TextField fx:id="chan11AddressField" layoutX="131.0" layoutY="274.0" prefHeight="25.0"
+                                   prefWidth="191.0" AnchorPane.leftAnchor="131.0" AnchorPane.rightAnchor="359.0"/>
+                        <TextField fx:id="chan11KeyField" layoutX="356.0" layoutY="274.0" prefHeight="25.0"
+                                   prefWidth="306.0" AnchorPane.leftAnchor="356.0" AnchorPane.rightAnchor="10.0"/>
+                        <Label layoutX="82.0" layoutY="278.0" text="Address" AnchorPane.leftAnchor="82.0"/>
+                        <Label layoutX="330.0" layoutY="278.0" text="Key" AnchorPane.rightAnchor="328.0"/>
+                        <Label layoutX="10.0" layoutY="305.0" text="Channel 12:"/>
+                        <TextField fx:id="chan12AddressField" layoutX="131.0" layoutY="301.0"
+                                   AnchorPane.leftAnchor="131.0" AnchorPane.rightAnchor="359.0"/>
+                        <TextField fx:id="chan12KeyField" layoutX="356.0" layoutY="301.0" prefHeight="25.0"
+                                   prefWidth="305.0" AnchorPane.leftAnchor="356.0" AnchorPane.rightAnchor="10.0"/>
+                        <Label layoutX="82.0" layoutY="305.0" text="Address" AnchorPane.leftAnchor="82.0"/>
+                        <Label layoutX="330.0" layoutY="305.0" text="Key" AnchorPane.rightAnchor="328.0"/>
+                        <Label layoutX="10.0" layoutY="332.0" text="Channel 13:"/>
+                        <TextField fx:id="chan13AddressField" layoutX="131.0" layoutY="328.0"
+                                   AnchorPane.leftAnchor="131.0" AnchorPane.rightAnchor="359.0"/>
+                        <TextField fx:id="chan13KeyField" layoutX="356.0" layoutY="328.0" prefHeight="25.0"
+                                   prefWidth="219.0" AnchorPane.leftAnchor="356.0" AnchorPane.rightAnchor="10.0"/>
+                        <Label layoutX="82.0" layoutY="332.0" text="Address" AnchorPane.leftAnchor="82.0"/>
+                        <Label layoutX="330.0" layoutY="332.0" text="Key"/>
+                        <Label layoutX="10.0" layoutY="359.0" text="Channel 14:"/>
+                        <TextField fx:id="chan14AddressField" layoutX="131.0" layoutY="355.0"
+                                   AnchorPane.leftAnchor="131.0" AnchorPane.rightAnchor="359.0"/>
+                        <TextField fx:id="chan14KeyField" layoutX="356.0" layoutY="355.0" prefHeight="25.0"
+                                   prefWidth="219.0" AnchorPane.leftAnchor="356.0" AnchorPane.rightAnchor="10.0"/>
+                        <Label layoutX="82.0" layoutY="359.0" text="Address" AnchorPane.leftAnchor="82.0"/>
+                        <Label layoutX="10.0" layoutY="386.0" text="Channel 15:"/>
+                        <TextField fx:id="chan15AddressField" layoutX="131.0" layoutY="382.0"
+                                   AnchorPane.leftAnchor="131.0" AnchorPane.rightAnchor="359.0"/>
+                        <TextField fx:id="chan15KeyField" layoutX="356.0" layoutY="382.0" prefHeight="25.0"
+                                   prefWidth="219.0" AnchorPane.leftAnchor="356.0" AnchorPane.rightAnchor="10.0"/>
+                        <Label layoutX="82.0" layoutY="386.0" text="Address" AnchorPane.leftAnchor="82.0"/>
+                        <Label layoutX="330.0" layoutY="386.0" text="Key"/>
+                        <Label layoutX="10.0" layoutY="413.0" text="Channel 16:"/>
+                        <TextField fx:id="chan16AddressField" layoutX="131.0" layoutY="409.0"
+                                   AnchorPane.leftAnchor="131.0" AnchorPane.rightAnchor="359.0"/>
+                        <TextField fx:id="chan16KeyField" layoutX="356.0" layoutY="409.0" prefHeight="25.0"
+                                   prefWidth="219.0" AnchorPane.leftAnchor="356.0" AnchorPane.rightAnchor="10.0"/>
+                        <Label layoutX="82.0" layoutY="413.0" text="Address" AnchorPane.leftAnchor="82.0"/>
+                        <Label layoutX="330.0" layoutY="413.0" text="Key"/>
+                        <Label layoutX="330.0" layoutY="359.0" text="Key"/>
+                        <Label layoutX="10.0" layoutY="440.0" text="Channel 17:"/>
+                        <TextField fx:id="chan17AddressField" layoutX="131.0" layoutY="436.0" prefHeight="25.0"
+                                   prefWidth="188.0" AnchorPane.leftAnchor="131.0" AnchorPane.rightAnchor="359.0"/>
+                        <TextField fx:id="chan17KeyField" layoutX="356.0" layoutY="436.0" prefHeight="25.0"
+                                   prefWidth="219.0" AnchorPane.leftAnchor="356.0" AnchorPane.rightAnchor="10.0"/>
+                        <Label layoutX="82.0" layoutY="440.0" text="Address" AnchorPane.leftAnchor="82.0"/>
+                        <Label layoutX="330.0" layoutY="440.0" text="Key"/>
+                        <Label layoutX="10.0" layoutY="467.0" text="Channel 18:"/>
+                        <TextField fx:id="chan18AddressField" layoutX="131.0" layoutY="463.0" prefHeight="25.0"
+                                   prefWidth="188.0" AnchorPane.leftAnchor="131.0" AnchorPane.rightAnchor="359.0"/>
+                        <TextField fx:id="chan18KeyField" layoutX="356.0" layoutY="463.0" prefHeight="25.0"
+                                   prefWidth="219.0" AnchorPane.leftAnchor="356.0" AnchorPane.rightAnchor="10.0"/>
+                        <Label layoutX="82.0" layoutY="467.0" text="Address" AnchorPane.leftAnchor="82.0"/>
+                        <Label layoutX="330.0" layoutY="467.0" text="Key"/>
+                        <Label layoutX="10.0" layoutY="494.0" text="Channel 19:"/>
+                        <TextField fx:id="chan19AddressField" layoutX="131.0" layoutY="490.0" prefHeight="25.0"
+                                   prefWidth="188.0" AnchorPane.leftAnchor="131.0" AnchorPane.rightAnchor="359.0"/>
+                        <TextField fx:id="chan19KeyField" layoutX="356.0" layoutY="490.0" prefHeight="25.0"
+                                   prefWidth="219.0" AnchorPane.leftAnchor="356.0" AnchorPane.rightAnchor="10.0"/>
+                        <Label layoutX="82.0" layoutY="494.0" text="Address" AnchorPane.leftAnchor="82.0"/>
+                        <Label layoutX="330.0" layoutY="494.0" text="Key"/>
+                        <Label layoutX="10.0" layoutY="521.0" text="Channel 20:"/>
+                        <TextField fx:id="chan20AddressField" layoutX="131.0" layoutY="517.0" prefHeight="25.0"
+                                   prefWidth="188.0" AnchorPane.leftAnchor="131.0" AnchorPane.rightAnchor="359.0"/>
+                        <TextField fx:id="chan20KeyField" layoutX="356.0" layoutY="517.0" prefHeight="25.0"
+                                   prefWidth="219.0" AnchorPane.leftAnchor="356.0" AnchorPane.rightAnchor="10.0"/>
+                        <Label layoutX="82.0" layoutY="521.0" text="Address" AnchorPane.leftAnchor="82.0"/>
+                        <Label layoutX="330.0" layoutY="521.0" text="Key"/>
                     </children>
                 </AnchorPane>
             </content>
