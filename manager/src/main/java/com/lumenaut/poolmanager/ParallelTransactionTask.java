@@ -123,20 +123,6 @@ public class ParallelTransactionTask implements Runnable {
         // Check if we have batches to process
         while (config.batchQueue.peek() != null) {
             final TransactionResult batch = config.batchQueue.poll();
-
-            // Bail on null or empty batch
-            if (batch == null || batch.getEntries().size() == 0) {
-                System.err.println("Empty batch found in channel [" + config.channelIndex + "]");
-
-                // This batch was empty but we need to update progress anyway
-                currentBatch++;
-
-                // Update progress
-                config.progress.getAndSet(Math.round(currentBatch * 100 / totalBatches));
-
-                continue;
-            }
-
             try {
                 final TransactionBatchResponse batchResponse = StellarGateway.executeChannelTransactionBatch(server, config.sourceAccount, channelAccount, signers, batch);
                 if (!batchResponse.success) {

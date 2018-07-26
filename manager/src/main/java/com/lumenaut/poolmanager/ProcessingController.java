@@ -485,6 +485,9 @@ public class ProcessingController {
             channelsErrors[i] = new AtomicBoolean(false);
         }
 
+        // Empty channels list
+        final ArrayList<Integer> emptyChannels = new ArrayList<>();
+
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // BATCH ENTRIES AND FILL CHANNELS QUEUES
 
@@ -562,25 +565,34 @@ public class ProcessingController {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // CREATE TASKS FOR EACH CHANNEL AND EXECUTE THEM
         for (int i = 0; i < availableChannels; i++) {
-            // Configure task
-            final ParallelTransactionTaskConfig config = new ParallelTransactionTaskConfig(finalResults);
-            config.paidTotal = paidTotal;
-            config.totalFees = totalFees;
-            config.totalPayment = totalPayment;
-            config.remainingPayment = remainingPayment;
-            config.sourceAccount = source;
-            config.sourceAccountMasterKey = signer;
-            config.channelIndex = i;
-            config.channelAccount = channelAccounts.get(i);
-            config.channelAccountKey = channelKeys.get(i);
-            config.progress = channelsProgress[i];
-            config.error = channelsErrors[i];
-            config.errorMessage = new ArrayList<>();
-            config.batchQueue = channelsQueues[i];
+            // Skip channels that have no work to do
+            if (channelsQueues[i] != null && channelsQueues[i].size() > 0) {
+                // Configure task
+                final ParallelTransactionTaskConfig config = new ParallelTransactionTaskConfig(finalResults);
+                config.paidTotal = paidTotal;
+                config.totalFees = totalFees;
+                config.totalPayment = totalPayment;
+                config.remainingPayment = remainingPayment;
+                config.sourceAccount = source;
+                config.sourceAccountMasterKey = signer;
+                config.channelIndex = i;
+                config.channelAccount = channelAccounts.get(i);
+                config.channelAccountKey = channelKeys.get(i);
+                config.progress = channelsProgress[i];
+                config.error = channelsErrors[i];
+                config.errorMessage = new ArrayList<>();
+                config.batchQueue = channelsQueues[i];
 
-            // Create and run
-            final ParallelTransactionTask task = new ParallelTransactionTask(config);
-            EXECUTOR.execute(task);
+                // Create and run
+                final ParallelTransactionTask task = new ParallelTransactionTask(config);
+                EXECUTOR.execute(task);
+            } else {
+                // Append to empty list
+                emptyChannels.add(i);
+
+                // Set as completed
+                channelsProgress[i].getAndSet(100);
+            }
         }
 
         // Monitor the progress in a dedicated thread
@@ -605,11 +617,20 @@ public class ProcessingController {
                     for (int i = 0; i < availableChannels; i++) {
                         final int currentProgress = channelsProgress[i].get();
                         final boolean error = channelsErrors[i].get();
+                        final SpscAtomicArrayQueue<TransactionResult> channelQueue = channelsQueues[i];
 
                         // Channel status row start
                         processingOutputTextArea.appendText("Channel [" + i + "] [");
 
-                        if (error) {
+                        if (emptyChannels.contains(i)) {
+                            // Empty channel, fill the progress bar
+                            for (int j = 0; j < 100; j++) {
+                                processingOutputTextArea.appendText("-");
+                            }
+
+                            // State
+                            processingOutputTextArea.appendText("] [ " + currentProgress + "% ] [NO WORK TO DO]\n");
+                        } else if (error) {
                             // Completed
                             for (int j = 0; j < currentProgress; j++) {
                                 processingOutputTextArea.appendText("#");
@@ -621,7 +642,7 @@ public class ProcessingController {
                             }
 
                             // State
-                            processingOutputTextArea.appendText("] [ " + currentProgress + "% ] [FAILED]\n");
+                            processingOutputTextArea.appendText("] [ " + currentProgress + "% ] [SOME ERRORS OCCURRED]\n");
                         } else if (channelsProgress[i].get() < 100) {
                             // Completed
                             for (int j = 0; j < currentProgress; j++) {
@@ -659,33 +680,61 @@ public class ProcessingController {
                     // Save the transaction results
                     synchronized (finalResults) {
                         // Update result outcome
-                        if (operationsCount.get() == totalEntries) {
+                        if (operationsCount.get() == totalEntries && remainingPayment.get() == 0) {
                             finalResults.setResultOutcome("SUCCESSFULLY EXECUTED");
                         } else {
-                            finalResults.setResultOutcome("EXECUTION ERROR, NOT ALL OPERATIONS EXECUTED");
+                            finalResults.setResultOutcome("PARTIAL EXECUTION, NOT ALL TRANSACTIONS EXECUTED SUCCESSFULLY");
                         }
 
                         saveTransactionResult(finalResults, paidTotal.get(), totalFees.get(), totalPayment.get(), remainingPayment.get(), false);
                     }
 
+                    // Check if errors occurred during the transaction process
+                    boolean errorsOccurred = false;
+                    for (int i = 0; i < availableChannels; i++) {
+                        if (channelsErrors[i].get()) {
+                            errorsOccurred = true;
+                        }
+                    }
+
                     // Status update
-                    Platform.runLater(() -> {
-                        // Append final message
-                        appendMessage("[FINISHED] Process completed!\n");
+                    if (!errorsOccurred) {
+                        Platform.runLater(() -> {
+                            // Append final message
+                            appendMessage("[FINISHED] Process completed!\n");
 
-                        // Fill the progress bar and colorize it
-                        processingProgressBar.setProgress(1);
-                        processingProgressBar.getStyleClass().removeAll();
-                        processingProgressBar.getStyleClass().add("green-bar");
+                            // Fill the progress bar and colorize it
+                            processingProgressBar.setProgress(1);
+                            processingProgressBar.getStyleClass().removeAll();
+                            processingProgressBar.getStyleClass().add("green-bar");
 
-                        // Update transaction planner UI
-                        executeTransactionBtn.setText("EXECUTED");
-                        executeTransactionBtn.setDisable(true);
-                        rebuildTransactionPlanBtn.setDisable(true);
+                            // Update transaction planner UI
+                            executeTransactionBtn.setText("EXECUTED");
+                            executeTransactionBtn.setDisable(true);
+                            rebuildTransactionPlanBtn.setDisable(true);
 
-                        // Enable close button
-                        closeBtn.setDisable(false);
-                    });
+                            // Enable close button
+                            closeBtn.setDisable(false);
+                        });
+                    } else {
+                        Platform.runLater(() -> {
+                            // Append final message
+                            appendMessage("[FINISHED] Process finished with ERRORS\n");
+
+                            // Fill the progress bar and colorize it
+                            processingProgressBar.setProgress(1);
+                            processingProgressBar.getStyleClass().removeAll();
+                            processingProgressBar.getStyleClass().add("red-bar");
+
+                            executeTransactionBtn.setText("EXECUTED WITH ERRORS");
+                            executeTransactionBtn.setTooltip(new Tooltip("The transaction executed with errors, you might want to use the transaction results as an exclusions list and build a new transaction plan!"));
+                            executeTransactionBtn.setDisable(true);
+                            rebuildTransactionPlanBtn.setDisable(false);
+
+                            // Enable close button
+                            closeBtn.setDisable(false);
+                        });
+                    }
                 } else {
                     // Defer new update in a second
                     try {
