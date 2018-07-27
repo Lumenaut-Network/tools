@@ -587,19 +587,20 @@ public class StellarGateway {
      * Execute the given transactions in a single batch from the specified channel
      *
      * @param server
-     * @param sourceAccount
-     * @param transactionResult
+     * @param channelAccountResponse
+     * @param signers
+     * @param batch
      * @return
      * @throws IOException
      */
-    public static TransactionBatchResponse executeChannelTransactionBatch(final Server server, final AccountResponse channelAccountResponse, final KeyPair sourceAccount, final KeyPair channelAccount, final KeyPair[] signers, final TransactionResult transactionResult) throws IOException {
+    public static TransactionBatchResponse executeChannelTransactionBatch(final Server server, final AccountResponse channelAccountResponse, final KeyPair sourceAccount, final KeyPair[] signers, final TransactionResult batch) throws IOException {
         // Prepare response object
         final TransactionBatchResponse response = new TransactionBatchResponse();
 
         // Refuse batches with more than 100 operations
-        if (transactionResult.getEntries().size() > SETTING_OPERATIONS_PER_TRANSACTION_BATCH) {
+        if (batch.getEntries().size() > SETTING_OPERATIONS_PER_TRANSACTION_BATCH) {
             response.success = false;
-            response.errorMessages.add("Refusing to execute a transaction batch with more than [" + SETTING_OPERATIONS_PER_TRANSACTION_BATCH + "] entries. The batch contains [" + transactionResult.getEntries().size() + "] entries");
+            response.errorMessages.add("Refusing to execute a transaction batch with more than [" + SETTING_OPERATIONS_PER_TRANSACTION_BATCH + "] entries. The batch contains [" + batch.getEntries().size() + "] entries");
 
             return response;
         }
@@ -627,7 +628,7 @@ public class StellarGateway {
         transactionBuilder.addMemo(Memo.text(Settings.SETTING_MEMO));
 
         // Process all entries
-        for (TransactionResultEntry entry : transactionResult.getEntries()) {
+        for (TransactionResultEntry entry : batch.getEntries()) {
             // Append operation
             // !!! IMPORTANT !!! the amount must be specified in XLM as a string in decimal format e.g. 10.0000001 -> 10 lumens, 1 stroop
             transactionBuilder.addOperation(new PaymentOperation.Builder(KeyPair.fromAccountId(entry.getDestination()), new AssetTypeNative(), XLMUtils.stroopToXLM(entry.getAmount()).toString()).setSourceAccount(sourceAccount).build());

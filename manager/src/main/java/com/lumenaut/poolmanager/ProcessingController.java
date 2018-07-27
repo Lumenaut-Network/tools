@@ -14,6 +14,7 @@ import org.stellar.sdk.Server;
 import org.stellar.sdk.responses.SubmitTransactionResponse.Extras.ResultCodes;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
@@ -619,6 +620,9 @@ public class ProcessingController {
                     // Refresh progress state
                     processingOutputTextArea.clear();
 
+                    // Header
+                    processingOutputTextArea.appendText("CHANNEL[#] | BATCH QUEUE | CHANNEL PROGRESS | CHANNEL PROGRESS % | STATUS\n\n");
+
                     // Update each channel
                     for (int i = 0; i < availableChannels; i++) {
                         final int currentProgress = channelsProgress[i].get();
@@ -626,7 +630,7 @@ public class ProcessingController {
                         final SpscAtomicArrayQueue<TransactionResult> channelQueue = channelsQueues[i];
 
                         // Channel status row start
-                        processingOutputTextArea.appendText("Channel [" + (i < 10 ? "0" : "") + i + "] [" + channelQueue.size() + "] [");
+                        processingOutputTextArea.appendText("Channel[" + (i < 10 ? "0" : "") + i + "] [" + channelQueue.size() + "] [");
 
                         if (emptyChannels.contains(i)) {
                             // Empty channel, fill the progress bar
@@ -635,7 +639,7 @@ public class ProcessingController {
                             }
 
                             // State
-                            processingOutputTextArea.appendText("][ " + currentProgress + "%] [NO WORK TO DO]\n");
+                            processingOutputTextArea.appendText("][ " + currentProgress + "%] [UNUSED]\n");
                         } else if (error) {
                             // Completed
                             for (int j = 0; j < currentProgress; j++) {
@@ -648,7 +652,7 @@ public class ProcessingController {
                             }
 
                             // State
-                            processingOutputTextArea.appendText("] [" + currentProgress + "%] [SOME ERRORS OCCURRED]\n");
+                            processingOutputTextArea.appendText("] [" + currentProgress + "%] [ERRORS]\n");
                         } else if (channelsProgress[i].get() < 100) {
                             // Completed
                             for (int j = 0; j < currentProgress; j++) {
@@ -711,7 +715,7 @@ public class ProcessingController {
                     if (!errorsOccurred) {
                         Platform.runLater(() -> {
                             // Append final message
-                            appendMessage("[FINISHED] Process completed in (" + (TimeUnit.MILLISECONDS.toHours(elapsedTime) % 24) + "h " +
+                            appendMessage("\n[FINISHED] Process completed in (" + (TimeUnit.MILLISECONDS.toHours(elapsedTime) % 24) + "h " +
                                           (TimeUnit.MILLISECONDS.toMinutes(elapsedTime) % 60) + "m " + (TimeUnit.MILLISECONDS.toSeconds(elapsedTime) % 60) + "s )\n");
 
                             // Fill the progress bar and colorize it
@@ -730,7 +734,7 @@ public class ProcessingController {
                     } else {
                         Platform.runLater(() -> {
                             // Append final message
-                            appendMessage("[FINISHED] Process completed in (" + (TimeUnit.MILLISECONDS.toHours(elapsedTime) % 24) + "h " +
+                            appendMessage("\n[FINISHED] Process completed with some errors in (" + (TimeUnit.MILLISECONDS.toHours(elapsedTime) % 24) + "h " +
                                           (TimeUnit.MILLISECONDS.toMinutes(elapsedTime) % 60) + "m " + (TimeUnit.MILLISECONDS.toSeconds(elapsedTime) % 60) + "s )\n");
 
                             // Fill the progress bar and colorize it
@@ -873,8 +877,9 @@ public class ProcessingController {
         if (destinationReady) {
             // Save to file
             final String outPutFilePath = destinationFolder + "/" + destinationFileName;
-            try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(outPutFilePath), "UTF-8");
-                 BufferedWriter bufWriter = new BufferedWriter(writer)
+            try (
+            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(outPutFilePath), StandardCharsets.UTF_8);
+            BufferedWriter bufWriter = new BufferedWriter(writer)
             ) {
                 bufWriter.write(jsonResult);
             } catch (IOException e) {

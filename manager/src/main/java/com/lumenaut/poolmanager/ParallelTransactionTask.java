@@ -155,7 +155,7 @@ public class ParallelTransactionTask implements Runnable {
             final TransactionResult batch = config.batchQueue.poll();
             try {
                 if (batch != null) {
-                    final TransactionBatchResponse batchResponse = StellarGateway.executeChannelTransactionBatch(server, channelAccountResponse, config.sourceAccount, channelAccount, signers, batch);
+                    final TransactionBatchResponse batchResponse = StellarGateway.executeChannelTransactionBatch(server, channelAccountResponse, config.sourceAccount, signers, batch);
                     if (!batchResponse.success) {
                         // Append error and update error state
                         config.error.getAndSet(true);
@@ -190,7 +190,7 @@ public class ParallelTransactionTask implements Runnable {
                 currentBatch++;
 
                 // Update progress
-                config.progress.getAndSet(Math.round(currentBatch * 100 / totalBatches));
+                config.progress.getAndSet(currentBatch * 100 / totalBatches);
             } catch (IOException e) {
                 // Append error and update error state
                 config.error.getAndSet(true);
@@ -200,7 +200,7 @@ public class ParallelTransactionTask implements Runnable {
                 currentBatch++;
 
                 // Update progress
-                config.progress.getAndSet(Math.round(currentBatch * 100 / totalBatches));
+                config.progress.getAndSet(currentBatch * 100 / totalBatches);
             }
         }
 
@@ -242,11 +242,14 @@ public class ParallelTransactionTask implements Runnable {
 
             // Append operations result codes
             final ArrayList<String> operationsResultCodes = transactionResponse.getExtras().getResultCodes().getOperationsResultCodes();
-            final ArrayNode operationsResults = mapper.createArrayNode();
-            for (String operationResultCode : operationsResultCodes) {
-                operationsResults.add(operationResultCode);
+
+            if (operationsResultCodes != null) {
+                final ArrayNode operationsResults = mapper.createArrayNode();
+                for (String operationResultCode : operationsResultCodes) {
+                    operationsResults.add(operationResultCode);
+                }
+                rootNode.set("operationsResultCodes", operationsResults);
             }
-            rootNode.set("operationsResultCodes", operationsResults);
         }
 
         // Create folder if missing
