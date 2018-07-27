@@ -445,7 +445,7 @@ public class StellarGateway {
      */
     private static boolean verifyChannel(final String channelAddress, final String channelKey, final TextArea outputTextArea) {
         // Select the operations network
-        final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? HORIZON_LIVE_NETWORK : HORIZON_TEST_NETWORK);
+        final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? SETTING_HORIZON_LIVE_NETWORK : SETTING_HORIZON_TEST_NETWORK);
 
         // Create the key pair from the secret key, so we can check if it matches the channel address
         final KeyPair pair = KeyPair.fromSecretSeed(channelKey);
@@ -491,7 +491,7 @@ public class StellarGateway {
 	 */
     public static BigDecimal getBalance(final String address) throws IOException {
 		// Select the operations network
-		final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? HORIZON_LIVE_NETWORK : HORIZON_TEST_NETWORK);
+        final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? SETTING_HORIZON_LIVE_NETWORK : SETTING_HORIZON_TEST_NETWORK);
 
 		// Build a key pair for the account id specified
         final KeyPair pair = KeyPair.fromAccountId(address);

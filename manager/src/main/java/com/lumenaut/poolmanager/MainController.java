@@ -432,16 +432,6 @@ public class MainController {
      * Initialize the horizon manager instance for database operations
      */
     private boolean initHorizonDatabaseConnection() {
-        // Check if we have all the settings required
-        if (SETTING_HORIZON_DB_ADDRESS.isEmpty() ||
-            SETTING_HORIZON_DB_PORT.isEmpty() ||
-            SETTING_HORIZON_DB_USER.isEmpty() ||
-            SETTING_HORIZON_DB_PASS.isEmpty()) {
-            showError("You must specify all required connection settings in order to use a Horizon node database.");
-
-            return false;
-        }
-
         if (horizonGateway == null) {
             // Create a new horizon manager instance
             horizonGateway = new HorizonGateway();

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Properties;
 
 import static com.lumenaut.poolmanager.Settings.*;
+import static com.lumenaut.poolmanager.UIUtils.showError;
 
 /**
  * @Author Burn
@@ -85,23 +86,59 @@ public class HorizonGateway {
     public void connect() throws SQLException {
         // Build jdbc connection url
         final StringBuilder horizonNodeDatabaseUrl = new StringBuilder();
-        if (!SETTING_HORIZON_DB_ADDRESS.isEmpty()) {
-            horizonNodeDatabaseUrl.append("jdbc:postgresql://").append(SETTING_HORIZON_DB_ADDRESS);
 
-            // Use custom port if specified
-            if (!SETTING_HORIZON_DB_PORT.isEmpty()) {
-                horizonNodeDatabaseUrl.append(":").append(SETTING_HORIZON_DB_PORT);
+        switch (SETTING_OPERATIONS_NETWORK) {
+            case "TEST": {
+                // Check if we have all the settings required
+                if (SETTING_HORIZON_DB_TEST_ADDRESS.isEmpty() ||
+                    SETTING_HORIZON_DB_TEST_PORT.isEmpty() ||
+                    SETTING_HORIZON_DB_TEST_USER.isEmpty() ||
+                    SETTING_HORIZON_DB_TEST_PASS.isEmpty()) {
+                    showError("You must specify all required connection settings in order to use a Horizon node database for the TEST network.");
+
+                    return;
+                }
+
+                horizonNodeDatabaseUrl.append("jdbc:postgresql://").append(SETTING_HORIZON_DB_TEST_ADDRESS);
+                horizonNodeDatabaseUrl.append(":").append(SETTING_HORIZON_DB_TEST_PORT);
+
+                // Establish connections
+                final Properties props = new Properties();
+                props.setProperty("user", SETTING_HORIZON_DB_TEST_USER);
+                props.setProperty("password", SETTING_HORIZON_DB_TEST_PASS);
+
+                // Core database connection
+                conn = DriverManager.getConnection(horizonNodeDatabaseUrl.toString() + "/core", props);
+                connected = true;
             }
+            break;
+            case "LIVE": {
+                // Check if we have all the settings required
+                if (SETTING_HORIZON_DB_LIVE_ADDRESS.isEmpty() ||
+                    SETTING_HORIZON_DB_LIVE_PORT.isEmpty() ||
+                    SETTING_HORIZON_DB_LIVE_USER.isEmpty() ||
+                    SETTING_HORIZON_DB_LIVE_PASS.isEmpty()) {
+                    showError("You must specify all required connection settings in order to use a Horizon node database for the LIVE network.");
+
+                    return;
+                }
+
+                horizonNodeDatabaseUrl.append("jdbc:postgresql://").append(SETTING_HORIZON_DB_LIVE_ADDRESS);
+                horizonNodeDatabaseUrl.append(":").append(SETTING_HORIZON_DB_LIVE_PORT);
+
+                // Establish connections
+                final Properties props = new Properties();
+                props.setProperty("user", SETTING_HORIZON_DB_LIVE_USER);
+                props.setProperty("password", SETTING_HORIZON_DB_LIVE_PASS);
+
+                // Core database connection
+                conn = DriverManager.getConnection(horizonNodeDatabaseUrl.toString() + "/core", props);
+                connected = true;
+            }
+            break;
+            default:
+                showError("Unknown operations network selected: " + SETTING_OPERATIONS_NETWORK);
         }
-
-        // Establish connections
-        final Properties props = new Properties();
-        props.setProperty("user", SETTING_HORIZON_DB_USER);
-        props.setProperty("password", SETTING_HORIZON_DB_PASS);
-
-        // Core database connection
-        conn = DriverManager.getConnection(horizonNodeDatabaseUrl.toString() + "/core", props);
-        connected = true;
     }
 
     /**

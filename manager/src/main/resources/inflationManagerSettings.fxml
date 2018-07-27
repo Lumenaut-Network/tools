@@ -14,47 +14,45 @@
             xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.lumenaut.poolmanager.SettingsController">
     <children>
-        <Label layoutX="76.0" layoutY="24.0" text="Default Stellar Network" AnchorPane.leftAnchor="76.0"
-               AnchorPane.topAnchor="24.0"/>
-        <ChoiceBox fx:id="activeNetworkChoiceBox" layoutX="189.0" layoutY="20.0" prefHeight="25.0" prefWidth="496.0"
-                   AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="20.0"/>
-        <Label layoutX="33.0" layoutY="51.0" text="Default Pool Address (optional)" AnchorPane.leftAnchor="33.0"
-               AnchorPane.topAnchor="51.0"/>
-        <TextField fx:id="defaultPoolAddressTextField" layoutX="210.0" layoutY="47.0" prefHeight="25.0"
+        <Label layoutX="115.0" layoutY="23.0" text="Stellar Network" AnchorPane.leftAnchor="115.0"
+               AnchorPane.topAnchor="23.0"/>
+        <ChoiceBox fx:id="activeNetworkChoiceBox" layoutX="210.0" layoutY="19.0" prefHeight="25.0" prefWidth="496.0"
+                   AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="19.0"/>
+        <Label layoutX="33.0" layoutY="78.0" text="Default Pool Address (optional)" AnchorPane.leftAnchor="33.0"
+               AnchorPane.topAnchor="78.0"/>
+        <TextField fx:id="defaultPoolAddressTextField" layoutX="210.0" layoutY="74.0" prefHeight="25.0"
                    prefWidth="496.0" AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0"
-                   AnchorPane.topAnchor="47.0"/>
+                   AnchorPane.topAnchor="74.0"/>
         <Button fx:id="saveBtn" layoutX="534.0" layoutY="361.0" mnemonicParsing="false" prefHeight="25.0"
                 prefWidth="151.0" text="Save" AnchorPane.bottomAnchor="14.0" AnchorPane.rightAnchor="15.0"/>
         <Button fx:id="cancelBtn" layoutX="460.0" layoutY="361.0" mnemonicParsing="false" prefHeight="25.0"
                 prefWidth="64.0" text="Cancel" AnchorPane.bottomAnchor="14.0" AnchorPane.rightAnchor="176.0"/>
-        <Label layoutX="108.0" layoutY="198.0" text="Horizon DB Host" AnchorPane.leftAnchor="108.0"
+        <Label layoutX="14.0" layoutY="198.0" text="Horizon TEST DB" AnchorPane.leftAnchor="14.0"
                AnchorPane.topAnchor="198.0"/>
-        <TextField fx:id="horizonDbAddress" layoutX="210.0" layoutY="194.0" prefHeight="25.0" prefWidth="342.0"
-                   promptText="localhost" AnchorPane.leftAnchor="210.0" AnchorPane.topAnchor="194.0"/>
-        <TextField fx:id="horizonDbPort" layoutX="604.0" layoutY="194.0" prefHeight="25.0" prefWidth="82.0"
-                   promptText="5432" AnchorPane.leftAnchor="604.0" AnchorPane.rightAnchor="14.0"
-                   AnchorPane.topAnchor="194.0"/>
-        <Label layoutX="561.0" layoutY="198.0" text="Port" AnchorPane.leftAnchor="561.0" AnchorPane.topAnchor="198.0"/>
-        <Label layoutX="143.0" layoutY="231.0" text="Username" AnchorPane.leftAnchor="143.0"
-               AnchorPane.topAnchor="231.0"/>
-        <Label layoutX="448.0" layoutY="231.0" text="Pass" AnchorPane.leftAnchor="448.0" AnchorPane.topAnchor="231.0"/>
-        <TextField fx:id="horizonDbUser" layoutX="210.0" layoutY="227.0" prefHeight="25.0" prefWidth="225.0"
-                   AnchorPane.leftAnchor="210.0" AnchorPane.topAnchor="227.0"/>
+        <TextField fx:id="horizonDbTestHost" layoutX="115.0" layoutY="194.0" prefHeight="25.0" prefWidth="209.0"
+                   promptText="localhost" AnchorPane.leftAnchor="115.0" AnchorPane.topAnchor="194.0"/>
+        <TextField fx:id="horizonDbTestPort" layoutX="353.0" layoutY="194.0" prefHeight="25.0" prefWidth="46.0"
+                   promptText="5432" AnchorPane.leftAnchor="353.0" AnchorPane.topAnchor="194.0"/>
+        <Label layoutX="328.0" layoutY="198.0" text="Port" AnchorPane.leftAnchor="328.0" AnchorPane.topAnchor="198.0"/>
+        <Label layoutX="408.0" layoutY="198.0" text="User" AnchorPane.leftAnchor="408.0" AnchorPane.topAnchor="198.0"/>
+        <Label layoutX="522.0" layoutY="198.0" text="Pass" AnchorPane.leftAnchor="522.0" AnchorPane.topAnchor="198.0"/>
+        <TextField fx:id="horizonDbTestUser" layoutX="439.0" layoutY="194.0" prefHeight="25.0" prefWidth="78.0"
+                   AnchorPane.leftAnchor="439.0" AnchorPane.topAnchor="194.0"/>
         <Separator layoutY="185.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"/>
-        <Label layoutX="84.0" layoutY="78.0" text="Memo Text (28 chars)"/>
-        <TextField fx:id="defaultMemoTextField" layoutX="210.0" layoutY="74.0" prefHeight="25.0" prefWidth="496.0"
-                   AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="74.0"/>
-        <Label layoutX="84.0" layoutY="105.0" text="Fee (min 100 stroops)" AnchorPane.leftAnchor="84.0"
-               AnchorPane.topAnchor="105.0"/>
-        <TextField fx:id="defaultFeeTextField" layoutX="210.0" layoutY="101.0" prefHeight="25.0" prefWidth="496.0"
+        <Label layoutX="84.0" layoutY="105.0" text="Memo Text (28 chars)"/>
+        <TextField fx:id="defaultMemoTextField" layoutX="210.0" layoutY="101.0" prefHeight="25.0" prefWidth="496.0"
                    AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="101.0"/>
-        <PasswordField fx:id="horizonDbPass" layoutX="486.0" layoutY="227.0" prefHeight="25.0" prefWidth="199.0"
-                       AnchorPane.leftAnchor="486.0" AnchorPane.rightAnchor="15.0"/>
-        <TextField fx:id="defaultDonationsStringTextField" layoutX="210.0" layoutY="129.0" prefHeight="25.0"
+        <Label layoutX="84.0" layoutY="132.0" text="Fee (min 100 stroops)" AnchorPane.leftAnchor="84.0"
+               AnchorPane.topAnchor="132.0"/>
+        <TextField fx:id="defaultFeeTextField" layoutX="210.0" layoutY="128.0" prefHeight="25.0" prefWidth="496.0"
+                   AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="128.0"/>
+        <PasswordField fx:id="horizonDbTestPass" layoutX="554.0" layoutY="194.0" prefHeight="25.0" prefWidth="131.0"
+                       AnchorPane.leftAnchor="554.0" AnchorPane.rightAnchor="15.0"/>
+        <TextField fx:id="defaultDonationsStringTextField" layoutX="210.0" layoutY="156.0" prefHeight="25.0"
                    prefWidth="475.0" AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0"
-                   AnchorPane.topAnchor="129.0"/>
-        <Label layoutX="93.0" layoutY="133.0" text="Donations identifier" AnchorPane.leftAnchor="93.0"
-               AnchorPane.topAnchor="133.0"/>
+                   AnchorPane.topAnchor="156.0"/>
+        <Label layoutX="93.0" layoutY="160.0" text="Donations identifier" AnchorPane.leftAnchor="93.0"
+               AnchorPane.topAnchor="160.0"/>
         <Separator layoutY="261.0" prefHeight="3.0" prefWidth="659.0" AnchorPane.leftAnchor="0.0"
                    AnchorPane.rightAnchor="0.0"/>
         <Label layoutX="32.0" layoutY="274.0" text="Parallel Transaction Submission" AnchorPane.leftAnchor="32.0"
@@ -65,7 +63,7 @@
                     AnchorPane.leftAnchor="2.0" AnchorPane.rightAnchor="2.0" AnchorPane.topAnchor="300.0">
             <content>
                 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" prefHeight="551.0"
-                            prefWidth="678.0">
+                            prefWidth="671.0">
                     <children>
                         <Label layoutX="10.0" layoutY="8.0" text="Channel 1:" AnchorPane.leftAnchor="10.0"/>
                         <TextField fx:id="chan1AddressField" layoutX="131.0" layoutY="4.0" prefHeight="25.0"
@@ -211,5 +209,26 @@
                 </AnchorPane>
             </content>
         </ScrollPane>
+        <Label layoutX="15.0" layoutY="231.0" text="Horizon LIVE DB" AnchorPane.leftAnchor="15.0"
+               AnchorPane.topAnchor="231.0"/>
+        <TextField fx:id="horizonDbLiveHost" layoutX="116.0" layoutY="227.0" prefHeight="25.0" prefWidth="209.0"
+                   promptText="localhost" AnchorPane.leftAnchor="116.0" AnchorPane.topAnchor="227.0"/>
+        <TextField fx:id="horizonDbLivePort" layoutX="354.0" layoutY="227.0" prefHeight="25.0" prefWidth="46.0"
+                   promptText="5432" AnchorPane.leftAnchor="354.0" AnchorPane.topAnchor="227.0"/>
+        <Label layoutX="329.0" layoutY="231.0" text="Port" AnchorPane.leftAnchor="329.0" AnchorPane.topAnchor="231.0"/>
+        <Label layoutX="409.0" layoutY="231.0" text="User" AnchorPane.leftAnchor="409.0" AnchorPane.topAnchor="231.0"/>
+        <Label layoutX="523.0" layoutY="231.0" text="Pass" AnchorPane.leftAnchor="523.0" AnchorPane.topAnchor="231.0"/>
+        <TextField fx:id="horizonDbLiveUser" layoutX="440.0" layoutY="227.0" prefHeight="25.0" prefWidth="78.0"
+                   AnchorPane.leftAnchor="440.0" AnchorPane.topAnchor="227.0"/>
+        <PasswordField fx:id="horizonDbLivePass" layoutX="555.0" layoutY="227.0" prefHeight="25.0" prefWidth="131.0"
+                       AnchorPane.leftAnchor="554.0" AnchorPane.rightAnchor="15.0"/>
+        <Label layoutX="127.0" layoutY="51.0" text="Horizon TEST" AnchorPane.leftAnchor="127.0"
+               AnchorPane.topAnchor="51.0"/>
+        <TextField fx:id="horizonTest" layoutX="210.0" layoutY="47.0" prefHeight="25.0" prefWidth="194.0"
+                   AnchorPane.leftAnchor="210.0" AnchorPane.topAnchor="47.0"/>
+        <Label layoutX="414.0" layoutY="51.0" text="Horizon LIVE" AnchorPane.leftAnchor="414.0"
+               AnchorPane.topAnchor="51.0"/>
+        <TextField fx:id="horizonLive" layoutX="492.0" layoutY="47.0" prefHeight="25.0" prefWidth="194.0"
+                   AnchorPane.leftAnchor="492.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="47.0"/>
     </children>
 </AnchorPane>

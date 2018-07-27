@@ -46,16 +46,34 @@ public class SettingsController {
     public TextField defaultDonationsStringTextField;
 
     @FXML
-    private TextField horizonDbAddress;
+    public TextField horizonTest;
 
     @FXML
-    private TextField horizonDbPort;
+    public TextField horizonLive;
 
     @FXML
-    private TextField horizonDbUser;
+    public TextField horizonDbLiveHost;
 
     @FXML
-    private TextField horizonDbPass;
+    public TextField horizonDbLivePort;
+
+    @FXML
+    public TextField horizonDbLiveUser;
+
+    @FXML
+    public PasswordField horizonDbLivePass;
+
+    @FXML
+    public TextField horizonDbTestHost;
+
+    @FXML
+    public TextField horizonDbTestPort;
+
+    @FXML
+    public TextField horizonDbTestUser;
+
+    @FXML
+    public PasswordField horizonDbTestPass;
 
     @FXML
     private CheckBox checkboxParallelChannels;
@@ -248,10 +266,16 @@ public class SettingsController {
         defaultFeeTextField.setText(String.valueOf(SETTING_FEE));
 
         // Horizon DB
-        horizonDbAddress.setText(SETTING_HORIZON_DB_ADDRESS);
-        horizonDbPort.setText(SETTING_HORIZON_DB_PORT);
-        horizonDbUser.setText(SETTING_HORIZON_DB_USER);
-        horizonDbPass.setText(SETTING_HORIZON_DB_PASS);
+        horizonTest.setText(SETTING_HORIZON_TEST_NETWORK);
+        horizonLive.setText(SETTING_HORIZON_LIVE_NETWORK);
+        horizonDbTestHost.setText(SETTING_HORIZON_DB_TEST_ADDRESS);
+        horizonDbTestPort.setText(SETTING_HORIZON_DB_TEST_PORT);
+        horizonDbTestUser.setText(SETTING_HORIZON_DB_TEST_USER);
+        horizonDbTestPass.setText(SETTING_HORIZON_DB_TEST_PASS);
+        horizonDbLiveHost.setText(SETTING_HORIZON_DB_LIVE_ADDRESS);
+        horizonDbLivePort.setText(SETTING_HORIZON_DB_LIVE_PORT);
+        horizonDbLiveUser.setText(SETTING_HORIZON_DB_LIVE_USER);
+        horizonDbLivePass.setText(SETTING_HORIZON_DB_LIVE_PASS);
 
         // Channels
         checkboxParallelChannels.setSelected(SETTING_PARALLEL_CHANNELS_ENABLED);
@@ -352,10 +376,16 @@ public class SettingsController {
         }
 
         // Horizon DB
-        SETTING_HORIZON_DB_ADDRESS = horizonDbAddress.getText();
-        SETTING_HORIZON_DB_PORT = horizonDbPort.getText();
-        SETTING_HORIZON_DB_USER = horizonDbUser.getText();
-        SETTING_HORIZON_DB_PASS = horizonDbPass.getText();
+        SETTING_HORIZON_TEST_NETWORK = horizonTest.getText();
+        SETTING_HORIZON_LIVE_NETWORK = horizonLive.getText();
+        SETTING_HORIZON_DB_TEST_ADDRESS = horizonDbTestHost.getText();
+        SETTING_HORIZON_DB_TEST_PORT = horizonDbTestPort.getText();
+        SETTING_HORIZON_DB_TEST_USER = horizonDbTestUser.getText();
+        SETTING_HORIZON_DB_TEST_PASS = horizonDbTestPass.getText();
+        SETTING_HORIZON_DB_LIVE_ADDRESS = horizonDbLiveHost.getText();
+        SETTING_HORIZON_DB_LIVE_PORT = horizonDbLivePort.getText();
+        SETTING_HORIZON_DB_LIVE_USER = horizonDbLiveUser.getText();
+        SETTING_HORIZON_DB_LIVE_PASS = horizonDbLivePass.getText();
 
         // Channels
         SETTING_PARALLEL_CHANNELS_ENABLED = checkboxParallelChannels.isSelected();
