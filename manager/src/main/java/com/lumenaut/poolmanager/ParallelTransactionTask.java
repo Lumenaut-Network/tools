@@ -59,6 +59,7 @@ public class ParallelTransactionTask implements Runnable {
         public AtomicLong totalFees;
         public AtomicLong totalPayment;
         public AtomicLong remainingPayment;
+        public String outputPath;
 
         // Signing
         public KeyPair sourceAccount;
@@ -253,7 +254,7 @@ public class ParallelTransactionTask implements Runnable {
         }
 
         // Create folder if missing
-        final String destinationFolder = "data/" + FOLDER_DATE_FORMATTER.format(new Date()) + "/transactions";
+        final String destinationFolder = config.outputPath + "/transactions";
         final String destinationFileName = FILE_DATE_FORMATTER.format(new Date()) + "_" + UUID.randomUUID().toString() + "_" + (transactionResponse.isSuccess() ? TRANSACTION_SUCCESSFUL_JSON_SUFFIX : TRANSACTION_ERROR_JSON_SUFFIX);
         final File destinationDir = new File(destinationFolder);
         boolean destinationReady;

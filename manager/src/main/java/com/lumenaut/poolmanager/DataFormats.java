@@ -230,6 +230,7 @@ public class DataFormats {
         private long totalPayouts;
         private long totalFees;
         private long totalPayment;
+        private String out;
         private List<TransactionPlanEntry> entries;
 
         public String getUuid() {
@@ -326,6 +327,14 @@ public class DataFormats {
 
         public void setEntries(List<TransactionPlanEntry> entries) {
             this.entries = entries;
+        }
+
+        public String getOut() {
+            return out;
+        }
+
+        public void setOut(String out) {
+            this.out = out;
         }
     }
 

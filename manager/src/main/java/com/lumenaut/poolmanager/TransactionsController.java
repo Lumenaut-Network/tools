@@ -15,6 +15,7 @@ import javafx.stage.StageStyle;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -142,6 +143,7 @@ public class TransactionsController {
     private HashMap<String, Long> votesAndPayments;
     private TransactionPlan currentPlan;
     private DonationsData donationsData;
+    private String outputFolder;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -496,6 +498,38 @@ public class TransactionsController {
     }
 
     /**
+     * Find a destination folder for this run, keep appending numbers (#) to it until a non used folder is found
+     *
+     * @param folderPath
+     * @param attempt
+     * @return
+     */
+    private String findAvailableFolderName(final String folderPath, int attempt) {
+        // We want to start appending from the number 2, if 0 is passed at first attempt bump it up
+        if (attempt == 0) {
+            attempt++;
+        }
+
+        // Dig down
+        if (attempt == 1) {
+            final File destinationDir = new File(folderPath);
+            if (destinationDir.exists()) {
+                return findAvailableFolderName(folderPath, attempt + 1);
+            } else {
+                return folderPath;
+            }
+        } else {
+            final String targetFolder = folderPath + " (" + attempt + ")";
+            final File destinationDir = new File(targetFolder);
+            if (destinationDir.exists()) {
+                return findAvailableFolderName(folderPath, attempt + 1);
+            } else {
+                return targetFolder;
+            }
+        }
+    }
+
+    /**
      * Build a new transactions plan
      */
     private boolean buildTransactionPlan() {
@@ -508,6 +542,9 @@ public class TransactionsController {
 
             return false;
         } else {
+            // Output folder
+            final String outputFolder = findAvailableFolderName("data/" + FOLDER_DATE_FORMATTER.format(new Date()), 0);
+
             // Init payments rerouting and exclusion counters
             final AtomicInteger numRerouted = new AtomicInteger(0);
             final AtomicInteger numExcluded = new AtomicInteger(0);
@@ -658,6 +695,7 @@ public class TransactionsController {
             final TransactionPlan newPlan = new TransactionPlan();
             newPlan.setEntries(new LinkedList<>());
             newPlan.setUuid(uuid);
+            newPlan.setOut(outputFolder);
 
             // Set total votes balance
             newPlan.setTotalVotes(totalVotesAmount);
@@ -1010,12 +1048,12 @@ public class TransactionsController {
         }
 
         // Create folder if missing
-        final String destinationFolder = "data/" + FOLDER_DATE_FORMATTER.format(new Date());
+        final String destinationFolder = currentPlan.getOut();
         final String destinationFileName = FILE_DATE_FORMATTER.format(new Date()) + "_" + TRANSACTION_PLAN_JSON_SUFFIX;
         final File destinationDir = new File(destinationFolder);
         boolean destinationReady;
         if (!destinationDir.exists()) {
-            destinationReady = destinationDir.mkdir();
+            destinationReady = destinationDir.mkdirs();
         } else {
             destinationReady = true;
         }
@@ -1023,8 +1061,9 @@ public class TransactionsController {
         // Save to file
         if (destinationReady) {
             final String outPutFilePath = destinationFolder + "/" + destinationFileName;
-            try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(outPutFilePath), "UTF-8");
-                 BufferedWriter bufWriter = new BufferedWriter(writer)
+            try (
+            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(outPutFilePath), StandardCharsets.UTF_8);
+            BufferedWriter bufWriter = new BufferedWriter(writer)
             ) {
                 bufWriter.write(contents);
             } catch (IOException e) {

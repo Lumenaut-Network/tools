@@ -61,6 +61,9 @@ public class ProcessingController {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region FIELDS
 
+    // Timing
+    public String processingFolderPath;
+
     // Transaction plan
     public TransactionPlan transactionPlan;
     public String signingKey;
@@ -114,7 +117,6 @@ public class ProcessingController {
      */
     @FXML
     private void initialize() {
-
         ////////////////////////////////////////////////////////////////
         // BUTTON HANDLERS
 
@@ -135,6 +137,9 @@ public class ProcessingController {
             closeBtn.setDisable(false);
         } else {
             processingOutputTextArea.setText("[RUNNING] Processing transactions\n");
+
+            // Init start date
+            processingFolderPath = transactionPlan.getOut();
 
             // Disable all buttons
             startBtn.setDisable(true);
@@ -589,6 +594,7 @@ public class ProcessingController {
                 config.error = channelsErrors[i];
                 config.errorMessage = new ArrayList<>();
                 config.batchQueue = channelsQueues[i];
+                config.outputPath = processingFolderPath;
 
                 // Create and run
                 final ParallelTransactionTask task = new ParallelTransactionTask(config);
@@ -683,17 +689,25 @@ public class ProcessingController {
                     // Flag completion, this thread will exit
                     processing = false;
 
+                    // Execution time
+                    final long stopTime = System.currentTimeMillis();
+                    final long elapsedTime = stopTime - startTime;
+
                     // Update the paid label in the transaction planner
                     final int totalTransactionsPaid = operationsCount.get();
                     Platform.runLater(() -> executedTransactionsLabel.setText(String.valueOf(totalTransactionsPaid)));
 
                     // Save the transaction results
+                    long elapsedHours = TimeUnit.MILLISECONDS.toHours(elapsedTime) % 24;
+                    long elapsedMinutes = TimeUnit.MILLISECONDS.toMinutes(elapsedTime) % 60;
+                    long elapsedSeconds = TimeUnit.MILLISECONDS.toSeconds(elapsedTime) % 60;
+
                     synchronized (finalResults) {
                         // Update result outcome
                         if (operationsCount.get() == totalEntries && remainingPayment.get() == 0) {
-                            finalResults.setResultOutcome("SUCCESSFULLY EXECUTED");
+                            finalResults.setResultOutcome("SUCCESSFULLY EXECUTED in " + elapsedHours + "h " + elapsedMinutes + "m " + elapsedSeconds + "s");
                         } else {
-                            finalResults.setResultOutcome("PARTIAL EXECUTION, NOT ALL TRANSACTIONS EXECUTED SUCCESSFULLY");
+                            finalResults.setResultOutcome("PARTIALLY EXECUTED in " + elapsedHours + "h " + elapsedMinutes + "m " + elapsedSeconds + "s");
                         }
 
                         saveTransactionResult(finalResults, paidTotal.get(), totalFees.get(), totalPayment.get(), remainingPayment.get(), false);
@@ -707,16 +721,11 @@ public class ProcessingController {
                         }
                     }
 
-                    // Execution time
-                    final long stopTime = System.currentTimeMillis();
-                    final long elapsedTime = stopTime - startTime;
-
                     // Status update
                     if (!errorsOccurred) {
                         Platform.runLater(() -> {
                             // Append final message
-                            appendMessage("\n[FINISHED] Process completed in (" + (TimeUnit.MILLISECONDS.toHours(elapsedTime) % 24) + "h " +
-                                          (TimeUnit.MILLISECONDS.toMinutes(elapsedTime) % 60) + "m " + (TimeUnit.MILLISECONDS.toSeconds(elapsedTime) % 60) + "s )\n");
+                            appendMessage("\n[FINISHED] Process completed in (" + elapsedHours + "h " + elapsedMinutes + "m " + elapsedSeconds + "s )\n");
 
                             // Fill the progress bar and colorize it
                             processingProgressBar.setProgress(1);
@@ -734,8 +743,7 @@ public class ProcessingController {
                     } else {
                         Platform.runLater(() -> {
                             // Append final message
-                            appendMessage("\n[FINISHED] Process completed with some errors in (" + (TimeUnit.MILLISECONDS.toHours(elapsedTime) % 24) + "h " +
-                                          (TimeUnit.MILLISECONDS.toMinutes(elapsedTime) % 60) + "m " + (TimeUnit.MILLISECONDS.toSeconds(elapsedTime) % 60) + "s )\n");
+                            appendMessage("\n[FINISHED] Process completed with some errors in (" + elapsedHours + "h " + elapsedMinutes + "m " + elapsedSeconds + "s )\n");
 
                             // Fill the progress bar and colorize it
                             processingProgressBar.setProgress(1);
@@ -863,12 +871,12 @@ public class ProcessingController {
         }
 
         // Create folder if missing
-        final String destinationFolder = "data/" + FOLDER_DATE_FORMATTER.format(new Date());
+        final String destinationFolder = processingFolderPath;
         final String destinationFileName = FILE_DATE_FORMATTER.format(new Date()) + "_" + result.getUuid() + "_" + TRANSACTIONS_RESULT_JSON_SUFFIX;
         final File destinationDir = new File(destinationFolder);
         boolean destinationReady;
         if (!destinationDir.exists()) {
-            destinationReady = destinationDir.mkdir();
+            destinationReady = destinationDir.mkdirs();
         } else {
             destinationReady = true;
         }
