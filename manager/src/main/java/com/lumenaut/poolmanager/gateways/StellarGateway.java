@@ -587,13 +587,13 @@ public class StellarGateway {
      * Execute the given transactions in a single batch from the specified channel
      *
      * @param server
-     * @param channelAccountResponse
+     * @param channelAccount
      * @param signers
      * @param batch
      * @return
      * @throws IOException
      */
-    public static TransactionBatchResponse executeChannelTransactionBatch(final Server server, final AccountResponse channelAccountResponse, final KeyPair sourceAccount, final KeyPair[] signers, final TransactionResult batch) throws IOException {
+    public static TransactionBatchResponse executeChannelTransactionBatch(final Server server, final KeyPair channelAccount, final KeyPair sourceAccount, final KeyPair[] signers, final TransactionResult batch) throws IOException {
         // Prepare response object
         final TransactionBatchResponse response = new TransactionBatchResponse();
 
@@ -617,6 +617,18 @@ public class StellarGateway {
         if (signers.length == 0) {
             response.success = false;
             response.errorMessages.add("Refusing to execute the transaction batch. No signers were provided");
+
+            return response;
+        }
+
+        // Build an AccountResponse object for the channel, used to fetch sequence numbers
+        final AccountResponse channelAccountResponse;
+        try {
+            channelAccountResponse = server.accounts().account(channelAccount);
+        } catch (IOException e) {
+            response.success = false;
+            response.errorMessages.add("Unable to create AccountResponse object for the channel account: " + channelAccount.getAccountId());
+            response.errorMessages.add(e.getMessage());
 
             return response;
         }

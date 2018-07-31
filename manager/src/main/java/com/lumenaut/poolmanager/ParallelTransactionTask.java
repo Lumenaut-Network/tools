@@ -11,8 +11,6 @@ import javafx.application.Platform;
 import org.jctools.queues.atomic.SpscAtomicArrayQueue;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Server;
-import org.stellar.sdk.responses.AccountResponse;
-import org.stellar.sdk.responses.SubmitTransactionResponse;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -127,21 +125,6 @@ public class ParallelTransactionTask implements Runnable {
         // Create KeyPair for the channel
         final KeyPair channelAccount = KeyPair.fromAccountId(config.channelAccount);
 
-        // Build an AccountResponse object for the channel (used to fetch sequence numbers, can be reused)
-        final AccountResponse channelAccountResponse;
-        try {
-            channelAccountResponse = server.accounts().account(channelAccount);
-        } catch (IOException e) {
-            config.error.getAndSet(true);
-            config.errorMessage.add("Unable to create AccountResponse object for the channel account: " + config.channelAccount);
-            config.errorMessage.add(e.getMessage());
-
-            // Set progress to completion and exit this task
-            config.progress.getAndSet(100);
-
-            return;
-        }
-
         // Bundle signers for the transaction
         final KeyPair[] signers = new KeyPair[2];
         signers[0] = config.sourceAccountMasterKey;                     // Pool signature
@@ -156,14 +139,14 @@ public class ParallelTransactionTask implements Runnable {
             final TransactionResult batch = config.batchQueue.poll();
             try {
                 if (batch != null) {
-                    final TransactionBatchResponse batchResponse = StellarGateway.executeChannelTransactionBatch(server, channelAccountResponse, config.sourceAccount, signers, batch);
+                    final TransactionBatchResponse batchResponse = StellarGateway.executeChannelTransactionBatch(server, channelAccount, config.sourceAccount, signers, batch);
                     if (!batchResponse.success) {
                         // Append error and update error state
                         config.error.getAndSet(true);
                         config.errorMessage = batchResponse.errorMessages;
 
                         // Save the response
-                        saveTransactionResponse(batch.getUuid(), batchResponse.transactionResponse);
+                        saveTransactionResponse(batchResponse);
                     } else {
                         // Update payment counters
                         for (TransactionResultEntry resultEntry : batch.getEntries()) {
@@ -180,7 +163,7 @@ public class ParallelTransactionTask implements Runnable {
                         }
 
                         // Save the response
-                        saveTransactionResponse(batch.getUuid(), batchResponse.transactionResponse);
+                        saveTransactionResponse(batchResponse);
                     }
                 } else {
                     // This should really NEVER happen, it means the there's a BIG issue with our queues or the way we're using them
@@ -218,61 +201,76 @@ public class ParallelTransactionTask implements Runnable {
     /**
      * Save the complete state of a transaction response.
      *
-     * @param transactionResponse
+     * @param batchResponse
      */
-    private void saveTransactionResponse(final String uuid, final SubmitTransactionResponse transactionResponse) {
-        // Gather data, if available
-        String envelopeXdr = null;
-        String resultXdr = null;
-        Long ledger = null;
-
-        try {
-            envelopeXdr = transactionResponse.getEnvelopeXdr();
-            resultXdr = transactionResponse.getResultXdr();
-            ledger = transactionResponse.getLedger();
-        } catch (Throwable ignored) {
-        }
-
+    private void saveTransactionResponse(final TransactionBatchResponse batchResponse) {
         // Create JSON structure
         final ObjectNode rootNode = mapper.createObjectNode();
-        rootNode.put("transactionsUuid", uuid);
-        rootNode.put("ledger", ledger);
-        rootNode.put("envelopeXdr", envelopeXdr);
-        rootNode.put("resultXdr", resultXdr);
 
-        // If the transaction failed try to get the extra data for it
-        // !!! IMPORTANT !!! Any of the response data fields can be null, attempt secure extraction
-        if (transactionResponse != null && !transactionResponse.isSuccess()) {
-            String transactionResultCode = "";
+        // Append batch result state
+        rootNode.put("success", batchResponse.success);
+
+        // Populate errors result, if any are present
+        final ArrayNode errorMessages = mapper.createArrayNode();
+        if (batchResponse.errorMessages != null) {
+            for (String errorMessage : batchResponse.errorMessages) {
+                errorMessages.add(errorMessage);
+            }
+        }
+        rootNode.set("errorMessages", errorMessages);
+
+        // Append transaction data
+        if (batchResponse.transactionResponse != null) {
+            // Gather data, if available
+            String envelopeXdr = null;
+            String resultXdr = null;
+            Long ledger = null;
+
             try {
-                transactionResultCode = transactionResponse.getExtras().getResultCodes().getTransactionResultCode();
+                envelopeXdr = batchResponse.transactionResponse.getEnvelopeXdr();
+                resultXdr = batchResponse.transactionResponse.getResultXdr();
+                ledger = batchResponse.transactionResponse.getLedger();
             } catch (Throwable ignored) {
             }
 
-            // Append transaction result code
-            rootNode.put("transactionResultCode", transactionResultCode);
+            rootNode.put("ledger", ledger);
+            rootNode.put("envelopeXdr", envelopeXdr);
+            rootNode.put("resultXdr", resultXdr);
 
-            // Append operations result codes
-            ArrayList<String> operationsResultCodes = null;
-            try {
-                operationsResultCodes = transactionResponse.getExtras().getResultCodes().getOperationsResultCodes();
-            } catch (Throwable ignored) {
-
-            }
-
-            // Populate operations result codes, if any are present
-            final ArrayNode operationsResults = mapper.createArrayNode();
-            if (operationsResultCodes != null) {
-                for (String operationResultCode : operationsResultCodes) {
-                    operationsResults.add(operationResultCode);
+            // If the transaction failed try to get the extra data for it
+            // !!! IMPORTANT !!! Any of the response data fields can be null, attempt secure extraction
+            if (!batchResponse.transactionResponse.isSuccess()) {
+                String transactionResultCode = "";
+                try {
+                    transactionResultCode = batchResponse.transactionResponse.getExtras().getResultCodes().getTransactionResultCode();
+                } catch (Throwable ignored) {
                 }
+
+                // Append transaction result code
+                rootNode.put("transactionResultCode", transactionResultCode);
+
+                // Append operations result codes
+                ArrayList<String> operationsResultCodes = null;
+                try {
+                    operationsResultCodes = batchResponse.transactionResponse.getExtras().getResultCodes().getOperationsResultCodes();
+                } catch (Throwable ignored) {
+
+                }
+
+                // Populate operations result codes, if any are present
+                final ArrayNode operationsResults = mapper.createArrayNode();
+                if (operationsResultCodes != null) {
+                    for (String operationResultCode : operationsResultCodes) {
+                        operationsResults.add(operationResultCode);
+                    }
+                }
+                rootNode.set("operationsResultCodes", operationsResults);
             }
-            rootNode.set("operationsResultCodes", operationsResults);
         }
 
         // Create folder if missing
         final String destinationFolder = config.outputPath + "/transactions";
-        final String destinationFileName = FILE_DATE_FORMATTER.format(new Date()) + "_" + UUID.randomUUID().toString() + "_" + (transactionResponse != null && transactionResponse.isSuccess() ? TRANSACTION_SUCCESSFUL_JSON_SUFFIX : TRANSACTION_ERROR_JSON_SUFFIX);
+        final String destinationFileName = FILE_DATE_FORMATTER.format(new Date()) + "_" + UUID.randomUUID().toString() + "_" + (batchResponse.success ? TRANSACTION_SUCCESSFUL_JSON_SUFFIX : TRANSACTION_ERROR_JSON_SUFFIX);
         final File destinationDir = new File(destinationFolder);
         boolean destinationReady;
         if (!destinationDir.exists()) {

@@ -14,6 +14,6 @@
     <orderEntry type="library" name="Gradle: com.fasterxml.jackson.core:jackson-annotations:2.9.3" level="project" />
     <orderEntry type="library" name="Gradle: org.postgresql:postgresql:42.1.4" level="project" />
     <orderEntry type="library" name="Gradle: org.jctools:jctools-core:2.1.1" level="project" />
-    <orderEntry type="library" name="Gradle: stellar-sdk:stellar-sdk:0.1.14" level="project" />
+    <orderEntry type="library" name="Gradle: stellar-sdk:stellar-sdk:0.2.1" level="project" />
   </component>
 </module>
