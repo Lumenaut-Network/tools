@@ -593,7 +593,7 @@ public class StellarGateway {
      * @return
      * @throws IOException
      */
-    public static TransactionBatchResponse executeChannelTransactionBatch(final Server server, final KeyPair channelAccount, final KeyPair sourceAccount, final KeyPair[] signers, final TransactionResult batch) throws IOException {
+    public static TransactionBatchResponse executeChannelTransactionBatch(final Server server, final KeyPair channelAccount, final KeyPair sourceAccount, final KeyPair[] signers, final TransactionResult batch) throws Exception {
         // Prepare response object
         final TransactionBatchResponse response = new TransactionBatchResponse();
 

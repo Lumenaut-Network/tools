@@ -8,8 +8,8 @@ import com.lumenaut.poolmanager.DataFormats.TransactionResult;
 import com.lumenaut.poolmanager.DataFormats.TransactionResultEntry;
 import com.lumenaut.poolmanager.gateways.StellarGateway;
 import javafx.application.Platform;
-import org.jctools.queues.atomic.SpscAtomicArrayQueue;
 import org.stellar.sdk.KeyPair;
+import org.stellar.sdk.Network;
 import org.stellar.sdk.Server;
 
 import java.io.*;
@@ -17,9 +17,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static com.lumenaut.poolmanager.DataFormats.OBJECT_MAPPER;
 import static com.lumenaut.poolmanager.Settings.*;
@@ -47,39 +44,6 @@ public class ParallelTransactionTask implements Runnable {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region SUBCLASSES
 
-    /**
-     * Config class
-     */
-    public static class ParallelTransactionTaskConfig {
-        // Out
-        public final TransactionResult finalResults;
-        public AtomicLong paidTotal;
-        public AtomicLong totalFees;
-        public AtomicLong totalPayment;
-        public AtomicLong remainingPayment;
-        public String outputPath;
-
-        // Signing
-        public KeyPair sourceAccount;
-        public KeyPair sourceAccountMasterKey;
-        public int channelIndex;
-        public String channelAccount;
-        public String channelAccountKey;
-        public AtomicInteger progress;
-        public SpscAtomicArrayQueue<TransactionResult> batchQueue;
-        public AtomicBoolean error;
-        public ArrayList<String> errorMessage;
-
-        /**
-         * Constructor
-         *
-         * @param finalResults The results object that collects the overall operations data
-         */
-        public ParallelTransactionTaskConfig(final TransactionResult finalResults) {
-            this.finalResults = finalResults;
-        }
-    }
-
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -97,6 +61,11 @@ public class ParallelTransactionTask implements Runnable {
      */
     public ParallelTransactionTask(final ParallelTransactionTaskConfig config) {
         this.config = config;
+
+        System.out.println("####################################### Starting transaction thread ########");
+        System.out.println("Channel Index: " + config.channelIndex);
+        System.out.println("Channel: " + config.channelAccount);
+        System.out.println("Key: " + config.channelAccountKey);
     }
 
     //endregion
@@ -117,6 +86,16 @@ public class ParallelTransactionTask implements Runnable {
             config.progress.getAndSet(100);
 
             return;
+        }
+
+        // Init network to be used
+        switch (SETTING_OPERATIONS_NETWORK) {
+            case "LIVE":
+                Network.usePublicNetwork();
+                break;
+            case "TEST":
+                Network.useTestNetwork();
+                break;
         }
 
         // Build server object
@@ -144,9 +123,6 @@ public class ParallelTransactionTask implements Runnable {
                         // Append error and update error state
                         config.error.getAndSet(true);
                         config.errorMessage = batchResponse.errorMessages;
-
-                        // Save the response
-                        saveTransactionResponse(batchResponse);
                     } else {
                         // Update payment counters
                         for (TransactionResultEntry resultEntry : batch.getEntries()) {
@@ -161,10 +137,10 @@ public class ParallelTransactionTask implements Runnable {
                             config.finalResults.getEntries().addAll(batch.getEntries());
                             config.finalResults.getExecutedOperations().getAndAdd(batch.getEntries().size());
                         }
-
-                        // Save the response
-                        saveTransactionResponse(batchResponse);
                     }
+
+                    // Save the response
+                    saveTransactionResponse(batchResponse);
                 } else {
                     // This should really NEVER happen, it means the there's a BIG issue with our queues or the way we're using them
                     Platform.runLater(() -> showError("Channel [" + config.channelIndex + "] has skipped a transaction batch, the batch object fetched from the queue was NULL!"));
@@ -175,7 +151,7 @@ public class ParallelTransactionTask implements Runnable {
 
                 // Update progress
                 config.progress.getAndSet(currentBatch * 100 / totalBatches);
-            } catch (IOException e) {
+            } catch (Throwable e) {
                 // Append error and update error state
                 config.error.getAndSet(true);
                 config.errorMessage.add(e.getMessage());

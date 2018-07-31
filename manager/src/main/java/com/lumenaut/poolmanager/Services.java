@@ -1,6 +1,9 @@
 package com.lumenaut.poolmanager;
 
+import javafx.application.Platform;
+
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.lumenaut.poolmanager.Settings.MAX_THREADS;
@@ -17,11 +20,40 @@ public class Services {
     // Init threadpool
     public static final ThreadPoolExecutor EXECUTOR = (ThreadPoolExecutor) Executors.newFixedThreadPool(MAX_THREADS);
 
+    static {
+        EXECUTOR.setThreadFactory(new ExceptionCatchingThreadFactory(EXECUTOR.getThreadFactory()));
+    }
+
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //region ACCESSORS
+    //region SUBCLASSES
+
+    /**
+     * Thread factory that reroutes uncaught exceptions to the main thread for logging
+     */
+    private static class ExceptionCatchingThreadFactory implements ThreadFactory {
+        private final ThreadFactory delegate;
+
+        private ExceptionCatchingThreadFactory(ThreadFactory delegate) {
+            this.delegate = delegate;
+        }
+
+        public Thread newThread(final Runnable r) {
+            // Delegate creation to the thread factory
+            final Thread t = delegate.newThread(r);
+
+            // Setup uncaught exception handling
+            t.setUncaughtExceptionHandler((t1, e) -> Platform.runLater(() -> {
+                System.err.println("Unhandled Exception occurred in Thread: " + t1.getName() + "(" + t1.getId() + ")");
+                e.printStackTrace();
+            }));
+
+            // Return the new thread
+            return t;
+        }
+    }
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

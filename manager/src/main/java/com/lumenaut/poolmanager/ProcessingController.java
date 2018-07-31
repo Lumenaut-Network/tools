@@ -1,7 +1,6 @@
 package com.lumenaut.poolmanager;
 
 import com.lumenaut.poolmanager.DataFormats.*;
-import com.lumenaut.poolmanager.ParallelTransactionTask.ParallelTransactionTaskConfig;
 import com.lumenaut.poolmanager.gateways.StellarGateway;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -478,7 +477,7 @@ public class ProcessingController {
 
         // Channels queues init
         final SpscAtomicArrayQueue<TransactionResult>[] channelsQueues = new SpscAtomicArrayQueue[availableChannels];
-        for (int i = 0; i < channelsQueues.length; i++) {
+        for (int i = 0; i < availableChannels; i++) {
             channelsQueues[i] = new SpscAtomicArrayQueue<>(maxBatchesPerChannel);
         }
 
