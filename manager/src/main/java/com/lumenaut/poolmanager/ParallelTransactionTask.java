@@ -216,46 +216,63 @@ public class ParallelTransactionTask implements Runnable {
     //region METHODS
 
     /**
-     * Save the complete state of a transaction response
+     * Save the complete state of a transaction response.
      *
      * @param transactionResponse
      */
     private void saveTransactionResponse(final String uuid, final SubmitTransactionResponse transactionResponse) {
-        // Read the current contents of the text area
-        if (transactionResponse == null) {
-            return;
-        }
+        // Gather data, if available
+        String envelopeXdr = null;
+        String resultXdr = null;
+        Long ledger = null;
 
-        // Gather data
-        String envelopeXdr = transactionResponse.getEnvelopeXdr();
-        String resultXdr = transactionResponse.getResultXdr();
-        Long ledger = transactionResponse.getLedger();
+        try {
+            envelopeXdr = transactionResponse.getEnvelopeXdr();
+            resultXdr = transactionResponse.getResultXdr();
+            ledger = transactionResponse.getLedger();
+        } catch (Throwable ignored) {
+        }
 
         // Create JSON structure
         final ObjectNode rootNode = mapper.createObjectNode();
+        rootNode.put("transactionsUuid", uuid);
         rootNode.put("ledger", ledger);
         rootNode.put("envelopeXdr", envelopeXdr);
         rootNode.put("resultXdr", resultXdr);
 
-        if (!transactionResponse.isSuccess()) {
+        // If the transaction failed try to get the extra data for it
+        // !!! IMPORTANT !!! Any of the response data fields can be null, attempt secure extraction
+        if (transactionResponse != null && !transactionResponse.isSuccess()) {
+            String transactionResultCode = "";
+            try {
+                transactionResultCode = transactionResponse.getExtras().getResultCodes().getTransactionResultCode();
+            } catch (Throwable ignored) {
+            }
+
             // Append transaction result code
-            rootNode.put("transactionResultCode", transactionResponse.getExtras().getResultCodes().getTransactionResultCode());
+            rootNode.put("transactionResultCode", transactionResultCode);
 
             // Append operations result codes
-            final ArrayList<String> operationsResultCodes = transactionResponse.getExtras().getResultCodes().getOperationsResultCodes();
+            ArrayList<String> operationsResultCodes = null;
+            try {
+                operationsResultCodes = transactionResponse.getExtras().getResultCodes().getOperationsResultCodes();
+            } catch (Throwable ignored) {
 
+            }
+
+            // Populate operations result codes, if any are present
+            final ArrayNode operationsResults = mapper.createArrayNode();
             if (operationsResultCodes != null) {
-                final ArrayNode operationsResults = mapper.createArrayNode();
                 for (String operationResultCode : operationsResultCodes) {
                     operationsResults.add(operationResultCode);
                 }
-                rootNode.set("operationsResultCodes", operationsResults);
             }
+            rootNode.set("operationsResultCodes", operationsResults);
         }
 
         // Create folder if missing
         final String destinationFolder = config.outputPath + "/transactions";
-        final String destinationFileName = FILE_DATE_FORMATTER.format(new Date()) + "_" + UUID.randomUUID().toString() + "_" + (transactionResponse.isSuccess() ? TRANSACTION_SUCCESSFUL_JSON_SUFFIX : TRANSACTION_ERROR_JSON_SUFFIX);
+        final String destinationFileName = FILE_DATE_FORMATTER.format(new Date()) + "_" + UUID.randomUUID().toString() + "_" + (transactionResponse != null && transactionResponse.isSuccess() ? TRANSACTION_SUCCESSFUL_JSON_SUFFIX : TRANSACTION_ERROR_JSON_SUFFIX);
         final File destinationDir = new File(destinationFolder);
         boolean destinationReady;
         if (!destinationDir.exists()) {
