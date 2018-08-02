@@ -656,17 +656,26 @@ public class StellarGateway {
         }
 
         // Submit
-        final SubmitTransactionResponse transactionResponse = server.submitTransaction(transaction);
-        if (transactionResponse.isSuccess()) {
-            // Transaction batch was successful
-            response.success = true;
-            response.transactionResponse = transactionResponse;
-        } else {
-            // Transaction batch failed
-            response.success = false;
-            response.transactionResponse = transactionResponse;
-            response.errorMessages.add("The transaction response from the horizon network reported an unsuccessful outcome");
+        SubmitTransactionResponse transactionResponse = null;
+        while (transactionResponse == null) {
+            try {
+                transactionResponse = server.submitTransaction(transaction);
+                if (transactionResponse.isSuccess()) {
+                    // Transaction batch was successful
+                    response.success = true;
+                    response.transactionResponse = transactionResponse;
+                } else {
+                    // Transaction batch failed
+                    response.success = false;
+                    response.transactionResponse = transactionResponse;
+                    response.errorMessages.add("The transaction response from the horizon network reported an unsuccessful outcome");
+                }
+            } catch (Throwable e) {
+                // Unexpected failure (timeout?)
+                response.errorMessages.add(e.getMessage());
+            }
         }
+
 
         return response;
     }
