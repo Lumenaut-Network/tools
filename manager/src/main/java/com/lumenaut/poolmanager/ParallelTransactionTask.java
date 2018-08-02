@@ -61,11 +61,6 @@ public class ParallelTransactionTask implements Runnable {
      */
     public ParallelTransactionTask(final ParallelTransactionTaskConfig config) {
         this.config = config;
-
-        System.out.println("####################################### Starting transaction thread ########");
-        System.out.println("Channel Index: " + config.channelIndex);
-        System.out.println("Channel: " + config.channelAccount);
-        System.out.println("Key: " + config.channelAccountKey);
     }
 
     //endregion

@@ -672,7 +672,7 @@ public class StellarGateway {
                 }
             } catch (Throwable e) {
                 // Unexpected failure (timeout?)
-                response.errorMessages.add(e.getMessage());
+                response.errorMessages.add(e.getClass().getSimpleName() + " -> " + e.getMessage());
             }
         }
 
