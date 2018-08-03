@@ -593,7 +593,7 @@ public class StellarGateway {
      * @return
      * @throws IOException
      */
-    public static TransactionBatchResponse executeChannelTransactionBatch(final Server server, final KeyPair channelAccount, final KeyPair sourceAccount, final KeyPair[] signers, final TransactionResult batch) throws Exception {
+    public static TransactionBatchResponse executeChannelTransactionBatch(final Server server, final KeyPair channelAccount, final KeyPair sourceAccount, final KeyPair[] signers, final TransactionResult batch) {
         // Prepare response object
         final TransactionBatchResponse response = new TransactionBatchResponse();
 
@@ -657,8 +657,15 @@ public class StellarGateway {
 
         // Submit
         SubmitTransactionResponse transactionResponse = null;
+        boolean resub = false;
         while (transactionResponse == null) {
             try {
+                // If we're resubmitting, give horizon some time to catch up
+                if (resub) {
+                    Thread.sleep(TRANSACTION_RESUBMISSION_DELAY);
+                }
+
+                // Attempt submission
                 transactionResponse = server.submitTransaction(transaction);
                 if (transactionResponse.isSuccess()) {
                     // Transaction batch was successful
@@ -668,11 +675,20 @@ public class StellarGateway {
                     // Transaction batch failed
                     response.success = false;
                     response.transactionResponse = transactionResponse;
-                    response.errorMessages.add("The transaction response from the horizon network reported an unsuccessful outcome");
+                    response.errorMessages.add("Transaction failed");
                 }
             } catch (Throwable e) {
                 // Unexpected failure (timeout?)
-                response.errorMessages.add(e.getClass().getSimpleName() + " -> " + e.getMessage());
+                final String error = "Resubmitting transaction in " + TRANSACTION_RESUBMISSION_DELAY / 1000 + " seconds because of: " + e.getClass().getSimpleName() + " -> " + e.getMessage();
+
+                // Append to the errors list
+                response.errorMessages.add(error);
+
+                // Debug
+                System.err.println(error);
+
+                // Flag as resubmission
+                resub = true;
             }
         }
 
