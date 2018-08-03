@@ -662,7 +662,16 @@ public class StellarGateway {
             try {
                 // If we're resubmitting, give horizon some time to catch up
                 if (resub) {
-                    Thread.sleep(TRANSACTION_RESUBMISSION_DELAY);
+                    try {
+                        Thread.sleep(TRANSACTION_RESUBMISSION_DELAY);
+                    } catch (InterruptedException e) {
+                        // Transaction batch failed
+                        response.success = false;
+                        response.errorMessages.add("Transaction failed");
+                        response.errorMessages.add("Channel Thread was interrupted: " + e.getMessage());
+
+                        return response;
+                    }
                 }
 
                 // Attempt submission
@@ -677,7 +686,7 @@ public class StellarGateway {
                     response.transactionResponse = transactionResponse;
                     response.errorMessages.add("Transaction failed");
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 // Unexpected failure (timeout?)
                 final String error = "Resubmitting transaction in " + TRANSACTION_RESUBMISSION_DELAY / 1000 + " seconds because of: " + e.getClass().getSimpleName() + " -> " + e.getMessage();
 

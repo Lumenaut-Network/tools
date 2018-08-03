@@ -21,8 +21,9 @@ public class Settings {
     // don't worry if your CPU doesn't an equal amount of cores, your kernel's scheduler will manage just fine.
     public static final int MAX_THREADS = 20;
 
-    // When a transaction fails because of a timeout error in the horizon response, wait this much before resubmitting it (milliseconds)
-    public static final int TRANSACTION_RESUBMISSION_DELAY = 5000;
+    // When a transaction fails because of a timeout error from the horizon response
+    // wait this much before resubmitting it (milliseconds)
+    public static final int TRANSACTION_RESUBMISSION_DELAY = 10000;
 
     // Properties instance
     private static final Properties PROPERTIES = new Properties();
