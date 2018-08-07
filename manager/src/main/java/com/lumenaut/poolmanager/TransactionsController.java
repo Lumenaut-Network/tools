@@ -754,6 +754,7 @@ public class TransactionsController {
 
                 ////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // STEP 5 (executes per voter): Scan donations data for a matching voter sourceAccount
+                boolean voterHasPaymentLeft = true;
                 for (DonationDataEntry donationEntry : donationDataEntries) {
                     if (donationEntry.getSource().equals(voterAccount)) {
                         // Extract donation data and compute donation amount
@@ -767,12 +768,18 @@ public class TransactionsController {
                         final BigDecimal voterAmountOnePercent = voterAmountXLM.divide(new BigDecimal(100), ROUNDING_MODE);
                         final BigDecimal donationAmount = voterAmountOnePercent.multiply(new BigDecimal(percent));
 
-                        // Convert compute amount back to stroops
-                        final long donationAmountStroops = XLMUtils.XLMToStroop(donationAmount);
+                        // Convert donation amount back to stroops and substract its transaction fee (the donation is going to be a new operation)
+                        final long donationAmountStroops = XLMUtils.XLMToStroop(donationAmount) - SETTING_FEE;
 
-                        // Deduct donation from voter amount and set the donated amount entry
-                        voterPaymentEntry.setAmount(voterAmount - donationAmountStroops);
-                        voterPaymentEntry.setDonatedAmount(donationAmountStroops);
+                        // Check if the voter amount minus the donation amount leaves enough in the voter's payment
+                        if (voterAmount - donationAmountStroops <= 0L) {
+                            // Remove voter from the payment plan, he's left with nothing to be paid
+                            voterHasPaymentLeft = false;
+                        } else {
+                            // Deduct donation from voter amount and set the donated amount entry
+                            voterPaymentEntry.setAmount(voterAmount - donationAmountStroops);
+                            voterPaymentEntry.setDonatedAmount(donationAmountStroops);
+                        }
 
                         // Add a new entry to the beneficiaries or update an existing one
                         if (donationBeneficiariesAndAmounts.containsKey(beneficiary)) {
@@ -792,6 +799,13 @@ public class TransactionsController {
                         // Update donations counter
                         numDonations.getAndIncrement();
                     }
+                }
+
+                // Check if the voter has any payment left after donating, if not, return immediately without appending his entry
+                if (!voterHasPaymentLeft) {
+                    numExcluded.getAndIncrement();
+
+                    return;
                 }
 
                 // Update total payment up until this point

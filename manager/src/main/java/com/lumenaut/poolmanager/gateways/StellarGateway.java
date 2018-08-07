@@ -547,9 +547,20 @@ public class StellarGateway {
             return response;
         }
 
-		// Prepare a new transaction builder
-		final AccountResponse sourceAccount = server.accounts().account(source);
-		final Builder transactionBuilder = new Transaction.Builder(sourceAccount);
+        // Build an AccountResponse object, used to fetch sequence numbers
+        final AccountResponse sourceAccountResponse;
+        try {
+            sourceAccountResponse = server.accounts().account(source);
+        } catch (IOException e) {
+            response.success = false;
+            response.errorMessages.add("Unable to create AccountResponse object: " + source.getAccountId());
+            response.errorMessages.add(e.getMessage());
+
+            return response;
+        }
+
+        // Prepare a new transaction builder for the pool account
+        final Builder transactionBuilder = new Transaction.Builder(sourceAccountResponse);
 
 		// Add memo to the transaction
 		transactionBuilder.addMemo(Memo.text(Settings.SETTING_MEMO));
@@ -570,17 +581,65 @@ public class StellarGateway {
             transaction.sign(signer);
         }
 
-		// Submit
-		final SubmitTransactionResponse transactionResponse = server.submitTransaction(transaction);
-		if (transactionResponse.isSuccess()) {
-			// Transaction batch was successful
-			response.success = true;
-		} else {
-			// Transaction batch failed
-			response.success = false;
-			response.transactionResponse = transactionResponse;
-			response.errorMessages.add("The transaction response from the horizon network reported an unsuccessful outcome");
-		}
+        // Submit
+        SubmitTransactionResponse transactionResponse = null;
+        boolean resub = false;
+        while (transactionResponse == null) {
+            try {
+                // If we're resubmitting, give horizon some time to catch up
+                if (resub) {
+                    try {
+                        Thread.sleep(TRANSACTION_RESUBMISSION_DELAY);
+                    } catch (InterruptedException e) {
+                        // Transaction batch failed
+                        response.success = false;
+                        response.errorMessages.add("Transaction failed");
+                        response.errorMessages.add("Channel Thread was interrupted: " + e.getMessage());
+
+                        return response;
+                    }
+                }
+
+                // Attempt submission
+                transactionResponse = server.submitTransaction(transaction);
+                if (transactionResponse.isSuccess()) {
+                    // Transaction batch was successful
+                    response.success = true;
+                    response.transactionResponse = transactionResponse;
+                } else {
+                    // Transaction batch failed
+                    response.success = false;
+                    response.transactionResponse = transactionResponse;
+                    response.errorMessages.add("Transaction failed");
+                }
+            } catch (SubmitTransactionUnknownResponseException e) {
+                // Unexpected failure (timeout?)
+                final String error = "Resubmitting transaction in " + TRANSACTION_RESUBMISSION_DELAY / 1000 + " seconds because of: " + e.getClass().getSimpleName() + " -> " + e.getMessage();
+
+                // Append to the errors list
+                response.errorMessages.add(error);
+                response.errorMessages.add("Code: " + String.valueOf(e.getCode()));
+                response.errorMessages.add("Response Body" + e.getBody());
+
+                // Debug
+                System.err.println(error);
+
+                // Flag as resubmission
+                resub = true;
+            } catch (SubmitTransactionTimeoutResponseException | IOException e) {
+                // Unexpected failure (timeout?)
+                final String error = "Resubmitting transaction in " + TRANSACTION_RESUBMISSION_DELAY / 1000 + " seconds because of: " + e.getClass().getSimpleName() + " -> " + e.getMessage();
+
+                // Append to the errors list
+                response.errorMessages.add(error);
+
+                // Debug
+                System.err.println(error);
+
+                // Flag as resubmission
+                resub = true;
+            }
+        }
 
 		return response;
 	}
