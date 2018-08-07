@@ -11,6 +11,8 @@ import org.stellar.sdk.*;
 import org.stellar.sdk.Transaction.Builder;
 import org.stellar.sdk.responses.AccountResponse;
 import org.stellar.sdk.responses.SubmitTransactionResponse;
+import org.stellar.sdk.responses.SubmitTransactionTimeoutResponseException;
+import org.stellar.sdk.responses.SubmitTransactionUnknownResponseException;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -686,7 +688,21 @@ public class StellarGateway {
                     response.transactionResponse = transactionResponse;
                     response.errorMessages.add("Transaction failed");
                 }
-            } catch (Exception e) {
+            } catch (SubmitTransactionUnknownResponseException e) {
+                // Unexpected failure (timeout?)
+                final String error = "Resubmitting transaction in " + TRANSACTION_RESUBMISSION_DELAY / 1000 + " seconds because of: " + e.getClass().getSimpleName() + " -> " + e.getMessage();
+
+                // Append to the errors list
+                response.errorMessages.add(error);
+                response.errorMessages.add("Code: " + String.valueOf(e.getCode()));
+                response.errorMessages.add("Response Body" + e.getBody());
+
+                // Debug
+                System.err.println(error);
+
+                // Flag as resubmission
+                resub = true;
+            } catch (SubmitTransactionTimeoutResponseException | IOException e) {
                 // Unexpected failure (timeout?)
                 final String error = "Resubmitting transaction in " + TRANSACTION_RESUBMISSION_DELAY / 1000 + " seconds because of: " + e.getClass().getSimpleName() + " -> " + e.getMessage();
 
@@ -700,7 +716,6 @@ public class StellarGateway {
                 resub = true;
             }
         }
-
 
         return response;
     }
