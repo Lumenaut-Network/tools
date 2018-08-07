@@ -1,0 +1,25 @@
+# Excluded project configurations
+.idea/workspace.xml
+.idea/misc.xml
+.idea/dataSources.xml
+.idea/dataSources.local.xml
+.idea/sqldialects.xml
+.idea/dataSources
+.idea/dictionaries
+.idea/libraries
+.idea/dbnavigator.xml
+.idea/fileTemplates/includes/File Header.java
+.idea/markdown-navigator.xml
+.idea/markdown-navigator/
+
+# Gradle folders
+.gradle
+
+# Build folders
+build/
+out/
+
+# Temporary files
+.*~
+/data/*/
+
