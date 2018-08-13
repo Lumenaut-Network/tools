@@ -98,7 +98,7 @@ public class ParallelTransactionTask implements Runnable {
         // Build server object
         final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? SETTING_HORIZON_LIVE_NETWORK : SETTING_HORIZON_TEST_NETWORK);
 
-        // Create our custom submission clientù
+        // Create our custom submission client
         final OkHttpClient.Builder builder = new OkHttpClient.Builder();
         final OkHttpClient submissionClient = builder.retryOnConnectionFailure(false)
                 .connectTimeout(20L, TimeUnit.SECONDS)
