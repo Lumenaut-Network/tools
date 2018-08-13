@@ -143,7 +143,6 @@ public class TransactionsController {
     private HashMap<String, Long> votesAndPayments;
     private TransactionPlan currentPlan;
     private DonationsData donationsData;
-    private String outputFolder;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -597,6 +596,13 @@ public class TransactionsController {
                         excludedPoolSelfVote.set(true);
 
                         // Skip it
+                        continue;
+                    }
+
+                    // Exclude voters with balances below the minimum threshold
+                    if (balance < MIN_ACCOUNT_BALANCE) {
+                        numExcluded.getAndIncrement();
+
                         continue;
                     }
 

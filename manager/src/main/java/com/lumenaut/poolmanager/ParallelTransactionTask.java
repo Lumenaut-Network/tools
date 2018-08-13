@@ -8,6 +8,7 @@ import com.lumenaut.poolmanager.DataFormats.TransactionResult;
 import com.lumenaut.poolmanager.DataFormats.TransactionResultEntry;
 import com.lumenaut.poolmanager.gateways.StellarGateway;
 import javafx.application.Platform;
+import okhttp3.OkHttpClient;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Network;
 import org.stellar.sdk.Server;
@@ -17,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static com.lumenaut.poolmanager.DataFormats.OBJECT_MAPPER;
 import static com.lumenaut.poolmanager.Settings.*;
@@ -95,6 +97,16 @@ public class ParallelTransactionTask implements Runnable {
 
         // Build server object
         final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? SETTING_HORIZON_LIVE_NETWORK : SETTING_HORIZON_TEST_NETWORK);
+
+        // Create our custom submission clientù
+        final OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        final OkHttpClient submissionClient = builder.retryOnConnectionFailure(false)
+                .connectTimeout(20L, TimeUnit.SECONDS)
+                .readTimeout(120L, TimeUnit.SECONDS)
+                .build();
+
+        // Register the client within the server
+        server.setSubmitHttpClient(submissionClient);
 
         // Create KeyPair for the channel
         final KeyPair channelAccount = KeyPair.fromAccountId(config.channelAccount);
