@@ -209,7 +209,7 @@ public class HorizonGateway {
         final long poolBalance = getBalance(inflationDestination);
 
         // Prepared statement
-        final PreparedStatement inflationStm = conn.prepareStatement("SELECT * FROM core.public.accounts WHERE inflationdest = ?");
+        final PreparedStatement inflationStm = conn.prepareStatement("SELECT * FROM core.public.accounts WHERE inflationdest = ? ORDER BY balance DESC");
         // Fetch in batches of 100 records
         inflationStm.setFetchSize(100);
         inflationStm.setString(1, inflationDestination);
