@@ -559,6 +559,7 @@ public class TransactionsController {
             // Init special trackers for exclusions
             final AtomicBoolean excludedPoolSelfVote = new AtomicBoolean(false);
             final AtomicInteger excludedNegativePayments = new AtomicInteger(0);
+            final AtomicInteger excludedLowBalancePayments = new AtomicInteger(0);
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // STEP 1: Prepare voters data (voters, balances, donations)
@@ -596,13 +597,6 @@ public class TransactionsController {
                         excludedPoolSelfVote.set(true);
 
                         // Skip it
-                        continue;
-                    }
-
-                    // Exclude voters with balances below the minimum threshold
-                    if (balance < MIN_ACCOUNT_BALANCE) {
-                        numExcluded.getAndIncrement();
-
                         continue;
                     }
 
@@ -714,14 +708,21 @@ public class TransactionsController {
 
             // Compute plan entries
             votesAndPayments.forEach((voterAccount, voterAmount) -> {
+                // Get the recorded balance for this voter
+                final Long recordedVoterBalance = votesAndBalances.get(voterAccount);
+
+                // Exclude voters with balances below the minimum threshold
+                if (recordedVoterBalance == null || recordedVoterBalance < MIN_ACCOUNT_BALANCE) {
+                    numExcluded.getAndIncrement();
+                    excludedLowBalancePayments.getAndIncrement();
+
+                    // Return immediately without appending the entry
+                    return;
+                }
+
                 // Create new entry node
                 final TransactionPlanEntry voterPaymentEntry = new TransactionPlanEntry();
-
-                // Map the balance of this voter as we recorded it when fetching data (default to 0L if the data is missing)
-                final Long recordedVoterBalance = votesAndBalances.get(voterAccount);
-                voterPaymentEntry.setRecordedBalance(recordedVoterBalance != null ? recordedVoterBalance : 0L);
-
-                // Set the amount and destination of the transaction
+                voterPaymentEntry.setRecordedBalance(recordedVoterBalance);
                 voterPaymentEntry.setAmount(voterAmount);
                 voterPaymentEntry.setDestination(voterAccount);
 
@@ -872,6 +873,11 @@ public class TransactionsController {
             // Notify of negative payments exclusions
             if (excludedNegativePayments.get() > 0) {
                 showInfo(excludedNegativePayments.get() + " accounts have been excluded from the distribution because their payment amounts minus the fee would be negative");
+            }
+
+            // Notify of low balance exclusions
+            if (excludedLowBalancePayments.get() > 0) {
+                showInfo(excludedLowBalancePayments.get() + " accounts have been excluded from the distribution because their balance was below the configured threshold of " + XLMUtils.formatBalance(MIN_ACCOUNT_BALANCE) + " XLM");
             }
 
             // Notify of pool donations
