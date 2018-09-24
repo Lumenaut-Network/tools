@@ -593,7 +593,6 @@ public class StellarGateway {
                     } catch (InterruptedException e) {
                         // Transaction batch failed
                         response.success = false;
-                        response.errorMessages.add("Transaction failed");
                         response.errorMessages.add("Channel Thread was interrupted: " + e.getMessage());
 
                         return response;
