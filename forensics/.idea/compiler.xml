@@ -4,6 +4,8 @@
     <bytecodeTargetLevel>
       <module name="exclusionsextractor_main" target="1.8" />
       <module name="exclusionsextractor_test" target="1.8" />
+      <module name="forensics_main" target="1.8" />
+      <module name="forensics_test" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

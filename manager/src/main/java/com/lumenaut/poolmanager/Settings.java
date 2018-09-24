@@ -21,6 +21,9 @@ public class Settings {
     // don't worry if your CPU doesn't an equal amount of cores, your kernel's scheduler will manage just fine.
     public static final int MAX_THREADS = 20;
 
+    // Minimum valid account balance accepted to receive inflation (in stroops)
+    public static final long MIN_ACCOUNT_BALANCE = 25_000_000L;
+
     // When a transaction fails because of a timeout error from the horizon response
     // wait this much before resubmitting it (milliseconds)
     public static final int TRANSACTION_RESUBMISSION_DELAY = 10000;
