@@ -30,7 +30,8 @@ public class ParallelTransactionTaskConfig {
     public AtomicInteger progress;
     public SpscAtomicArrayQueue<TransactionResult> batchQueue;
     public AtomicBoolean error;
-    public ArrayList<String> errorMessage;
+    public ArrayList<String> errorMessages;
+    public ArrayList<String> warningMessages;
 
     /**
      * Constructor

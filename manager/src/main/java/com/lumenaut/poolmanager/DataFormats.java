@@ -52,6 +52,7 @@ public class DataFormats {
         public boolean success = false;
         public SubmitTransactionResponse transactionResponse;
         public ArrayList<String> errorMessages = new ArrayList<>();
+        public ArrayList<String> warningMessages = new ArrayList<>();
     }
 
     //endregion

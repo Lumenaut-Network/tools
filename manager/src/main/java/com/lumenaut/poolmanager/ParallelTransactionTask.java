@@ -75,7 +75,7 @@ public class ParallelTransactionTask implements Runnable {
         if (config.batchQueue.peek() == null) {
             // We're done, nothing to do here
             config.error.getAndSet(true);
-            config.errorMessage.add("This channel had no operation batches to process");
+            config.errorMessages.add("This channel had no operation batches to process");
 
             // Set progress to completion and exit this thread
             config.progress.getAndSet(100);
@@ -117,8 +117,12 @@ public class ParallelTransactionTask implements Runnable {
                     if (!batchResponse.success) {
                         // Append error and update error state
                         config.error.getAndSet(true);
-                        config.errorMessage = batchResponse.errorMessages;
+                        config.errorMessages = batchResponse.errorMessages;
+                        config.warningMessages = batchResponse.warningMessages;
                     } else {
+                        // Append warnings (if any)
+                        config.warningMessages = batchResponse.warningMessages;
+
                         // Update payment counters
                         for (TransactionResultEntry resultEntry : batch.getEntries()) {
                             config.paidTotal.getAndAdd(resultEntry.getAmount());
@@ -149,7 +153,7 @@ public class ParallelTransactionTask implements Runnable {
             } catch (Throwable e) {
                 // Append error and update error state
                 config.error.getAndSet(true);
-                config.errorMessage.add(e.getMessage());
+                config.errorMessages.add(e.getMessage());
 
                 // This batch failed but we need to update progress anyway
                 currentBatch++;
@@ -189,6 +193,15 @@ public class ParallelTransactionTask implements Runnable {
             }
         }
         rootNode.set("errorMessages", errorMessages);
+
+        // Populate warnings result, if any are present
+        final ArrayNode warningMessages = mapper.createArrayNode();
+        if (batchResponse.warningMessages != null) {
+            for (String warningMessage : batchResponse.warningMessages) {
+                warningMessages.add(warningMessage);
+            }
+        }
+        rootNode.set("warningMessages", warningMessages);
 
         // Append transaction data
         if (batchResponse.transactionResponse != null) {

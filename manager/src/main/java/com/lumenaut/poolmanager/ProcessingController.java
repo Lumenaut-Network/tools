@@ -591,7 +591,7 @@ public class ProcessingController {
                 config.channelAccountKey = channelKeys.get(i);
                 config.progress = channelsProgress[i];
                 config.error = channelsErrors[i];
-                config.errorMessage = new ArrayList<>();
+                config.errorMessages = new ArrayList<>();
                 config.batchQueue = channelsQueues[i];
                 config.outputPath = processingFolderPath;
 
