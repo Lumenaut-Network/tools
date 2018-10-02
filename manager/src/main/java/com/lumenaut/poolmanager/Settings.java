@@ -26,7 +26,7 @@ public class Settings {
 
     // When a transaction fails because of a timeout error from the horizon response
     // wait this much before resubmitting it (milliseconds)
-    public static final int TRANSACTION_RESUBMISSION_DELAY = 10000;
+    public static final int TRANSACTION_RESUBMISSION_DELAY = 15000;
 
     // Properties instance
     private static final Properties PROPERTIES = new Properties();

@@ -277,7 +277,7 @@ public class ProcessingController {
 
                             return false;
                         }
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         // Update batch counter, if the exception triggered it would have not been updated
                         batchCount++;
 
@@ -493,6 +493,12 @@ public class ProcessingController {
             channelsErrors[i] = new AtomicBoolean(false);
         }
 
+        // Channel idleFlag state init
+        final AtomicBoolean[] channelsIdle = new AtomicBoolean[availableChannels];
+        for (int i = 0; i < availableChannels; i++) {
+            channelsIdle[i] = new AtomicBoolean(false);
+        }
+
         // Empty channels list
         final ArrayList<Integer> emptyChannels = new ArrayList<>();
 
@@ -590,7 +596,8 @@ public class ProcessingController {
                 config.channelAccount = channelAccounts.get(i);
                 config.channelAccountKey = channelKeys.get(i);
                 config.progress = channelsProgress[i];
-                config.error = channelsErrors[i];
+                config.errorFlag = channelsErrors[i];
+                config.idleFlag = channelsIdle[i];
                 config.errorMessages = new ArrayList<>();
                 config.batchQueue = channelsQueues[i];
                 config.outputPath = processingFolderPath;
@@ -635,7 +642,7 @@ public class ProcessingController {
                         final SpscAtomicArrayQueue<TransactionResult> channelQueue = channelsQueues[i];
 
                         // Channel status row start
-                        processingOutputTextArea.appendText("Channel[" + (i < 10 ? "0" : "") + i + "] [" + channelQueue.size() + "] [");
+                        processingOutputTextArea.appendText("Channel[" + (i < 10 ? "0" : "") + i + "] [" + (channelQueue.size() < 10 ? "0" : "") + channelQueue.size() + "] [");
 
                         if (emptyChannels.contains(i)) {
                             // Empty channel, fill the progress bar
@@ -644,8 +651,8 @@ public class ProcessingController {
                             }
 
                             // State
-                            processingOutputTextArea.appendText("][ " + currentProgress + "%] [UNUSED]\n");
-                        } else if (error) {
+                            processingOutputTextArea.appendText("][ " + (currentProgress < 10 ? "0" : "") + currentProgress + "%] [UNUSED]\n");
+                        } else if (channelsIdle[i].get()) {
                             // Completed
                             for (int j = 0; j < currentProgress; j++) {
                                 processingOutputTextArea.appendText("#");
@@ -657,7 +664,7 @@ public class ProcessingController {
                             }
 
                             // State
-                            processingOutputTextArea.appendText("] [" + currentProgress + "%] [ERRORS]\n");
+                            processingOutputTextArea.appendText("] [" + (currentProgress < 10 ? "0" : "") + currentProgress + "%] [WAITING]" + (error ? "[ERRORS]" : "") + "\n");
                         } else if (channelsProgress[i].get() < 100) {
                             // Completed
                             for (int j = 0; j < currentProgress; j++) {
@@ -670,7 +677,7 @@ public class ProcessingController {
                             }
 
                             // State
-                            processingOutputTextArea.appendText("] [" + currentProgress + "%] [PROCESSING]\n");
+                            processingOutputTextArea.appendText("] [" + (currentProgress < 10 ? "0" : "") + currentProgress + "%] [PROCESSING]" + (error ? "[ERRORS]" : "") + "\n");
                         } else {
                             // Completed
                             for (int j = 0; j < currentProgress; j++) {
@@ -678,7 +685,7 @@ public class ProcessingController {
                             }
 
                             // State
-                            processingOutputTextArea.appendText("] [" + currentProgress + "%] [COMPLETED]\n");
+                            processingOutputTextArea.appendText("] [" + (currentProgress < 10 ? "0" : "") + currentProgress + "%] [COMPLETED]" + (error ? "[ERRORS]" : "") + "\n");
                         }
                     }
                 });

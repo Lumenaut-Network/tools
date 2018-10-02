@@ -29,7 +29,8 @@ public class ParallelTransactionTaskConfig {
     public String channelAccountKey;
     public AtomicInteger progress;
     public SpscAtomicArrayQueue<TransactionResult> batchQueue;
-    public AtomicBoolean error;
+    public AtomicBoolean errorFlag;
+    public AtomicBoolean idleFlag;
     public ArrayList<String> errorMessages;
     public ArrayList<String> warningMessages;
 

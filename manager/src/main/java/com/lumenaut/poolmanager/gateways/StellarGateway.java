@@ -17,6 +17,8 @@ import org.stellar.sdk.responses.SubmitTransactionUnknownResponseException;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.lumenaut.poolmanager.Settings.*;
 
@@ -34,6 +36,7 @@ public class StellarGateway {
 
     // Minimum balance for which a channel is considered safe for transactions (1.5 XLM)
     public static final int MINIMUM_CHANNEL_BALANCE = 15000000;
+    public static final int MAX_RESUBMISSIONS_PER_TX_BAD_SEQ = 3;
 
     private static ArrayList<String> channelAccounts;
     private static ArrayList<String> channelKeys;
@@ -519,9 +522,12 @@ public class StellarGateway {
 	 * @return
 	 * @throws IOException
 	 */
-    public static TransactionBatchResponse executeTransactionBatch(final Server server, final KeyPair source, final KeyPair[] signers, final TransactionResult transactionResult) throws IOException {
+    public static TransactionBatchResponse executeTransactionBatch(final Server server, final KeyPair source, final KeyPair[] signers, final TransactionResult transactionResult) {
 		// Prepare response object
 		final TransactionBatchResponse response = new TransactionBatchResponse();
+
+        // Current batch retries
+        final AtomicInteger retriesLeft = new AtomicInteger(MAX_RESUBMISSIONS_PER_TX_BAD_SEQ);
 
 		// Refuse batches with more than 100 operations
 		if (transactionResult.getEntries().size() > SETTING_OPERATIONS_PER_TRANSACTION_BATCH) {
@@ -582,9 +588,9 @@ public class StellarGateway {
         }
 
         // Submit
-        SubmitTransactionResponse transactionResponse = null;
+        SubmitTransactionResponse submissionResponse = null;
         boolean resub = false;
-        while (transactionResponse == null) {
+        while (submissionResponse == null) {
             try {
                 // If we're resubmitting, give horizon some time to catch up
                 if (resub) {
@@ -603,19 +609,49 @@ public class StellarGateway {
                 resub = false;
 
                 // Attempt submission
-                transactionResponse = server.submitTransaction(transaction);
-                if (transactionResponse.isSuccess()) {
-                    // Transaction batch was successful
+                submissionResponse = server.submitTransaction(transaction);
+                if (submissionResponse.isSuccess()) {
+                    ////////////////////////////////////////////////////////////////////////////////////////////////////
+                    // SUCCESS
                     response.success = true;
-                    response.transactionResponse = transactionResponse;
+                    response.transactionResponse = submissionResponse;
                 } else {
-                    // Transaction batch failed
-                    response.success = false;
-                    response.transactionResponse = transactionResponse;
-                    response.errorMessages.add("Transaction failed");
+                    ////////////////////////////////////////////////////////////////////////////////////////////////////
+                    // RESUB on failure due to tx_bad_seq >>> up to MAX_RESUBMISSIONS_PER_TX_BAD_SEQ <<<
+                    if (isTxBadSeq(submissionResponse)) {
+                        if (retriesLeft.decrementAndGet() >= 0) {
+                            // Append to response
+                            final String warn = "Resubmitting transaction in " + TRANSACTION_RESUBMISSION_DELAY / 1000 + " seconds because of: possibly bogus tx_bad_seq";
+
+                            // Log to console
+                            System.err.println("[WARNING] " + warn);
+
+                            // Append to response
+                            response.warningMessages.add(warn);
+
+                            // Flag for resubmission
+                            resub = true;
+
+                            // Null the current response, so we remain on this transaction
+                            submissionResponse = null;
+                        } else {
+                            ////////////////////////////////////////////////////////////////////////////////////////////
+                            // FAIL
+                            response.success = false;
+                            response.transactionResponse = submissionResponse;
+                            response.errorMessages.add("Transaction failed after max resubmissions attempts");
+                        }
+                    } else {
+                        ////////////////////////////////////////////////////////////////////////////////////////////////
+                        // FAIL
+                        response.success = false;
+                        response.transactionResponse = submissionResponse;
+                        response.errorMessages.add("Transaction failed");
+                    }
                 }
             } catch (SubmitTransactionUnknownResponseException e) {
-                // Unexpected failure (timeout?)
+                ////////////////////////////////////////////////////////////////////////////////////////////////////////
+                // RESUB >>> Unexpected failure (timeout?)
                 final String warn = "Resubmitting transaction in " + TRANSACTION_RESUBMISSION_DELAY / 1000 + ". Code: " + String.valueOf(e.getCode()) + ", Response Body" + e.getBody();
 
                 // Append to response
@@ -624,7 +660,8 @@ public class StellarGateway {
                 // Flag as resubmission
                 resub = true;
             } catch (SubmitTransactionTimeoutResponseException | IOException e) {
-                // Unexpected failure (timeout?)
+                ////////////////////////////////////////////////////////////////////////////////////////////////////////
+                // RESUB >>>  Unexpected failure (timeout?)
                 final String warn = "Resubmitting transaction in " + TRANSACTION_RESUBMISSION_DELAY / 1000 + " seconds because of: " + e.getClass().getSimpleName() + " -> " + e.getMessage();
 
                 // Append to response
@@ -648,9 +685,12 @@ public class StellarGateway {
      * @return
      * @throws IOException
      */
-    public static TransactionBatchResponse executeChannelTransactionBatch(final Server server, final KeyPair channelAccount, final KeyPair sourceAccount, final KeyPair[] signers, final TransactionResult batch) {
+    public static TransactionBatchResponse executeChannelTransactionBatch(final Server server, final KeyPair channelAccount, final KeyPair sourceAccount, final KeyPair[] signers, final TransactionResult batch, final AtomicBoolean idleFlag) {
         // Prepare response object
         final TransactionBatchResponse response = new TransactionBatchResponse();
+
+        // Current batch retries
+        final AtomicInteger retriesLeft = new AtomicInteger(MAX_RESUBMISSIONS_PER_TX_BAD_SEQ);
 
         // Refuse batches with more than 100 operations
         if (batch.getEntries().size() > SETTING_OPERATIONS_PER_TRANSACTION_BATCH) {
@@ -711,13 +751,14 @@ public class StellarGateway {
         }
 
         // Submit
-        SubmitTransactionResponse transactionResponse = null;
+        SubmitTransactionResponse submissionResponse = null;
         boolean resub = false;
-        while (transactionResponse == null) {
+        while (submissionResponse == null) {
             try {
                 // If we're resubmitting, give horizon some time to catch up
                 if (resub) {
                     try {
+                        idleFlag.set(true);
                         Thread.sleep(TRANSACTION_RESUBMISSION_DELAY);
                     } catch (InterruptedException e) {
                         // Transaction batch failed
@@ -728,23 +769,56 @@ public class StellarGateway {
                     }
                 }
 
-                // Reset resubmission flag otherwise every transaction since the first resub will be delayed by 10 seconds
+                // Reset idle flag
+                idleFlag.set(false);
+
+                // Reset resubmission flag otherwise every transaction since the first resubmission will be delayed
                 resub = false;
 
                 // Attempt submission
-                transactionResponse = server.submitTransaction(transaction);
-                if (transactionResponse.isSuccess()) {
-                    // Transaction batch was successful
+                submissionResponse = server.submitTransaction(transaction);
+                if (submissionResponse.isSuccess()) {
+                    ////////////////////////////////////////////////////////////////////////////////////////////////////
+                    // SUCCESS
                     response.success = true;
-                    response.transactionResponse = transactionResponse;
+                    response.transactionResponse = submissionResponse;
                 } else {
-                    // Transaction batch failed
-                    response.success = false;
-                    response.transactionResponse = transactionResponse;
-                    response.errorMessages.add("Transaction failed");
+                    ////////////////////////////////////////////////////////////////////////////////////////////////////
+                    // RESUB on failure due to tx_bad_seq >>> up to MAX_RESUBMISSIONS_PER_TX_BAD_SEQ <<<
+                    if (isTxBadSeq(submissionResponse)) {
+                        if (retriesLeft.decrementAndGet() >= 0) {
+                            // Append to response
+                            final String warn = "Resubmitting transaction in " + TRANSACTION_RESUBMISSION_DELAY / 1000 + " seconds because of: possibly bogus tx_bad_seq";
+
+                            // Log to console
+                            System.err.println("[WARNING] " + warn);
+
+                            // Append to response
+                            response.warningMessages.add(warn);
+
+                            // Flag for resubmission
+                            resub = true;
+
+                            // Null the current transaction response, so we remain on this transaction
+                            submissionResponse = null;
+                        } else {
+                            ////////////////////////////////////////////////////////////////////////////////////////////
+                            // FAIL
+                            response.success = false;
+                            response.transactionResponse = submissionResponse;
+                            response.errorMessages.add("Transaction failed: max resubmissions attempted");
+                        }
+                    } else {
+                        ////////////////////////////////////////////////////////////////////////////////////////////////
+                        // FAIL
+                        response.success = false;
+                        response.transactionResponse = submissionResponse;
+                        response.errorMessages.add("Transaction failed");
+                    }
                 }
             } catch (SubmitTransactionUnknownResponseException e) {
-                // Unexpected failure (timeout?)
+                ////////////////////////////////////////////////////////////////////////////////////////////////////////
+                // RESUB >>> Unexpected failure (timeout?)
                 final String warn = "Resubmitting transaction in " + TRANSACTION_RESUBMISSION_DELAY / 1000 + ". Code: " + String.valueOf(e.getCode()) + ", Response Body" + e.getBody();
 
                 // Append to response
@@ -753,7 +827,8 @@ public class StellarGateway {
                 // Flag as resubmission
                 resub = true;
             } catch (SubmitTransactionTimeoutResponseException | IOException e) {
-                // Unexpected failure (timeout?)
+                ////////////////////////////////////////////////////////////////////////////////////////////////////////
+                // RESUB >>> Unexpected failure (timeout?)
                 final String warn = "Resubmitting transaction in " + TRANSACTION_RESUBMISSION_DELAY / 1000 + " seconds because of: " + e.getClass().getSimpleName() + " -> " + e.getMessage();
 
                 // Append to response
@@ -765,6 +840,19 @@ public class StellarGateway {
         }
 
         return response;
+    }
+
+    /**
+     * Check if the specified transaction response contains a failure of type "tx_bad_seq"
+     *
+     * @param transactionResponse
+     * @return
+     */
+    private static boolean isTxBadSeq(final SubmitTransactionResponse transactionResponse) {
+        return transactionResponse.getExtras() != null &&
+               transactionResponse.getExtras().getResultCodes() != null &&
+               transactionResponse.getExtras().getResultCodes().getTransactionResultCode() != null &&
+               transactionResponse.getExtras().getResultCodes().getTransactionResultCode().equals("tx_bad_seq");
     }
 
 	/**

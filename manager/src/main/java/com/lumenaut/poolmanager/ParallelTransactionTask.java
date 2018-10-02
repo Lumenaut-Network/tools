@@ -76,7 +76,7 @@ public class ParallelTransactionTask implements Runnable {
         // Check if we have batches to run
         if (config.batchQueue.peek() == null) {
             // We're done, nothing to do here
-            config.error.getAndSet(true);
+            config.errorFlag.getAndSet(true);
             config.errorMessages.add("This channel had no operation batches to process");
 
             // Set progress to completion and exit this thread
@@ -125,10 +125,10 @@ public class ParallelTransactionTask implements Runnable {
             final TransactionResult batch = config.batchQueue.poll();
             try {
                 if (batch != null) {
-                    final TransactionBatchResponse batchResponse = StellarGateway.executeChannelTransactionBatch(server, channelAccount, config.sourceAccount, signers, batch);
+                    final TransactionBatchResponse batchResponse = StellarGateway.executeChannelTransactionBatch(server, channelAccount, config.sourceAccount, signers, batch, config.idleFlag);
                     if (!batchResponse.success) {
                         // Append error and update error state
-                        config.error.getAndSet(true);
+                        config.errorFlag.getAndSet(true);
                         config.errorMessages = batchResponse.errorMessages;
                         config.warningMessages = batchResponse.warningMessages;
                     } else {
@@ -164,7 +164,7 @@ public class ParallelTransactionTask implements Runnable {
                 config.progress.getAndSet(currentBatch * 100 / totalBatches);
             } catch (Throwable e) {
                 // Append error and update error state
-                config.error.getAndSet(true);
+                config.errorFlag.getAndSet(true);
                 config.errorMessages.add(e.getMessage());
 
                 // This batch failed but we need to update progress anyway
