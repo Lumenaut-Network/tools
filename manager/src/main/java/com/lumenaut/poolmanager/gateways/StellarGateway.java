@@ -594,15 +594,7 @@ public class StellarGateway {
             try {
                 // If we're resubmitting, give horizon some time to catch up
                 if (resub) {
-                    try {
-                        Thread.sleep(TRANSACTION_RESUBMISSION_DELAY);
-                    } catch (InterruptedException e) {
-                        // Transaction batch failed
-                        response.success = false;
-                        response.errorMessages.add("Channel Thread was interrupted: " + e.getMessage());
-
-                        return response;
-                    }
+                    Thread.sleep(TRANSACTION_RESUBMISSION_DELAY);
                 }
 
                 // Reset resubmission flag otherwise every transaction since the first resub will be delayed by 10 seconds
@@ -649,6 +641,12 @@ public class StellarGateway {
                         response.errorMessages.add("Transaction failed");
                     }
                 }
+            } catch (InterruptedException e) {
+                // Transaction batch failed
+                response.success = false;
+                response.errorMessages.add("Channel Thread was interrupted: " + e.getMessage());
+
+                return response;
             } catch (SubmitTransactionUnknownResponseException e) {
                 ////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // RESUB >>> Unexpected failure (timeout?)
@@ -757,16 +755,8 @@ public class StellarGateway {
             try {
                 // If we're resubmitting, give horizon some time to catch up
                 if (resub) {
-                    try {
-                        idleFlag.set(true);
-                        Thread.sleep(TRANSACTION_RESUBMISSION_DELAY);
-                    } catch (InterruptedException e) {
-                        // Transaction batch failed
-                        response.success = false;
-                        response.errorMessages.add("Channel Thread was interrupted: " + e.getMessage());
-
-                        return response;
-                    }
+                    idleFlag.set(true);
+                    Thread.sleep(TRANSACTION_RESUBMISSION_DELAY);
                 }
 
                 // Reset idle flag
@@ -816,6 +806,12 @@ public class StellarGateway {
                         response.errorMessages.add("Transaction failed");
                     }
                 }
+            } catch (InterruptedException e) {
+                // Transaction batch failed
+                response.success = false;
+                response.errorMessages.add("Channel Thread was interrupted: " + e.getMessage());
+
+                return response;
             } catch (SubmitTransactionUnknownResponseException e) {
                 ////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // RESUB >>> Unexpected failure (timeout?)
