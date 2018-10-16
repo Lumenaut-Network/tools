@@ -101,7 +101,7 @@ public class StellarGateway {
                 SETTING_PARALLEL_CHANNEL_KEY_1 != null && !SETTING_PARALLEL_CHANNEL_KEY_1.isEmpty()) {
 
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [1] init... "));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [01] init... "));
 
                 // Verify channel and balance
                 if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_1, SETTING_PARALLEL_CHANNEL_KEY_1, outputTextArea)) {
@@ -110,7 +110,7 @@ public class StellarGateway {
                 }
             } else {
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [1] not specified, skipping!\n"));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [01] not specified, skipping!\n"));
             }
 
             // Channel 2
@@ -118,7 +118,7 @@ public class StellarGateway {
                 SETTING_PARALLEL_CHANNEL_KEY_2 != null && !SETTING_PARALLEL_CHANNEL_KEY_2.isEmpty()) {
 
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [2] init... "));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [02] init... "));
 
                 // Verify channel and balance
                 if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_2, SETTING_PARALLEL_CHANNEL_KEY_2, outputTextArea)) {
@@ -127,7 +127,7 @@ public class StellarGateway {
                 }
             } else {
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [2] not specified, skipping!\n"));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [02] not specified, skipping!\n"));
             }
 
             // Channel 3
@@ -135,7 +135,7 @@ public class StellarGateway {
                 SETTING_PARALLEL_CHANNEL_KEY_3 != null && !SETTING_PARALLEL_CHANNEL_KEY_3.isEmpty()) {
 
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [3] init... "));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [03] init... "));
 
                 // Verify channel and balance
                 if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_3, SETTING_PARALLEL_CHANNEL_KEY_3, outputTextArea)) {
@@ -144,7 +144,7 @@ public class StellarGateway {
                 }
             } else {
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [3] not specified, skipping!\n"));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [03] not specified, skipping!\n"));
             }
 
             // Channel 4
@@ -152,7 +152,7 @@ public class StellarGateway {
                 SETTING_PARALLEL_CHANNEL_KEY_4 != null && !SETTING_PARALLEL_CHANNEL_KEY_4.isEmpty()) {
 
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [4] init... "));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [04] init... "));
 
                 // Verify channel and balance
                 if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_4, SETTING_PARALLEL_CHANNEL_KEY_4, outputTextArea)) {
@@ -161,7 +161,7 @@ public class StellarGateway {
                 }
             } else {
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [4] not specified, skipping!\n"));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [04] not specified, skipping!\n"));
             }
 
             // Channel 5
@@ -169,7 +169,7 @@ public class StellarGateway {
                 SETTING_PARALLEL_CHANNEL_KEY_5 != null && !SETTING_PARALLEL_CHANNEL_KEY_5.isEmpty()) {
 
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [5] init... "));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [05] init... "));
 
                 // Verify channel and balance
                 if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_5, SETTING_PARALLEL_CHANNEL_KEY_5, outputTextArea)) {
@@ -178,7 +178,7 @@ public class StellarGateway {
                 }
             } else {
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [5] not specified, skipping!\n"));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [05] not specified, skipping!\n"));
             }
 
             // Channel 6
@@ -186,7 +186,7 @@ public class StellarGateway {
                 SETTING_PARALLEL_CHANNEL_KEY_6 != null && !SETTING_PARALLEL_CHANNEL_KEY_6.isEmpty()) {
 
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [6] init... "));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [06] init... "));
 
                 // Verify channel and balance
                 if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_6, SETTING_PARALLEL_CHANNEL_KEY_6, outputTextArea)) {
@@ -195,7 +195,7 @@ public class StellarGateway {
                 }
             } else {
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [6] not specified, skipping!\n"));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [06] not specified, skipping!\n"));
             }
 
             // Channel 7
@@ -203,7 +203,7 @@ public class StellarGateway {
                 SETTING_PARALLEL_CHANNEL_KEY_7 != null && !SETTING_PARALLEL_CHANNEL_KEY_7.isEmpty()) {
 
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [7] init... "));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [07] init... "));
 
                 if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_7, SETTING_PARALLEL_CHANNEL_KEY_7, outputTextArea)) {
                     channelAccounts.add(6, SETTING_PARALLEL_CHANNEL_ADDRESS_7);
@@ -211,7 +211,7 @@ public class StellarGateway {
                 }
             } else {
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [7] not specified, skipping!\n"));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [07] not specified, skipping!\n"));
             }
 
             // Channel 8
@@ -219,7 +219,7 @@ public class StellarGateway {
                 SETTING_PARALLEL_CHANNEL_KEY_8 != null && !SETTING_PARALLEL_CHANNEL_KEY_8.isEmpty()) {
 
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [8] init... "));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [08] init... "));
 
                 // Verify channel and balance
                 if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_8, SETTING_PARALLEL_CHANNEL_KEY_8, outputTextArea)) {
@@ -228,7 +228,7 @@ public class StellarGateway {
                 }
             } else {
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [8] not specified, skipping!\n"));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [08] not specified, skipping!\n"));
             }
 
             // Channel 9
@@ -236,7 +236,7 @@ public class StellarGateway {
                 SETTING_PARALLEL_CHANNEL_KEY_9 != null && !SETTING_PARALLEL_CHANNEL_KEY_9.isEmpty()) {
 
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [9] init... "));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [09] init... "));
 
                 // Verify channel and balance
                 if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_9, SETTING_PARALLEL_CHANNEL_KEY_9, outputTextArea)) {
@@ -245,7 +245,7 @@ public class StellarGateway {
                 }
             } else {
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [9] not specified, skipping!\n"));
+                Platform.runLater(() -> outputTextArea.appendText("Channel [09] not specified, skipping!\n"));
             }
 
             // Channel 10
