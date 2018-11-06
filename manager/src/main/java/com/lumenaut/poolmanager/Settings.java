@@ -24,10 +24,6 @@ public class Settings {
     // Minimum valid account balance accepted to receive inflation (in stroops)
     public static final long MIN_ACCOUNT_BALANCE = 25_000_000L;
 
-    // When a transaction fails because of a timeout error from the horizon response
-    // wait this much before resubmitting it (milliseconds)
-    public static final int TRANSACTION_RESUBMISSION_DELAY = 15000;
-
     // Properties instance
     private static final Properties PROPERTIES = new Properties();
 

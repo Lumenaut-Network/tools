@@ -36,7 +36,19 @@ public class StellarGateway {
 
     // Minimum balance for which a channel is considered safe for transactions (1.5 XLM)
     public static final int MINIMUM_CHANNEL_BALANCE = 15000000;
-    public static final int MAX_RESUBMISSIONS_PER_TX_BAD_SEQ = 3;
+
+    // How many times to ignore a failure due to "tx_bad_seq" and instead resubmit the transaction.
+    // Bad sequence responses from Horizon to successfully executed transactions have been found to be common
+    // during the last few months, this is currently considered bogus until the issue stops presenting itself.
+    // After this amount of retries has been expended the transaction will be considered failed. The way we generate
+    // sequence numbers leaves no room for sequencing issues (each payment channel regenerates the account object before
+    // proceeding with the transaction, and that comes with a fresh and valid sequence number).
+    public static final int MAX_RESUBMISSIONS_PER_TX_BAD_SEQ = 5;
+
+    // When a transaction fails because of a timeout error from the horizon response
+    // wait this much before resubmitting it (milliseconds). A transaction timeout will be resubmitted ad infinitum
+    // until either success or failure is reported by Horizon
+    public static final int TRANSACTION_RESUBMISSION_DELAY = 15000;
 
     private static ArrayList<String> channelAccounts;
     private static ArrayList<String> channelKeys;
