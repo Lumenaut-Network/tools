@@ -1,6 +1,10 @@
 group 'com.lumenaut'
 version '1.0-SNAPSHOT'
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Plugins
+
+apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'java'
 apply plugin: 'idea'
 
@@ -17,6 +21,7 @@ buildscript {
         stellarSdkVersion = '0.3.3'
         jacksonVersion = '2.9.3'
         okHttpVersion = '3.12.0'
+        shadowJarVersion = '4.0.3'
     }
 
     // Repositories for build scripts
@@ -26,6 +31,7 @@ buildscript {
 
         // Maven
         mavenCentral()
+        jcenter()
 
         // Sonatype repositories
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
@@ -35,6 +41,7 @@ buildscript {
     // Dependencies for build scripts
     dependencies {
         classpath "org.junit.platform:junit-platform-gradle-plugin:$junitPlatformVersion"
+        classpath "com.github.jengelman.gradle.plugins:shadow:$shadowJarVersion"
     }
 }
 
@@ -87,6 +94,20 @@ dependencies {
     // Stellar SDK
     compile "stellar-sdk:stellar-sdk:$stellarSdkVersion"
 }
+
+// Release config
+
+jar {
+    manifest {
+        attributes 'Description': 'Testnet Tools'
+        attributes 'Main-Class': 'Main'
+    }
+}
+
+shadowJar {
+    configurations = [project.configurations.compile]
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Execution task
