@@ -49,6 +49,7 @@ public class StellarGateway {
     // wait this much before resubmitting it (milliseconds). A transaction timeout will be resubmitted ad infinitum
     // until either success or failure is reported by Horizon
     public static final int TRANSACTION_RESUBMISSION_DELAY = 15000;
+    public static final long TRANSACTION_TIMEOUT_SECONDS = 120L;
 
     private static ArrayList<String> channelAccounts;
     private static ArrayList<String> channelKeys;
@@ -662,7 +663,7 @@ public class StellarGateway {
             } catch (SubmitTransactionUnknownResponseException e) {
                 ////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // RESUB >>> Unexpected failure (timeout?)
-                final String warn = "Resubmitting transaction in " + TRANSACTION_RESUBMISSION_DELAY / 1000 + ". Code: " + String.valueOf(e.getCode()) + ", Response Body" + e.getBody();
+                final String warn = "Resubmitting transaction in " + TRANSACTION_RESUBMISSION_DELAY / 1000 + ". Code: " + e.getCode() + ", Response Body" + e.getBody();
 
                 // Append to response
                 response.warningMessages.add(warn);
@@ -745,7 +746,15 @@ public class StellarGateway {
         transactionBuilder.addMemo(Memo.text(Settings.SETTING_MEMO));
 
         // Mandatory timeout settings
-        transactionBuilder.setTimeout(120L); // 2 Minutes
+        try {
+            transactionBuilder.setTimeout(TRANSACTION_TIMEOUT_SECONDS); // 2 Minutes
+        } catch (RuntimeException e) {
+            response.success = false;
+            response.errorMessages.add("[ERROR] " + e.getMessage());
+
+            return response;
+        }
+
 
         // Process all entries
         for (TransactionResultEntry entry : batch.getEntries()) {
