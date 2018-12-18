@@ -110,7 +110,7 @@ public class InflationPoolManager {
         // Create new pool
         System.out.println("Creating pool account.. ");
         final KeyPair poolKeys = createAndFundAccount();
-        if (poolKeys == null){
+        if (poolKeys == null) {
             return null;
         }
 
@@ -144,7 +144,7 @@ public class InflationPoolManager {
 
             // Check if all requests are done
             boolean allDone = true;
-            for(Future<?> future : votersFutures){
+            for (Future<?> future : votersFutures) {
                 boolean isDone = future.isDone();
                 if (isDone) {
                     votersFutures.remove(future);
@@ -185,7 +185,7 @@ public class InflationPoolManager {
 
             // Check if all requests are done
             boolean allDone = true;
-            for(Future<?> future : channelsFutures){
+            for (Future<?> future : channelsFutures) {
                 boolean isDone = future.isDone();
                 if (isDone) {
                     channelsFutures.remove(future);
@@ -209,10 +209,13 @@ public class InflationPoolManager {
 
         // Move funds from the voters to the pool
         System.out.println("Transfering funds from voter accounts to the pool..");
-        for (Account voter : pool.getVoters()) {
+        for (int i = 0; i < pool.getVoters().size(); i++) {
+            final Account voter = pool.getVoters().get(i);
+
+            System.out.print("[" + i + "/" + pool.getVoters().size() + "] .. ");
             AccountManager.makePayment(voter.getAccountKey(), poolAccount.getAccountId(), "9990");
         }
-        System.out.println("[DONE] Transfering funds to the pool\n");
+        System.out.println("[DONE] Funds transfer completed \n");
 
         // Set inflation on all voter accounts
         System.out.println("Setting inflation on all voter accounts..");
