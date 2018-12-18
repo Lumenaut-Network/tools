@@ -744,14 +744,14 @@ public class StellarGateway {
         // Add memo to the transaction
         transactionBuilder.addMemo(Memo.text(Settings.SETTING_MEMO));
 
+        // Mandatory timeout settings
+        transactionBuilder.setTimeout(120L); // 2 Minutes
+
         // Process all entries
         for (TransactionResultEntry entry : batch.getEntries()) {
             // Append operation
             // !!! IMPORTANT !!! the amount must be specified in XLM as a string in decimal format e.g. 10.0000001 -> 10 lumens, 1 stroop
             transactionBuilder.addOperation(new PaymentOperation.Builder(KeyPair.fromAccountId(entry.getDestination()), new AssetTypeNative(), XLMUtils.stroopToXLM(entry.getAmount()).toString()).setSourceAccount(sourceAccount).build());
-
-            // Mandatory timeout settings
-            transactionBuilder.setTimeout(120L); // 2 Minutes
 
             // Update entry operation timestamp
             entry.setTimestamp(System.currentTimeMillis());
