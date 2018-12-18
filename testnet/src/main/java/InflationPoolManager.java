@@ -35,6 +35,9 @@ public class InflationPoolManager {
     // Formats
     public static final DateFormat FILE_DATE_FORMATTER = new SimpleDateFormat("HH'h'mm'm'ss's'");
 
+    // Constants
+    public static final long FUNDING_AMOUNT = 9998L;
+
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -103,12 +106,12 @@ public class InflationPoolManager {
     /**
      * Creates a new account and funds it
      */
-    public static void createNewPool(final int numVoters, final int numChannels) {
+    public static KeyPair createNewPool(final int numVoters, final int numChannels) {
         // Create new pool
         System.out.println("Creating pool account.. ");
         final KeyPair poolKeys = createAndFundAccount();
         if (poolKeys == null){
-            return;
+            return null;
         }
 
         // Pool data
@@ -231,8 +234,24 @@ public class InflationPoolManager {
         }
         System.out.println("[SUCCESS] Testnet Pool is ready for use\n");
 
-        // Shutdown the threadpool
-        EXECUTOR.shutdownNow();
+        // Return the pool keys
+        return poolKeys;
+    }
+
+    /**
+     * Fund the specified pool with at least the given amount (will be rounded to the nearest multiple awarded by friendbot's when
+     * creating and funding new accounts minus 2 XLM per account required)
+     *
+     * @param amount
+     */
+    public static void fundPool(final String poolAddress, final long amount) {
+        final long numFundingAccounts = (amount / FUNDING_AMOUNT) + FUNDING_AMOUNT;
+        for (int i = 0; i < numFundingAccounts; i++) {
+            final KeyPair account = createAndFundAccount();
+            if (account != null) {
+                AccountManager.makePayment(new String(account.getSecretSeed()), poolAddress, String.valueOf(FUNDING_AMOUNT));
+            }
+        }
     }
 
     /**
@@ -272,6 +291,13 @@ public class InflationPoolManager {
         }
 
         return null;
+    }
+
+    /**
+     * Dispose of all resources used
+     */
+    public static void dispose() {
+        EXECUTOR.shutdownNow();
     }
 
     //endregion

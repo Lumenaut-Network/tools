@@ -195,6 +195,13 @@ public class AccountManager {
         }
     }
 
+    /**
+     * Dispose of all resources used
+     */
+    public static void dispose() {
+
+    }
+
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }

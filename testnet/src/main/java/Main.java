@@ -1,3 +1,5 @@
+import org.stellar.sdk.KeyPair;
+
 import java.io.FileNotFoundException;
 
 /**
@@ -17,7 +19,16 @@ public class Main {
      */
     public static void main(String[] args) {
         // Create an inflation pool on testnet with 5 voters and 2 payment channels
-        InflationPoolManager.createNewPool(5, 2);
+        final KeyPair poolKeys = InflationPoolManager.createNewPool(5, 2);
+
+        // Send additional funds to the pool
+        if (poolKeys != null) {
+            InflationPoolManager.fundPool(poolKeys.getAccountId(), 1000000L);
+        }
+
+        // Cleanup
+        AccountManager.dispose();
+        InflationPoolManager.dispose();
     }
 
     //endregion
