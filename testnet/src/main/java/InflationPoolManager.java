@@ -36,7 +36,7 @@ public class InflationPoolManager {
     public static final DateFormat FILE_DATE_FORMATTER = new SimpleDateFormat("HH'h'mm'm'ss's'");
 
     // Constants
-    public static final long FUNDING_AMOUNT = 9998L;
+    public static final long NEW_ACCOUNT_INITIAL_BALANCE = 10000L;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -245,11 +245,11 @@ public class InflationPoolManager {
      * @param amount
      */
     public static void fundPool(final String poolAddress, final long amount) {
-        final long numFundingAccounts = (amount / FUNDING_AMOUNT) + FUNDING_AMOUNT;
+        final long numFundingAccounts = (amount / NEW_ACCOUNT_INITIAL_BALANCE) + NEW_ACCOUNT_INITIAL_BALANCE;
         for (int i = 0; i < numFundingAccounts; i++) {
             final KeyPair account = createAndFundAccount();
             if (account != null) {
-                AccountManager.makePayment(new String(account.getSecretSeed()), poolAddress, String.valueOf(FUNDING_AMOUNT));
+                AccountManager.merge(new String(account.getSecretSeed()), poolAddress);
             }
         }
     }

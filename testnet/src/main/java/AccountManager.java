@@ -196,6 +196,72 @@ public class AccountManager {
     }
 
     /**
+     * Merge the specified account with the target one
+     *
+     * @param sourceAccountSigningKey
+     * @param targetAccountId
+     * @return
+     */
+    public static boolean merge(final String sourceAccountSigningKey, final String targetAccountId) {
+        final KeyPair source = KeyPair.fromSecretSeed(sourceAccountSigningKey);
+        final KeyPair target = KeyPair.fromAccountId(targetAccountId);
+
+        Network.useTestNetwork();
+        final Server server = new Server(HTTPS_HORIZON_TESTNET_STELLAR_ORG);
+
+        // Register the client within the server
+        server.setSubmitHttpClient(HTTP_CLIENT.get());
+
+        // Get accounts data
+        AccountResponse sourceAccount;
+        try {
+            // Check that the destination account exists
+            server.accounts().account(target);
+
+            // If there was no error, load up-to-date information on the source account.
+            sourceAccount = server.accounts().account(source);
+        } catch (Exception e) {
+            if (LOG_VERBOSE) {
+                System.err.println("[FAILURE] Could not merge account [" + source.getAccountId() + "]: " + e.getMessage());
+            }
+
+            return false;
+        }
+
+        // Start building the transaction.
+        Transaction transaction = new Transaction.Builder(sourceAccount)
+                                  .addOperation(new AccountMergeOperation.Builder(target).setSourceAccount(source).build())
+                                  .addMemo(Memo.text("Inflation Fund"))
+                                  .build();
+
+        // Sign the transaction to prove you are actually the person sending it.
+        transaction.sign(source);
+
+        // And finally, send it off to Stellar!
+        SubmitTransactionResponse response;
+        try {
+            response = server.submitTransaction(transaction);
+            if (response.isSuccess()) {
+                System.out.println("[SUCCESS] Account [" + source.getAccountId() + "] merged");
+
+                return true;
+            } else {
+                if (LOG_VERBOSE) {
+                    System.err.println("[FAILURE] Could not merge account [" + source.getAccountId() + "]: " + response.getExtras().getResultCodes().getTransactionResultCode());
+                }
+
+                return false;
+            }
+        } catch (Exception e) {
+            if (LOG_VERBOSE) {
+                System.err.println("[FAILURE] Could not merge account [" + source.getAccountId() + "]: " + e.getMessage());
+            }
+
+            return false;
+        }
+    }
+
+    /**
      * Dispose of all resources used
      */
     public static void dispose() {
