@@ -234,7 +234,7 @@ public class HorizonGateway {
 
             // Append entries
             votersData.getEntries().forEach((voterDataEntry) -> {
-                if (donationsData.containsKey(voterDataEntry.getAccount())) {
+                if (donationsData != null && donationsData.containsKey(voterDataEntry.getAccount())) {
                     final HashMap<String, String> voterAdditionalData = donationsData.get(voterDataEntry.getAccount());
 
                     // Add all custom data to the entry data node array
