@@ -46,6 +46,47 @@ public class DataFormats {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region CONFIG DATA STRUCTURES
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class PaymentChannels {
+        public List<PaymentChannel> channels;
+
+        public List<PaymentChannel> getChannels() {
+            return channels;
+        }
+
+        public void setChannels(List<PaymentChannel> channels) {
+            this.channels = channels;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class PaymentChannel {
+        public String address;
+        public String key;
+
+        public String getAddress() {
+            return address;
+        }
+
+        public void setAddress(String address) {
+            this.address = address;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public void setKey(String key) {
+            this.key = key;
+        }
+    }
+
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //region TRANSACTION RESPONSES
 
     public static class TransactionBatchResponse {

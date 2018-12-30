@@ -1,8 +1,7 @@
 package com.lumenaut.poolmanager.gateways;
 
-import com.lumenaut.poolmanager.DataFormats.TransactionBatchResponse;
-import com.lumenaut.poolmanager.DataFormats.TransactionResult;
-import com.lumenaut.poolmanager.DataFormats.TransactionResultEntry;
+import com.lumenaut.poolmanager.DataFormats;
+import com.lumenaut.poolmanager.DataFormats.*;
 import com.lumenaut.poolmanager.Settings;
 import com.lumenaut.poolmanager.XLMUtils;
 import javafx.application.Platform;
@@ -14,9 +13,11 @@ import org.stellar.sdk.responses.SubmitTransactionResponse;
 import org.stellar.sdk.responses.SubmitTransactionTimeoutResponseException;
 import org.stellar.sdk.responses.SubmitTransactionUnknownResponseException;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -109,343 +110,39 @@ public class StellarGateway {
             channelAccounts = new ArrayList<>();
             channelKeys = new ArrayList<>();
 
-            // Channel 1
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_1 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_1.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_1 != null && !SETTING_PARALLEL_CHANNEL_KEY_1.isEmpty()) {
+            // Import channels from JSON
+            PaymentChannels channelsData;
+            try {
+                channelsData = DataFormats.OBJECT_MAPPER.readValue(new File("data/payment-channels.json"), PaymentChannels.class);
+            } catch (IOException e) {
+                Platform.runLater(() -> outputTextArea.appendText("No valid payment channel found in config. Aborting... "));
 
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [01] init... "));
-
-                // Verify channel and balance
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_1, SETTING_PARALLEL_CHANNEL_KEY_1, outputTextArea)) {
-                    channelAccounts.add(0, SETTING_PARALLEL_CHANNEL_ADDRESS_1);
-                    channelKeys.add(0, SETTING_PARALLEL_CHANNEL_KEY_1);
-                }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [01] not specified, skipping!\n"));
+                return;
             }
 
-            // Channel 2
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_2 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_2.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_2 != null && !SETTING_PARALLEL_CHANNEL_KEY_2.isEmpty()) {
+            final List<PaymentChannel> channels = channelsData.getChannels();
 
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [02] init... "));
+            // Check that we're not attempting to use more channels than the number of transactions which can
+            // be managed by a single ledger
+            if (channels.size() > 50) {
+                Platform.runLater(() -> outputTextArea.appendText("Too many channels found in config, max number of usable channels is 50. Aborting... "));
 
-                // Verify channel and balance
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_2, SETTING_PARALLEL_CHANNEL_KEY_2, outputTextArea)) {
-                    channelAccounts.add(1, SETTING_PARALLEL_CHANNEL_ADDRESS_2);
-                    channelKeys.add(1, SETTING_PARALLEL_CHANNEL_KEY_2);
-                }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [02] not specified, skipping!\n"));
+                return;
             }
 
-            // Channel 3
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_3 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_3.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_3 != null && !SETTING_PARALLEL_CHANNEL_KEY_3.isEmpty()) {
+            // Verify found channels
+            for (int i = 0; i < channels.size(); i++) {
+                final PaymentChannel channel = channels.get(i);
+                final String channelAddress = channel.getAddress();
+                final String channelKey = channel.getKey();
+                final String channelNumber = i < 10 ? "0" + i : String.valueOf(i);
+                Platform.runLater(() -> outputTextArea.appendText("Channel [" + channelNumber + "] init... "));
 
                 // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [03] init... "));
-
-                // Verify channel and balance
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_3, SETTING_PARALLEL_CHANNEL_KEY_3, outputTextArea)) {
-                    channelAccounts.add(2, SETTING_PARALLEL_CHANNEL_ADDRESS_3);
-                    channelKeys.add(2, SETTING_PARALLEL_CHANNEL_KEY_3);
+                if (verifyChannel(channelAddress, channelKey, outputTextArea)) {
+                    channelAccounts.add(i, channelAddress);
+                    channelKeys.add(i, channelKey);
                 }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [03] not specified, skipping!\n"));
-            }
-
-            // Channel 4
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_4 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_4.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_4 != null && !SETTING_PARALLEL_CHANNEL_KEY_4.isEmpty()) {
-
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [04] init... "));
-
-                // Verify channel and balance
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_4, SETTING_PARALLEL_CHANNEL_KEY_4, outputTextArea)) {
-                    channelAccounts.add(3, SETTING_PARALLEL_CHANNEL_ADDRESS_4);
-                    channelKeys.add(3, SETTING_PARALLEL_CHANNEL_KEY_4);
-                }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [04] not specified, skipping!\n"));
-            }
-
-            // Channel 5
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_5 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_5.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_5 != null && !SETTING_PARALLEL_CHANNEL_KEY_5.isEmpty()) {
-
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [05] init... "));
-
-                // Verify channel and balance
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_5, SETTING_PARALLEL_CHANNEL_KEY_5, outputTextArea)) {
-                    channelAccounts.add(4, SETTING_PARALLEL_CHANNEL_ADDRESS_5);
-                    channelKeys.add(4, SETTING_PARALLEL_CHANNEL_KEY_5);
-                }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [05] not specified, skipping!\n"));
-            }
-
-            // Channel 6
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_6 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_6.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_6 != null && !SETTING_PARALLEL_CHANNEL_KEY_6.isEmpty()) {
-
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [06] init... "));
-
-                // Verify channel and balance
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_6, SETTING_PARALLEL_CHANNEL_KEY_6, outputTextArea)) {
-                    channelAccounts.add(5, SETTING_PARALLEL_CHANNEL_ADDRESS_6);
-                    channelKeys.add(5, SETTING_PARALLEL_CHANNEL_KEY_6);
-                }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [06] not specified, skipping!\n"));
-            }
-
-            // Channel 7
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_7 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_7.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_7 != null && !SETTING_PARALLEL_CHANNEL_KEY_7.isEmpty()) {
-
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [07] init... "));
-
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_7, SETTING_PARALLEL_CHANNEL_KEY_7, outputTextArea)) {
-                    channelAccounts.add(6, SETTING_PARALLEL_CHANNEL_ADDRESS_7);
-                    channelKeys.add(6, SETTING_PARALLEL_CHANNEL_KEY_7);
-                }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [07] not specified, skipping!\n"));
-            }
-
-            // Channel 8
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_8 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_8.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_8 != null && !SETTING_PARALLEL_CHANNEL_KEY_8.isEmpty()) {
-
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [08] init... "));
-
-                // Verify channel and balance
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_8, SETTING_PARALLEL_CHANNEL_KEY_8, outputTextArea)) {
-                    channelAccounts.add(7, SETTING_PARALLEL_CHANNEL_ADDRESS_8);
-                    channelKeys.add(7, SETTING_PARALLEL_CHANNEL_KEY_8);
-                }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [08] not specified, skipping!\n"));
-            }
-
-            // Channel 9
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_9 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_9.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_9 != null && !SETTING_PARALLEL_CHANNEL_KEY_9.isEmpty()) {
-
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [09] init... "));
-
-                // Verify channel and balance
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_9, SETTING_PARALLEL_CHANNEL_KEY_9, outputTextArea)) {
-                    channelAccounts.add(8, SETTING_PARALLEL_CHANNEL_ADDRESS_9);
-                    channelKeys.add(8, SETTING_PARALLEL_CHANNEL_KEY_9);
-                }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [09] not specified, skipping!\n"));
-            }
-
-            // Channel 10
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_10 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_10.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_10 != null && !SETTING_PARALLEL_CHANNEL_KEY_10.isEmpty()) {
-
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [10] init... "));
-
-                // Verify channel and balance
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_10, SETTING_PARALLEL_CHANNEL_KEY_10, outputTextArea)) {
-                    channelAccounts.add(9, SETTING_PARALLEL_CHANNEL_ADDRESS_10);
-                    channelKeys.add(9, SETTING_PARALLEL_CHANNEL_KEY_10);
-                }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [10] not specified, skipping!\n"));
-            }
-
-            // Channel 11
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_11 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_11.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_11 != null && !SETTING_PARALLEL_CHANNEL_KEY_11.isEmpty()) {
-
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [11] init... "));
-
-                // Verify channel and balance
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_11, SETTING_PARALLEL_CHANNEL_KEY_11, outputTextArea)) {
-                    channelAccounts.add(10, SETTING_PARALLEL_CHANNEL_ADDRESS_11);
-                    channelKeys.add(10, SETTING_PARALLEL_CHANNEL_KEY_11);
-                }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [11] not specified, skipping!\n"));
-            }
-
-            // Channel 12
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_12 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_12.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_12 != null && !SETTING_PARALLEL_CHANNEL_KEY_12.isEmpty()) {
-
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [12] init... "));
-
-                // Verify channel and balance
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_12, SETTING_PARALLEL_CHANNEL_KEY_12, outputTextArea)) {
-                    channelAccounts.add(11, SETTING_PARALLEL_CHANNEL_ADDRESS_12);
-                    channelKeys.add(11, SETTING_PARALLEL_CHANNEL_KEY_12);
-                }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [12] not specified, skipping!\n"));
-            }
-
-            // Channel 13
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_13 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_13.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_13 != null && !SETTING_PARALLEL_CHANNEL_KEY_13.isEmpty()) {
-
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [13] init... "));
-
-                // Verify channel and balance
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_13, SETTING_PARALLEL_CHANNEL_KEY_13, outputTextArea)) {
-                    channelAccounts.add(12, SETTING_PARALLEL_CHANNEL_ADDRESS_13);
-                    channelKeys.add(12, SETTING_PARALLEL_CHANNEL_KEY_13);
-                }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [13] not specified, skipping!\n"));
-            }
-
-            // Channel 14
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_14 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_14.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_14 != null && !SETTING_PARALLEL_CHANNEL_KEY_14.isEmpty()) {
-
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [14] init... "));
-
-                // Verify channel and balance
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_14, SETTING_PARALLEL_CHANNEL_KEY_14, outputTextArea)) {
-                    channelAccounts.add(13, SETTING_PARALLEL_CHANNEL_ADDRESS_14);
-                    channelKeys.add(13, SETTING_PARALLEL_CHANNEL_KEY_14);
-                }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [14] not specified, skipping!\n"));
-            }
-
-            // Channel 15
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_15 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_15.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_15 != null && !SETTING_PARALLEL_CHANNEL_KEY_15.isEmpty()) {
-
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [15] init... "));
-
-                // Verify channel and balance
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_15, SETTING_PARALLEL_CHANNEL_KEY_15, outputTextArea)) {
-                    channelAccounts.add(14, SETTING_PARALLEL_CHANNEL_ADDRESS_15);
-                    channelKeys.add(14, SETTING_PARALLEL_CHANNEL_KEY_15);
-                }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [15] not specified, skipping!\n"));
-            }
-
-            // Channel 16
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_16 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_16.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_16 != null && !SETTING_PARALLEL_CHANNEL_KEY_16.isEmpty()) {
-
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [16] init... "));
-
-                // Verify channel and balance
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_16, SETTING_PARALLEL_CHANNEL_KEY_16, outputTextArea)) {
-                    channelAccounts.add(15, SETTING_PARALLEL_CHANNEL_ADDRESS_16);
-                    channelKeys.add(15, SETTING_PARALLEL_CHANNEL_KEY_16);
-                }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [16] not specified, skipping!\n"));
-            }
-
-            // Channel 17
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_17 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_17.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_17 != null && !SETTING_PARALLEL_CHANNEL_KEY_17.isEmpty()) {
-
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [17] init... "));
-
-                // Verify channel and balance
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_17, SETTING_PARALLEL_CHANNEL_KEY_17, outputTextArea)) {
-                    channelAccounts.add(16, SETTING_PARALLEL_CHANNEL_ADDRESS_17);
-                    channelKeys.add(16, SETTING_PARALLEL_CHANNEL_KEY_17);
-                }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [17] not specified, skipping!\n"));
-            }
-
-            // Channel 18
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_18 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_18.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_18 != null && !SETTING_PARALLEL_CHANNEL_KEY_18.isEmpty()) {
-
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [18] init... "));
-
-                // Verify channel and balance
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_18, SETTING_PARALLEL_CHANNEL_KEY_18, outputTextArea)) {
-                    channelAccounts.add(17, SETTING_PARALLEL_CHANNEL_ADDRESS_18);
-                    channelKeys.add(17, SETTING_PARALLEL_CHANNEL_KEY_18);
-                }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [18] not specified, skipping!\n"));
-            }
-
-            // Channel 19
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_19 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_19.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_19 != null && !SETTING_PARALLEL_CHANNEL_KEY_19.isEmpty()) {
-
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [19] init... "));
-
-                // Verify channel and balance
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_19, SETTING_PARALLEL_CHANNEL_KEY_19, outputTextArea)) {
-                    channelAccounts.add(18, SETTING_PARALLEL_CHANNEL_ADDRESS_19);
-                    channelKeys.add(18, SETTING_PARALLEL_CHANNEL_KEY_19);
-                }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [19] not specified, skipping!\n"));
-            }
-
-            // Channel 20
-            if (SETTING_PARALLEL_CHANNEL_ADDRESS_20 != null && !SETTING_PARALLEL_CHANNEL_ADDRESS_20.isEmpty() &&
-                SETTING_PARALLEL_CHANNEL_KEY_20 != null && !SETTING_PARALLEL_CHANNEL_KEY_20.isEmpty()) {
-
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [20] init... "));
-
-                // Verify channel and balance
-                if (verifyChannel(SETTING_PARALLEL_CHANNEL_ADDRESS_20, SETTING_PARALLEL_CHANNEL_KEY_20, outputTextArea)) {
-                    channelAccounts.add(19, SETTING_PARALLEL_CHANNEL_ADDRESS_20);
-                    channelKeys.add(19, SETTING_PARALLEL_CHANNEL_KEY_20);
-                }
-            } else {
-                // Verify channel and balance
-                Platform.runLater(() -> outputTextArea.appendText("Channel [20] not specified, skipping!\n"));
             }
         } else {
             channelAccounts = null;
