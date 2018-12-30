@@ -192,7 +192,7 @@ public class MainController {
         if (currentVotersData != null && currentVotersData.getEntries().size() > 0) {
             poolDataVotersLabel.setText(String.valueOf(currentVotersData.getEntries().size()));
 
-            Long totalVotes = 0L;
+            long totalVotes = 0L;
             for (VoterDataEntry voter : currentVotersData.getEntries()) {
                 totalVotes += voter.getBalance();
             }
@@ -303,7 +303,7 @@ public class MainController {
                         if (validChannelsNum > 0) {
                             Platform.runLater(() -> inflationPoolDataTextArea.appendText("SUCCESS: Initialized [" + validChannelsNum + "] valid channels for parallel submission!\n\n"));
                         } else {
-                            Platform.runLater(() -> inflationPoolDataTextArea.appendText("ERROR: No valid channels found for parallel submission! Please check your settings!\n\n"));
+                            Platform.runLater(() -> inflationPoolDataTextArea.appendText("FAILED: No channels were initialized for parallel submission!\n\n"));
 
                             // Reset current voters data
                             currentVotersData = null;
@@ -330,7 +330,25 @@ public class MainController {
 
             // Process task completion
             request.thenAccept(votersData -> {
-                // Update text area
+                // Stop if we're meant to use payment channels but none have been successfully initialized
+                if (SETTING_PARALLEL_CHANNELS_ENABLED && StellarGateway.getChannelAccounts().size() == 0) {
+                    Platform.runLater(() -> {
+                        // Re-enable buttons and update counters
+                        setBusyState(false);
+                        resetPoolCounters();
+
+                        // Manually disable the transaction build button, we have no data!
+                        buildTransactionBtn.setDisable(true);
+
+                        // Notify user
+                        showError("None of the payment channels provided in the config can be used, either disable parallel submissions or provide valid channels");
+                    });
+
+                    return;
+                }
+
+
+                // Check if we have voters data
                 if (votersData == null) {
                     Platform.runLater(() -> {
                         // Re-enable buttons and update counters
@@ -341,7 +359,6 @@ public class MainController {
                         buildTransactionBtn.setDisable(true);
 
                         // Notify user
-                        inflationPoolDataTextArea.appendText(" FAILED!");
                         showError("The horizon database does not contain any data for the specified address");
                     });
 

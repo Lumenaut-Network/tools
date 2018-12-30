@@ -115,7 +115,7 @@ public class StellarGateway {
             try {
                 channelsData = DataFormats.OBJECT_MAPPER.readValue(new File("data/payment-channels.json"), PaymentChannels.class);
             } catch (IOException e) {
-                Platform.runLater(() -> outputTextArea.appendText("No valid payment channel found in config. Aborting... "));
+                Platform.runLater(() -> outputTextArea.appendText("No valid payment channels found in config. Aborting... "));
 
                 return;
             }
@@ -159,6 +159,13 @@ public class StellarGateway {
      * @return
      */
     private static boolean verifyChannel(final String channelAddress, final String channelKey, final TextArea outputTextArea) {
+        // Fail immediately if the channel data is invalid
+        if (channelAddress == null || channelAddress.isEmpty() || channelKey == null || channelKey.isEmpty()) {
+            Platform.runLater(() -> outputTextArea.appendText("FAILED [Invalid channel address/key]\n"));
+
+            return false;
+        }
+
         // Select the operations network
         final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? SETTING_HORIZON_LIVE_NETWORK : SETTING_HORIZON_TEST_NETWORK);
 
