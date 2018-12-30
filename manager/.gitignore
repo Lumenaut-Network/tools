@@ -22,4 +22,5 @@ out/
 # Temporary files
 .*~
 /data/*.ini
+/data/*.json
 /data/*/
