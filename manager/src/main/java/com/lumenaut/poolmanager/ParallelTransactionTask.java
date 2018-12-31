@@ -160,6 +160,14 @@ public class ParallelTransactionTask implements Runnable {
 
                 // Update progress
                 config.progress.getAndSet(currentBatch * 100 / totalBatches);
+
+                // Create fake transaction response so we can save it
+                final TransactionBatchResponse batchResponse = new TransactionBatchResponse();
+                batchResponse.success = false;
+                batchResponse.errorMessages.add(e.getMessage());
+
+                // Save the response
+                saveTransactionResponse(batchResponse);
             }
         }
 
