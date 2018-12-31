@@ -298,8 +298,17 @@ public class MainController {
                         Platform.runLater(() -> inflationPoolDataTextArea.appendText("Verifying payment channels...\n"));
                         StellarGateway.initParallelSubmission(inflationPoolDataTextArea);
 
-                        final int validChannelsNum = StellarGateway.getChannelAccounts().size();
+                        // Check if the channels were initialized
+                        if (StellarGateway.getChannelAccounts() == null) {
+                            Platform.runLater(() -> inflationPoolDataTextArea.appendText("FAILED: No channels were initialized for parallel submission!\n\n"));
 
+                            // Reset current voters data
+                            currentVotersData = null;
+                            return null;
+                        }
+
+                        // Check if at least 1 channel was initialized
+                        final int validChannelsNum = StellarGateway.getChannelAccounts().size();
                         if (validChannelsNum > 0) {
                             Platform.runLater(() -> inflationPoolDataTextArea.appendText("SUCCESS: Initialized [" + validChannelsNum + "] valid channels for parallel submission!\n\n"));
                         } else {
@@ -331,7 +340,7 @@ public class MainController {
             // Process task completion
             request.thenAccept(votersData -> {
                 // Stop if we're meant to use payment channels but none have been successfully initialized
-                if (SETTING_PARALLEL_CHANNELS_ENABLED && StellarGateway.getChannelAccounts().size() == 0) {
+                if (SETTING_PARALLEL_CHANNELS_ENABLED && (StellarGateway.getChannelAccounts() == null || StellarGateway.getChannelAccounts().size() == 0)) {
                     Platform.runLater(() -> {
                         // Re-enable buttons and update counters
                         setBusyState(false);

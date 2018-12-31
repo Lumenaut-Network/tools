@@ -140,9 +140,36 @@ public class StellarGateway {
 
                 // Verify channel and balance
                 if (verifyChannel(channelAddress, channelKey, outputTextArea)) {
-                    channelAccounts.add(i, channelAddress);
-                    channelKeys.add(i, channelKey);
+                    channelAccounts.add(channelAddress);
+                    channelKeys.add(channelKey);
                 }
+            }
+
+            // Check for duplicates
+            boolean duplicatesFound = false;
+            for (int i = 0; i < channels.size(); i++) {
+                for (int j = i + 1; j < channels.size(); j++) {
+                    final PaymentChannel channel = channels.get(i);
+                    final PaymentChannel channel2 = channels.get(j);
+
+                    if (channel.address.equalsIgnoreCase(channel2.address)) {
+                        duplicatesFound = true;
+                        break;
+                    }
+                }
+
+                if (duplicatesFound) {
+                    break;
+                }
+            }
+
+            // Invalidate initialized channels if duplicates were found
+            if (duplicatesFound) {
+                channelAccounts = null;
+                channelKeys = null;
+
+                // Notify user
+                Platform.runLater(() -> outputTextArea.appendText("ERROR: Duplicate payment channels found, please check your settings. Aborting...\n"));
             }
         } else {
             channelAccounts = null;
@@ -169,14 +196,16 @@ public class StellarGateway {
         // Select the operations network
         final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? SETTING_HORIZON_LIVE_NETWORK : SETTING_HORIZON_TEST_NETWORK);
 
-        // Create the key pair from the secret key, so we can check if it matches the channel address
-        final KeyPair pair = KeyPair.fromSecretSeed(channelKey);
-
         try {
+            // Create the key pair from the secret key, so we can check if it matches the channel address
+            final KeyPair pair = KeyPair.fromSecretSeed(channelKey);
+
             final AccountResponse account = server.accounts().account(pair);
 
             // Check address
             if (!pair.getAccountId().equals(channelAddress)) {
+                Platform.runLater(() -> outputTextArea.appendText("FAILED [Invalid key pair]\n"));
+
                 return false;
             }
 
