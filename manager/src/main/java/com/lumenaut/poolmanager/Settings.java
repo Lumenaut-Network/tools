@@ -19,7 +19,7 @@ public class Settings {
     // This setting should be as high as the maximum number of supported channels that the application can use.
     // The transactions' threads (ParallelTransactionTask.java) are super lightweight and will spend 99% of the time I/O blocked,
     // don't worry if your CPU doesn't an equal amount of cores, your kernel's scheduler will manage just fine.
-    public static final int MAX_THREADS = 20;
+    public static final int MAX_THREADS = 50;
 
     // Minimum valid account balance accepted to receive inflation (in stroops)
     public static final long MIN_ACCOUNT_BALANCE = 25_000_000L;

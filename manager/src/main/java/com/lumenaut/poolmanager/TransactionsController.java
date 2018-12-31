@@ -271,7 +271,7 @@ public class TransactionsController {
                     stage.initOwner(transactionPlannerStage.getScene().getWindow());
                     stage.initStyle(StageStyle.UNDECORATED);
                     stage.setWidth(primaryStage.getWidth() + 80);
-                    stage.setHeight(primaryStage.getHeight() + 50);
+                    stage.setHeight(primaryStage.getHeight() + 130);
 
                     // Open
                     stage.show();
