@@ -26,7 +26,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import static com.lumenaut.poolmanager.DataFormats.*;
 import static com.lumenaut.poolmanager.Services.EXECUTOR;
 import static com.lumenaut.poolmanager.Settings.*;
-import static com.lumenaut.poolmanager.TransactionsController.*;
+import static com.lumenaut.poolmanager.TransactionsController.FILE_DATE_FORMATTER;
+import static com.lumenaut.poolmanager.TransactionsController.TRANSACTIONS_RESULT_JSON_SUFFIX;
 import static com.lumenaut.poolmanager.UIUtils.showError;
 import static com.lumenaut.poolmanager.UIUtils.showInfo;
 

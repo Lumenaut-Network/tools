@@ -15,7 +15,7 @@ import static com.lumenaut.poolmanager.Settings.SETTING_FEDERATION_NETWORK_INFLA
  * @Author Luca Vignaroli
  * @Email luca@burning.it
  * @Date 10/01/2018 - 4:38 PM
- *
+ * <p>
  * Stateless class, exposes quick methods to accomplish operations on "https://fed.network"
  */
 public class FederationGateway {

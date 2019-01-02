@@ -33,7 +33,7 @@ import static com.lumenaut.poolmanager.Settings.*;
  */
 public class StellarGateway {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//region FIELDS
+    //region FIELDS
 
     // Minimum balance for which a channel is considered safe for transactions (1.5 XLM)
     public static final int MINIMUM_CHANNEL_BALANCE = 15000000;
@@ -54,12 +54,12 @@ public class StellarGateway {
 
     private static ArrayList<String> channelAccounts;
     private static ArrayList<String> channelKeys;
-	
-	//endregion
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//region ACCESSORS
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region ACCESSORS
 
     public static ArrayList<String> getChannelAccounts() {
         return channelAccounts;
@@ -71,35 +71,35 @@ public class StellarGateway {
 
 
     //endregion
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//region CONSTRUCTORS
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region CONSTRUCTORS
 
-	/**
-	 * Constructor
-	 */
-	private StellarGateway() {
+    /**
+     * Constructor
+     */
+    private StellarGateway() {
 
     }
 
-	//endregion
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//region INTERFACES IMPLEMENTATIONS
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region INTERFACES IMPLEMENTATIONS
 
-	//endregion
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//region METHOD OVERRIDES
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region METHOD OVERRIDES
 
-	//endregion
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//region METHODS
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //region METHODS
 
     /**
      * Initialize parallel submission data
@@ -235,53 +235,53 @@ public class StellarGateway {
     }
 
     /**
-	 * Fetch the specified account balance
-	 *
+     * Fetch the specified account balance
+     *
      * @param address
-	 * @return
-	 */
+     * @return
+     */
     public static BigDecimal getBalance(final String address) throws IOException {
-		// Select the operations network
+        // Select the operations network
         final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? SETTING_HORIZON_LIVE_NETWORK : SETTING_HORIZON_TEST_NETWORK);
 
-		// Build a key pair for the account id specified
+        // Build a key pair for the account id specified
         final KeyPair pair = KeyPair.fromAccountId(address);
 
-		// Retrieve balances
-		final AccountResponse account = server.accounts().account(pair);
+        // Retrieve balances
+        final AccountResponse account = server.accounts().account(pair);
 
-		// Sum all account balances
-		BigDecimal total = new BigDecimal("0");
-		for (AccountResponse.Balance balance : account.getBalances()) {
-			total = total.add(new BigDecimal(balance.getBalance()));
-		}
+        // Sum all account balances
+        BigDecimal total = new BigDecimal("0");
+        for (AccountResponse.Balance balance : account.getBalances()) {
+            total = total.add(new BigDecimal(balance.getBalance()));
+        }
 
-		return total;
-	}
+        return total;
+    }
 
-	/**
-	 * Execute the given transactions in a single batch
-	 *
-	 * @param server
-	 * @param source
-	 * @param transactionResult
-	 * @return
-	 * @throws IOException
-	 */
+    /**
+     * Execute the given transactions in a single batch
+     *
+     * @param server
+     * @param source
+     * @param transactionResult
+     * @return
+     * @throws IOException
+     */
     public static TransactionBatchResponse executeTransactionBatch(final Server server, final KeyPair source, final KeyPair[] signers, final TransactionResult transactionResult) {
-		// Prepare response object
-		final TransactionBatchResponse response = new TransactionBatchResponse();
+        // Prepare response object
+        final TransactionBatchResponse response = new TransactionBatchResponse();
 
         // Current batch retries
         final AtomicInteger retriesLeft = new AtomicInteger(MAX_RESUBMISSIONS_PER_TX_BAD_SEQ);
 
-		// Refuse batches with more than 100 operations
-		if (transactionResult.getEntries().size() > SETTING_OPERATIONS_PER_TRANSACTION_BATCH) {
-			response.success = false;
-			response.errorMessages.add("Refusing to execute a transaction batch with more than [" + SETTING_OPERATIONS_PER_TRANSACTION_BATCH + "] entries. The batch contains [" + transactionResult.getEntries().size() + "] entries");
+        // Refuse batches with more than 100 operations
+        if (transactionResult.getEntries().size() > SETTING_OPERATIONS_PER_TRANSACTION_BATCH) {
+            response.success = false;
+            response.errorMessages.add("Refusing to execute a transaction batch with more than [" + SETTING_OPERATIONS_PER_TRANSACTION_BATCH + "] entries. The batch contains [" + transactionResult.getEntries().size() + "] entries");
 
-			return response;
-		}
+            return response;
+        }
 
         // Source must be provided
         if (source == null) {
@@ -314,21 +314,21 @@ public class StellarGateway {
         // Prepare a new transaction builder for the pool account
         final Builder transactionBuilder = new Transaction.Builder(sourceAccountResponse);
 
-		// Add memo to the transaction
-		transactionBuilder.addMemo(Memo.text(Settings.SETTING_MEMO));
+        // Add memo to the transaction
+        transactionBuilder.addMemo(Memo.text(Settings.SETTING_MEMO));
 
-		// Process all entries
-		for (TransactionResultEntry entry : transactionResult.getEntries()) {
-			// Append operation
-			// !!! IMPORTANT !!! the amount must be specified in XLM as a string in decimal format e.g. 10.0000001 -> 10 lumens, 1 stroop
-			transactionBuilder.addOperation(new PaymentOperation.Builder(KeyPair.fromAccountId(entry.getDestination()), new AssetTypeNative(), XLMUtils.stroopToXLM(entry.getAmount()).toString()).build());
+        // Process all entries
+        for (TransactionResultEntry entry : transactionResult.getEntries()) {
+            // Append operation
+            // !!! IMPORTANT !!! the amount must be specified in XLM as a string in decimal format e.g. 10.0000001 -> 10 lumens, 1 stroop
+            transactionBuilder.addOperation(new PaymentOperation.Builder(KeyPair.fromAccountId(entry.getDestination()), new AssetTypeNative(), XLMUtils.stroopToXLM(entry.getAmount()).toString()).build());
 
-			// Update entry operation timestamp
-			entry.setTimestamp(System.currentTimeMillis());
-		}
+            // Update entry operation timestamp
+            entry.setTimestamp(System.currentTimeMillis());
+        }
 
-		// Finalize the transaction
-		final Transaction transaction = transactionBuilder.build();
+        // Finalize the transaction
+        final Transaction transaction = transactionBuilder.build();
         for (KeyPair signer : signers) {
             transaction.sign(signer);
         }
@@ -416,8 +416,8 @@ public class StellarGateway {
             }
         }
 
-		return response;
-	}
+        return response;
+    }
 
     /**
      * Execute the given transactions in a single batch from the specified channel
@@ -608,30 +608,30 @@ public class StellarGateway {
                transactionResponse.getExtras().getResultCodes().getTransactionResultCode().equals("tx_bad_seq");
     }
 
-	/**
-	 * Verify all the accounts in the specified transactions plan
-	 *
-	 * @param server
-	 * @param transactionResult
-	 * @return
-	 */
-	private static boolean verifyAccounts(final Server server, final TransactionResult transactionResult) {
-		for (TransactionResultEntry entry : transactionResult.getEntries()) {
-			try {
-				server.accounts().account(KeyPair.fromAccountId(entry.getDestination()));
-			} catch (IOException e) {
-				System.out.println("Transaction batch: account failed verification: " + entry.getDestination());
+    /**
+     * Verify all the accounts in the specified transactions plan
+     *
+     * @param server
+     * @param transactionResult
+     * @return
+     */
+    private static boolean verifyAccounts(final Server server, final TransactionResult transactionResult) {
+        for (TransactionResultEntry entry : transactionResult.getEntries()) {
+            try {
+                server.accounts().account(KeyPair.fromAccountId(entry.getDestination()));
+            } catch (IOException e) {
+                System.out.println("Transaction batch: account failed verification: " + entry.getDestination());
 
-				return false;
-			}
-		}
+                return false;
+            }
+        }
 
-		System.out.println("Transaction batch: accounts verified");
+        System.out.println("Transaction batch: accounts verified");
 
-		return true;
-	}
+        return true;
+    }
 
-	//endregion
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //endregion
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
