@@ -16,7 +16,9 @@ import org.stellar.sdk.responses.SubmitTransactionUnknownResponseException;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -52,6 +54,8 @@ public class StellarGateway {
     public static final int TRANSACTION_RESUBMISSION_DELAY = 15000;
     public static final long TRANSACTION_TIMEOUT_SECONDS = 120L;
 
+    private static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd HH:mm:SS");
+    
     private static ArrayList<String> channelAccounts;
     private static ArrayList<String> channelKeys;
 
@@ -429,7 +433,7 @@ public class StellarGateway {
      * @return
      * @throws IOException
      */
-    public static TransactionBatchResponse executeChannelTransactionBatch(final Server server, final KeyPair channelAccount, final KeyPair sourceAccount, final KeyPair[] signers, final TransactionResult batch, final AtomicBoolean idleFlag) {
+    public static TransactionBatchResponse executeChannelTransactionBatch(final Server server, final KeyPair channelAccount, final KeyPair sourceAccount, final KeyPair[] signers, final TransactionResult batch, final AtomicBoolean idleFlag, final int channelIndex) {
         // Prepare response object
         final TransactionBatchResponse response = new TransactionBatchResponse();
 
@@ -483,7 +487,7 @@ public class StellarGateway {
             transactionBuilder.setTimeout(TRANSACTION_TIMEOUT_SECONDS); // 2 Minutes
         } catch (RuntimeException e) {
             response.success = false;
-            response.errorMessages.add("[ERROR] " + e.getMessage());
+            response.errorMessages.add("[" + DATE_FORMATTER.format(new Date()) + "]-[ERROR] " + e.getMessage());
 
             return response;
         }
@@ -512,14 +516,18 @@ public class StellarGateway {
             try {
                 // If we're resubmitting, give horizon some time to catch up
                 if (resub) {
+                    // Log to console
+                    System.out.println("[" + DATE_FORMATTER.format(new Date()) + "]-[INFO] Channel [" + channelIndex + "] entering sleep mode for " + TRANSACTION_RESUBMISSION_DELAY / 1000 + " seconds");
+
                     idleFlag.set(true);
                     Thread.sleep(TRANSACTION_RESUBMISSION_DELAY);
+
+                    // Log to console
+                    System.out.println("[" + DATE_FORMATTER.format(new Date()) + "]-[INFO] Channel [" + channelIndex + "] resuming operations");
                 }
 
-                // Reset idle flag
+                // Reset flags
                 idleFlag.set(false);
-
-                // Reset resubmission flag otherwise every transaction since the first resubmission will be delayed
                 resub = false;
 
                 // Attempt submission
@@ -531,14 +539,14 @@ public class StellarGateway {
                     response.transactionResponse = submissionResponse;
                 } else {
                     ////////////////////////////////////////////////////////////////////////////////////////////////////
-                    // RESUB on failure due to tx_bad_seq >>> up to MAX_RESUBMISSIONS_PER_TX_BAD_SEQ <<<
+                    // RESUB >>> tx_bad_seq (up to MAX_RESUBMISSIONS_PER_TX_BAD_SEQ)
                     if (isTxBadSeq(submissionResponse)) {
                         if (retriesLeft.decrementAndGet() >= 0) {
                             // Append to response
                             final String warn = "Resubmitting transaction in " + TRANSACTION_RESUBMISSION_DELAY / 1000 + " seconds because of: possibly bogus tx_bad_seq";
 
                             // Log to console
-                            System.err.println("[WARNING] " + warn);
+                            System.err.println("[" + DATE_FORMATTER.format(new Date()) + "]-[WARNING] Channel [" + channelIndex + "]: " + warn);
 
                             // Append to response
                             response.warningMessages.add(warn);
@@ -566,29 +574,41 @@ public class StellarGateway {
             } catch (InterruptedException e) {
                 // Transaction batch failed
                 response.success = false;
-                response.errorMessages.add("Channel Thread was interrupted: " + e.getMessage());
+                response.errorMessages.add("[" + DATE_FORMATTER.format(new Date()) + "]-[ERROR] Channel [" + channelIndex + "]: Thread was interrupted: " + e.getMessage());
 
                 return response;
             } catch (SubmitTransactionUnknownResponseException e) {
                 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-                // RESUB >>> Unexpected failure (timeout?)
-                final String warn = "Resubmitting transaction in " + TRANSACTION_RESUBMISSION_DELAY / 1000 + ". Code: " + String.valueOf(e.getCode()) + ", Response Body" + e.getBody();
+                // RESUB >>> Timeout
+                final String warn = "Resubmitting transaction in " + TRANSACTION_RESUBMISSION_DELAY / 1000 + ". Code: " + e.getCode() + ", Response Body" + e.getBody();
+
+                // Log to console
+                System.err.println("[" + DATE_FORMATTER.format(new Date()) + "]-[WARNING] Channel [" + channelIndex + "]: " + warn);
 
                 // Append to response
                 response.warningMessages.add(warn);
 
                 // Flag as resubmission
                 resub = true;
+
+                // Null the current transaction response, so we remain on this transaction
+                submissionResponse = null;
             } catch (SubmitTransactionTimeoutResponseException | IOException e) {
                 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-                // RESUB >>> Unexpected failure (timeout?)
+                // RESUB >>> Timeout
                 final String warn = "Resubmitting transaction in " + TRANSACTION_RESUBMISSION_DELAY / 1000 + " seconds because of: " + e.getClass().getSimpleName() + " -> " + e.getMessage();
+
+                // Log to console
+                System.err.println("[" + DATE_FORMATTER.format(new Date()) + "]-[WARNING] Channel [" + channelIndex + "]: " + warn);
 
                 // Append to response
                 response.warningMessages.add(warn);
 
                 // Flag as resubmission
                 resub = true;
+
+                // Null the current transaction response, so we remain on this transaction
+                submissionResponse = null;
             }
         }
 
