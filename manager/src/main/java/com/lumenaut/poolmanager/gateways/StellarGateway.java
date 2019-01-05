@@ -54,7 +54,7 @@ public class StellarGateway {
     public static final int TRANSACTION_RESUBMISSION_DELAY = 15000;
     public static final long TRANSACTION_TIMEOUT_SECONDS = 120L;
 
-    private static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd HH:mm:SS");
+    private static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
     
     private static ArrayList<String> channelAccounts;
     private static ArrayList<String> channelKeys;
