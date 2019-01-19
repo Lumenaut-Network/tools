@@ -51,11 +51,13 @@ public class StellarGateway {
     // When a transaction fails because of a timeout error from the horizon response
     // wait this much before resubmitting it (milliseconds). A transaction timeout will be resubmitted ad infinitum
     // until either success or failure is reported by Horizon
-    public static final int TRANSACTION_RESUBMISSION_DELAY = 15000;
-    public static final long TRANSACTION_TIMEOUT_SECONDS = 120L;
+    public static final int TRANSACTION_RESUBMISSION_DELAY = 5000;
+
+    // Each transaction will become invalid after the specified time since its first submission
+    public static final long TRANSACTION_VALIDITY_TIMEOUT_SECONDS = 60 * 20;
 
     private static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
-    
+
     private static ArrayList<String> channelAccounts;
     private static ArrayList<String> channelKeys;
 
@@ -72,7 +74,6 @@ public class StellarGateway {
     public static ArrayList<String> getChannelKeys() {
         return channelKeys;
     }
-
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -239,31 +240,6 @@ public class StellarGateway {
     }
 
     /**
-     * Fetch the specified account balance
-     *
-     * @param address
-     * @return
-     */
-    public static BigDecimal getBalance(final String address) throws IOException {
-        // Select the operations network
-        final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? SETTING_HORIZON_LIVE_NETWORK : SETTING_HORIZON_TEST_NETWORK);
-
-        // Build a key pair for the account id specified
-        final KeyPair pair = KeyPair.fromAccountId(address);
-
-        // Retrieve balances
-        final AccountResponse account = server.accounts().account(pair);
-
-        // Sum all account balances
-        BigDecimal total = new BigDecimal("0");
-        for (AccountResponse.Balance balance : account.getBalances()) {
-            total = total.add(new BigDecimal(balance.getBalance()));
-        }
-
-        return total;
-    }
-
-    /**
      * Execute the given transactions in a single batch
      *
      * @param server
@@ -272,7 +248,7 @@ public class StellarGateway {
      * @return
      * @throws IOException
      */
-    public static TransactionBatchResponse executeTransactionBatch(final Server server, final KeyPair source, final KeyPair[] signers, final TransactionResult transactionResult) {
+    public static TransactionBatchResponse executeSingleTransactionBatch(final Server server, final KeyPair source, final KeyPair[] signers, final TransactionResult transactionResult) {
         // Prepare response object
         final TransactionBatchResponse response = new TransactionBatchResponse();
 
@@ -320,6 +296,16 @@ public class StellarGateway {
 
         // Add memo to the transaction
         transactionBuilder.addMemo(Memo.text(Settings.SETTING_MEMO));
+
+        // Mandatory timeout settings
+        try {
+            transactionBuilder.setTimeout(TRANSACTION_VALIDITY_TIMEOUT_SECONDS);
+        } catch (RuntimeException e) {
+            response.success = false;
+            response.errorMessages.add("[" + DATE_FORMATTER.format(new Date()) + "]-[ERROR] " + e.getMessage());
+
+            return response;
+        }
 
         // Process all entries
         for (TransactionResultEntry entry : transactionResult.getEntries()) {
@@ -433,7 +419,7 @@ public class StellarGateway {
      * @return
      * @throws IOException
      */
-    public static TransactionBatchResponse executeChannelTransactionBatch(final Server server, final KeyPair channelAccount, final KeyPair sourceAccount, final KeyPair[] signers, final TransactionResult batch, final AtomicBoolean idleFlag, final int channelIndex) {
+    public static TransactionBatchResponse executeParallelTransactionBatch(final Server server, final KeyPair channelAccount, final KeyPair sourceAccount, final KeyPair[] signers, final TransactionResult batch, final AtomicBoolean idleFlag, final int channelIndex) {
         // Prepare response object
         final TransactionBatchResponse response = new TransactionBatchResponse();
 
@@ -484,14 +470,13 @@ public class StellarGateway {
 
         // Mandatory timeout settings
         try {
-            transactionBuilder.setTimeout(TRANSACTION_TIMEOUT_SECONDS); // 2 Minutes
+            transactionBuilder.setTimeout(TRANSACTION_VALIDITY_TIMEOUT_SECONDS);
         } catch (RuntimeException e) {
             response.success = false;
             response.errorMessages.add("[" + DATE_FORMATTER.format(new Date()) + "]-[ERROR] " + e.getMessage());
 
             return response;
         }
-
 
         // Process all entries
         for (TransactionResultEntry entry : batch.getEntries()) {
@@ -649,6 +634,31 @@ public class StellarGateway {
         System.out.println("Transaction batch: accounts verified");
 
         return true;
+    }
+
+    /**
+     * Fetch the specified account balance
+     *
+     * @param address
+     * @return
+     */
+    public static BigDecimal getBalance(final String address) throws IOException {
+        // Select the operations network
+        final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? SETTING_HORIZON_LIVE_NETWORK : SETTING_HORIZON_TEST_NETWORK);
+
+        // Build a key pair for the account id specified
+        final KeyPair pair = KeyPair.fromAccountId(address);
+
+        // Retrieve balances
+        final AccountResponse account = server.accounts().account(pair);
+
+        // Sum all account balances
+        BigDecimal total = new BigDecimal("0");
+        for (AccountResponse.Balance balance : account.getBalances()) {
+            total = total.add(new BigDecimal(balance.getBalance()));
+        }
+
+        return total;
     }
 
     //endregion

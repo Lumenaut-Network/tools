@@ -113,7 +113,7 @@ public class ParallelTransactionTask implements Runnable {
             final TransactionResult batch = config.batchQueue.poll();
             try {
                 if (batch != null) {
-                    final TransactionBatchResponse batchResponse = StellarGateway.executeChannelTransactionBatch(server, channelAccount, config.sourceAccount, signers, batch, config.idleFlag, config.channelIndex);
+                    final TransactionBatchResponse batchResponse = StellarGateway.executeParallelTransactionBatch(server, channelAccount, config.sourceAccount, signers, batch, config.idleFlag, config.channelIndex);
                     if (!batchResponse.success) {
                         // Append error and update error state
                         config.errorFlag.getAndSet(true);

@@ -237,7 +237,7 @@ public class ProcessingController {
                 if (operationsCount % SETTING_OPERATIONS_PER_TRANSACTION_BATCH == 0) {
                     // The batch is full, time to execute
                     try {
-                        final TransactionBatchResponse batchResponse = StellarGateway.executeTransactionBatch(server, source, signers, tmpBatchResult);
+                        final TransactionBatchResponse batchResponse = StellarGateway.executeSingleTransactionBatch(server, source, signers, tmpBatchResult);
                         if (batchResponse.success) {
                             // Update payment counters
                             for (TransactionResultEntry resultEntry : tmpBatchResult.getEntries()) {
@@ -302,7 +302,7 @@ public class ProcessingController {
             // Process last batch, if it has any entries
             if (!tmpBatchResult.getEntries().isEmpty()) {
                 try {
-                    final TransactionBatchResponse batchResponse = StellarGateway.executeTransactionBatch(server, source, signers, tmpBatchResult);
+                    final TransactionBatchResponse batchResponse = StellarGateway.executeSingleTransactionBatch(server, source, signers, tmpBatchResult);
                     if (batchResponse.success) {
                         // Update payment counters
                         for (TransactionResultEntry resultEntry : tmpBatchResult.getEntries()) {
