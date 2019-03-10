@@ -45,7 +45,7 @@ public class Settings {
     public static String SETTING_FEDERATION_NETWORK_INFLATION_URL = "";
 
     public static String SETTING_MEMO = "";
-    public static long SETTING_FEE = 100;
+    public static int SETTING_FEE = 100;
     public static int SETTING_OPERATIONS_PER_TRANSACTION_BATCH = 100;
     public static String SETTING_DONATION_DATANAME_PREFIX = "";
 
@@ -105,7 +105,7 @@ public class Settings {
             SETTING_INFLATION_POOL_ADDRESS = XLMUtils.isPublicKeyValidFormat(PROPERTIES.getProperty("inflationPoolAddress")) ? PROPERTIES.getProperty("inflationPoolAddress") : "";
             SETTING_FEDERATION_NETWORK_INFLATION_URL = PROPERTIES.getProperty("fedNetworkInflationUrl", "https://fed.network/inflation/");
             SETTING_MEMO = PROPERTIES.getProperty("memoText", "Thanks from lumenaut.net");
-            SETTING_FEE = Long.parseLong(PROPERTIES.getProperty("fee")) < 100 ? 100 : Long.parseLong(PROPERTIES.getProperty("fee"));
+            SETTING_FEE = Integer.parseInt(PROPERTIES.getProperty("fee")) < 100 ? 100 : Integer.parseInt(PROPERTIES.getProperty("fee"));
             SETTING_DONATION_DATANAME_PREFIX = PROPERTIES.getProperty("donationsPrefix", "lumenaut.net donation");
 
             // Horizon database
@@ -132,7 +132,7 @@ public class Settings {
 
             // Try to parse the fee, or just default to 100
             try {
-                SETTING_FEE = Long.parseLong(PROPERTIES.getProperty("fee", "100"));
+                SETTING_FEE = Integer.parseInt(PROPERTIES.getProperty("fee", "100"));
             } catch (NumberFormatException ne) {
                 SETTING_FEE = 100;
             }

@@ -206,7 +206,7 @@ public class SettingsController {
         SETTING_MEMO = defaultMemoTextField.getText();
         SETTING_DONATION_DATANAME_PREFIX = defaultDonationsStringTextField.getText();
 
-        final long currentFee = Long.parseLong(defaultFeeTextField.getText());
+        final int currentFee = Integer.parseInt(defaultFeeTextField.getText());
         if (currentFee < 100) {
             SETTING_FEE = 100;
             defaultFeeTextField.setText("100");

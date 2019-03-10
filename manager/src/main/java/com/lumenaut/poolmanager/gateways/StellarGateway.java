@@ -468,9 +468,10 @@ public class StellarGateway {
         // Add memo to the transaction
         transactionBuilder.addMemo(Memo.text(Settings.SETTING_MEMO));
 
-        // Mandatory timeout settings
+        // Mandatory settings
         try {
             transactionBuilder.setTimeout(TRANSACTION_VALIDITY_TIMEOUT_SECONDS);
+            transactionBuilder.setOperationFee(SETTING_FEE);
         } catch (RuntimeException e) {
             response.success = false;
             response.errorMessages.add("[" + DATE_FORMATTER.format(new Date()) + "]-[ERROR] " + e.getMessage());
