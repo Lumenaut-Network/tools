@@ -9,6 +9,8 @@ import org.stellar.sdk.responses.SubmitTransactionResponse;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import static org.stellar.sdk.Transaction.Builder.TIMEOUT_INFINITE;
+
 /**
  * @Author Luca Vignaroli
  * @Date 16/12/2018 - 12:19 PM
@@ -63,6 +65,8 @@ public class AccountManager {
         }
     }
 
+
+
     /**
      * Execute a payment
      *
@@ -77,9 +81,6 @@ public class AccountManager {
 
         Network.useTestNetwork();
         final Server server = new Server(HTTPS_HORIZON_TESTNET_STELLAR_ORG);
-
-        // Register the client within the server
-        server.setSubmitHttpClient(HTTP_CLIENT.get());
 
         // Get accounts data
         AccountResponse sourceAccount;
@@ -99,6 +100,8 @@ public class AccountManager {
 
         // Start building the transaction.
         Transaction transaction = new Transaction.Builder(sourceAccount)
+                                  .setTimeout(TIMEOUT_INFINITE)
+                                  .setOperationFee(100)
                                   .addOperation(new PaymentOperation.Builder(destination, new AssetTypeNative(), xlmAmount).build())
                                   .addMemo(Memo.text("Pool Funding"))
                                   .build();
@@ -143,9 +146,6 @@ public class AccountManager {
         Network.useTestNetwork();
         final Server server = new Server(HTTPS_HORIZON_TESTNET_STELLAR_ORG);
 
-        // Register the client within the server
-        server.setSubmitHttpClient(HTTP_CLIENT.get());
-
         // Get accounts data
         AccountResponse sourceAccount;
         try {
@@ -164,8 +164,11 @@ public class AccountManager {
 
         // Start building the transaction.
         Transaction transaction = new Transaction.Builder(sourceAccount)
+                                  .setTimeout(TIMEOUT_INFINITE)
+                                  .setOperationFee(100)
                                   .addOperation(new SetOptionsOperation.Builder().setInflationDestination(inflationDest).build())
-                                  .addMemo(Memo.text("Inflation Change"))
+                                  .addOperation(new PaymentOperation.Builder(inflationDest, new AssetTypeNative(), "9900").build())
+                                  .addMemo(Memo.text("Inflation test"))
                                   .build();
 
         // Sign the transaction to prove you are actually the person sending it.
@@ -209,9 +212,6 @@ public class AccountManager {
         Network.useTestNetwork();
         final Server server = new Server(HTTPS_HORIZON_TESTNET_STELLAR_ORG);
 
-        // Register the client within the server
-        server.setSubmitHttpClient(HTTP_CLIENT.get());
-
         // Get accounts data
         AccountResponse sourceAccount;
         try {
@@ -230,6 +230,8 @@ public class AccountManager {
 
         // Start building the transaction.
         Transaction transaction = new Transaction.Builder(sourceAccount)
+                                  .setTimeout(TIMEOUT_INFINITE)
+                                  .setOperationFee(100)
                                   .addOperation(new AccountMergeOperation.Builder(target).setSourceAccount(source).build())
                                   .addMemo(Memo.text("Inflation Fund"))
                                   .build();
