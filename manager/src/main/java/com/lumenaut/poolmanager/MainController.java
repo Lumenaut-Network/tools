@@ -437,6 +437,7 @@ public class MainController {
             transactionsController.currentPoolBalance = XLMUtils.stroopToXLM(currentVotersData.getBalance());
             transactionsController.primaryStage = primaryStage;
             transactionsController.poolAddressTextField = poolAddressTextField;
+            transactionsController.window = transactionsBuilderStage;
 
             // Initialize the transactions stage and show it
             transactionsBuilderStage.setTitle("Transactions Builder");

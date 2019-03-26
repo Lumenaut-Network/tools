@@ -9,6 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -69,6 +70,9 @@ public class TransactionsController {
 
     @FXML
     private Button saveTransactionPlanBtn;
+
+    @FXML
+    private Button importTransactionPlanBtn;
 
     @FXML
     private Button saveExclusionsBtn;
@@ -137,6 +141,7 @@ public class TransactionsController {
     public VotersData currentVotersData;
     public BigDecimal currentPoolBalance;
     public AnchorPane primaryStage;
+    public Stage window;
 
     // Data
     private HashMap<String, Long> votesAndBalances;
@@ -212,7 +217,7 @@ public class TransactionsController {
             transactionPlanTextArea.appendText("Building transactions plan... ");
 
             if (buildTransactionPlan()) {
-                planningSuccessful();
+                planningSuccessful(false);
             } else {
                 planFailed();
             }
@@ -286,6 +291,7 @@ public class TransactionsController {
         saveExclusionsBtn.setOnAction(event -> saveExclusionsData());
         saveReroutingBtn.setOnAction(event -> saveReroutingData());
         saveTransactionPlanBtn.setOnAction(event -> saveTransactionPlan(false));
+        importTransactionPlanBtn.setOnAction(event -> importTransactionPlan(false));
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // TOOLTIPS
@@ -319,9 +325,13 @@ public class TransactionsController {
     /**
      * Updates the planner ui with the data from the currently planned transactions
      */
-    private void planningSuccessful() {
+    private void planningSuccessful(boolean imported) {
         // Update textarea
-        transactionPlanTextArea.appendText(" DONE!\nREADY TO EXECUTE!");
+        if (!imported) {
+            transactionPlanTextArea.appendText(" DONE!\nREADY TO EXECUTE!");
+        } else {
+            transactionPlanTextArea.appendText("TRANSACTION PLAN IMPORT DONE!\n\n!!! IMPORTANT: THE PLAN WILL EXECUTE AS IT WAS BUILT AND WILL NOT PROCESS EXCLUSIONS AGAIN !!!\n\nREADY TO EXECUTE!");
+        }
 
         // Update planned total operations
         plannedTransactionsLabel.setText(String.valueOf(currentPlan.getEntries().size()));
@@ -1107,6 +1117,37 @@ public class TransactionsController {
 
             return false;
         }
+
+        return true;
+    }
+
+    private boolean importTransactionPlan(boolean quietMode) {
+        final FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Import saved transaction plan");
+        fileChooser.getExtensionFilters().addAll(
+        new FileChooser.ExtensionFilter("JSON", "*.json")
+        );
+
+        final File file = fileChooser.showOpenDialog(window);
+
+        final TransactionPlan importedPlan;
+        try {
+            importedPlan = OBJECT_MAPPER.readValue(file, TransactionPlan.class);
+        } catch (Exception e) {
+            planFailed();
+            showError("The selected file does not contain a valid transaction plan. Error: " + e.getMessage());
+
+            return false;
+        }
+
+        // Set the current plan
+        currentPlan = importedPlan;
+
+        // Update the inflation amount field
+        inflationAmountTextField.setText(XLMUtils.formatBalanceFullPrecision(currentPlan.getTotalPayouts()).replace(",", ""));
+
+        // Update dashboard
+        planningSuccessful(true);
 
         return true;
     }

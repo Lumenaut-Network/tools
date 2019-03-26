@@ -89,8 +89,8 @@
                AnchorPane.leftAnchor="330.0"/>
         <Label fx:id="excludedTransactionsLabel" layoutX="389.0" layoutY="596.0" text="0" AnchorPane.bottomAnchor="93.0"
                AnchorPane.leftAnchor="389.0"/>
-        <Button fx:id="saveExclusionsBtn" layoutX="5.0" layoutY="670.0" mnemonicParsing="false" prefHeight="17.0"
-                prefWidth="140.0" text="Save exclusions" AnchorPane.bottomAnchor="11.0" AnchorPane.leftAnchor="5.0"/>
+        <Button fx:id="saveExclusionsBtn" layoutX="155.0" layoutY="674.0" mnemonicParsing="false" prefHeight="17.0"
+                prefWidth="140.0" text="Save exclusions" AnchorPane.bottomAnchor="7.0" AnchorPane.leftAnchor="155.0"/>
         <Button fx:id="saveReroutingBtn" layoutX="155.0" layoutY="642.0" mnemonicParsing="false" prefHeight="25.0"
                 prefWidth="140.0" text="Save rerouting" AnchorPane.bottomAnchor="39.0" AnchorPane.leftAnchor="155.0"/>
         <Label layoutX="328.0" layoutY="608.0" text="Rerouted:" AnchorPane.bottomAnchor="81.0"
@@ -133,5 +133,7 @@
                AnchorPane.leftAnchor="450.0"/>
         <Label fx:id="totalPoolDonationsLabel" layoutX="547.0" layoutY="657.0" text="0 XLM"
                AnchorPane.bottomAnchor="32.0" AnchorPane.leftAnchor="547.0"/>
+        <Button fx:id="importTransactionPlanBtn" layoutX="5.0" layoutY="674.0" mnemonicParsing="false" prefHeight="25.0"
+                prefWidth="140.0" text="Import Plan" AnchorPane.bottomAnchor="7.0" AnchorPane.leftAnchor="5.0"/>
     </children>
 </AnchorPane>
