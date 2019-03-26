@@ -710,6 +710,9 @@ public class TransactionsController {
             // Set total votes balance
             newPlan.setTotalVotes(totalVotesAmount);
 
+            // Set input amount
+            newPlan.setInputAmount(inflationAmountString);
+
             // Get donations entries
             final List<DonationDataEntry> donationDataEntries = donationsData.getDonations();
 
@@ -1144,7 +1147,7 @@ public class TransactionsController {
         currentPlan = importedPlan;
 
         // Update the inflation amount field
-        inflationAmountTextField.setText(XLMUtils.formatBalanceFullPrecision(currentPlan.getTotalPayouts()).replace(",", ""));
+        inflationAmountTextField.setText(currentPlan.getInputAmount());
 
         // Update dashboard
         planningSuccessful(true);

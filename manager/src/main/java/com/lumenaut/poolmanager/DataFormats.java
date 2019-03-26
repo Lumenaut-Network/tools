@@ -272,6 +272,7 @@ public class DataFormats {
         private long totalPayouts;
         private long totalFees;
         private long totalPayment;
+        private String inputAmount;
         private String out;
         private List<TransactionPlanEntry> entries;
 
@@ -369,6 +370,14 @@ public class DataFormats {
 
         public void setEntries(List<TransactionPlanEntry> entries) {
             this.entries = entries;
+        }
+
+        public String getInputAmount() {
+            return inputAmount;
+        }
+
+        public void setInputAmount(String inputAmount) {
+            this.inputAmount = inputAmount;
         }
 
         public String getOut() {
