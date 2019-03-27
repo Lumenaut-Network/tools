@@ -330,7 +330,7 @@ public class TransactionsController {
         if (!imported) {
             transactionPlanTextArea.appendText(" DONE!\nREADY TO EXECUTE!");
         } else {
-            transactionPlanTextArea.appendText("TRANSACTION PLAN IMPORT DONE!\n\n!!! IMPORTANT: THE PLAN WILL EXECUTE AS IT WAS BUILT AND WILL NOT PROCESS EXCLUSIONS AGAIN !!!\n\nREADY TO EXECUTE!");
+            transactionPlanTextArea.appendText("TRANSACTION PLAN IMPORT DONE! >>> IMPORTANT <<< THE PLAN WILL EXECUTE AS IT WAS BUILT AND WILL NOT PROCESS EXCLUSIONS AGAIN !!!\n\nREADY TO EXECUTE!");
         }
 
         // Update planned total operations

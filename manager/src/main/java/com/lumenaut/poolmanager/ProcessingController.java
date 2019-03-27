@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -136,9 +137,7 @@ public class ProcessingController {
             startBtn.setDisable(true);
             closeBtn.setDisable(false);
         } else {
-            processingOutputTextArea.setText("[RUNNING] Processing transactions\n");
-
-            // Init start date
+            // Get output path for report files
             processingFolderPath = transactionPlan.getOut();
 
             // Disable all buttons
@@ -443,6 +442,9 @@ public class ProcessingController {
                 break;
         }
 
+        // Build server object for accounts checking
+        final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? SETTING_HORIZON_LIVE_NETWORK : SETTING_HORIZON_TEST_NETWORK);
+
         // Build server object and key pairs
         final KeyPair source;
         final KeyPair signer;
@@ -519,263 +521,301 @@ public class ProcessingController {
         // Start processing
         final AtomicInteger currentChannelIndex = new AtomicInteger(0);
         final AtomicInteger operationsCount = new AtomicInteger(0);
-        for (TransactionPlanEntry entry : transactionPlan.getEntries()) {
-            // Create new entry for the temporary result (which we're using as a buffer for batches)
-            final TransactionResultEntry transactionResultEntry = new TransactionResultEntry();
-            transactionResultEntry.setDestination(entry.getDestination());
-            transactionResultEntry.setRecordedBalance(entry.getRecordedBalance());
-            transactionResultEntry.setAmount(entry.getAmount());
-            transactionResultEntry.setDonation(entry.getDonation());
+        final CompletableFuture<Boolean> request = CompletableFuture.supplyAsync(() -> {
+            final StringBuilder sb = new StringBuilder();
+            final List<String> validationFailures = new ArrayList<>();
 
-            // Append to the temporary buffer
-            tmpBatchBuffer.getEntries().add(transactionResultEntry);
+            final AtomicInteger currentEntry = new AtomicInteger(0);
+            final int total = transactionPlan.getEntries().size();
+            for (TransactionPlanEntry entry : transactionPlan.getEntries()) {
+                // Check if the account is still valid
+                try {
+                    server.accounts().account(KeyPair.fromAccountId(entry.getDestination()));
+                } catch (Exception e) {
+                    validationFailures.add("[NOTICE] Account [" + entry.getDestination() + "] validation error, excluding from payments.\n");
+                    currentEntry.getAndIncrement();
 
-            // Another one bites the dust..
-            operationsCount.getAndIncrement();
+                    continue;
+                }
 
-            // If the batch is full, execute it
-            if (operationsCount.get() % SETTING_OPERATIONS_PER_TRANSACTION_BATCH == 0) {
+                // Create new entry for the temporary result (which we're using as a buffer for batches)
+                final TransactionResultEntry transactionResultEntry = new TransactionResultEntry();
+                transactionResultEntry.setDestination(entry.getDestination());
+                transactionResultEntry.setRecordedBalance(entry.getRecordedBalance());
+                transactionResultEntry.setAmount(entry.getAmount());
+                transactionResultEntry.setDonation(entry.getDonation());
+
+                // Append to the temporary buffer
+                tmpBatchBuffer.getEntries().add(transactionResultEntry);
+
+                // Another one bites the dust..
+                operationsCount.getAndIncrement();
+
+                // If the batch is full, execute it
+                if (operationsCount.get() % SETTING_OPERATIONS_PER_TRANSACTION_BATCH == 0) {
+                    // Create channel batch
+                    final TransactionResult channelBatchResult = new TransactionResult();
+
+                    // Initialize the executed operations counter (unused), just in case we need to serialize this structure
+                    channelBatchResult.setExecutedOperations(new AtomicInteger(0));
+                    channelBatchResult.setEntries(new LinkedList<>());
+
+                    // Copy the entries from the tmp batch buffer
+                    tmpBatchBuffer.getEntries().forEach(transactionEntry -> channelBatchResult.getEntries().add(transactionEntry));
+
+                    // Append to the next available channel
+                    channelsQueues[currentChannelIndex.getAndIncrement()].offer(channelBatchResult);
+
+                    // Loop back if we moved past the last channel
+                    if (currentChannelIndex.get() == availableChannels) {
+                        currentChannelIndex.getAndSet(0);
+                    }
+
+                    // Start new tmp batch
+                    tmpBatchBuffer.getEntries().clear();
+                }
+
+                currentEntry.getAndIncrement();
+
+                // Update output
+                Platform.runLater(() -> {
+                    sb.setLength(0);
+                    sb.append("[RUNNING] Preparing channel transaction batches and validating accounts, this might take a while.. Please stand by!\n\n");
+                    for (String failure : validationFailures) {
+                        sb.append(failure);
+                    }
+
+                    sb.append("\n\n[PROCESSING] ").append(currentEntry.get()).append("/").append(total);
+
+                    processingOutputTextArea.setText(sb.toString());
+                    scrollToEnd();
+                });
+            }
+
+            // If we have leftovers, append them to one last batch
+            if (tmpBatchBuffer.getEntries().size() > 0) {
                 // Create channel batch
                 final TransactionResult channelBatchResult = new TransactionResult();
 
-                // Initialize the executed operations counter (unused), just in case we need to serialize this structure
+                // Initialize the executed operations counter (unused), just in case we need to serialize this structure)
                 channelBatchResult.setExecutedOperations(new AtomicInteger(0));
                 channelBatchResult.setEntries(new LinkedList<>());
 
                 // Copy the entries from the tmp batch buffer
                 tmpBatchBuffer.getEntries().forEach(transactionEntry -> channelBatchResult.getEntries().add(transactionEntry));
 
-                // Append to the next available channel
-                channelsQueues[currentChannelIndex.getAndIncrement()].offer(channelBatchResult);
+                // Append to the current channel if it has enough space
+                channelsQueues[currentChannelIndex.get()].offer(channelBatchResult);
 
-                // Loop back if we moved past the last channel
-                if (currentChannelIndex.get() == availableChannels) {
-                    currentChannelIndex.getAndSet(0);
-                }
-
-                // Start new tmp batch
+                // Final cleanup
                 tmpBatchBuffer.getEntries().clear();
             }
-        }
 
-        // If we have leftovers, append them to one last batch
-        if (tmpBatchBuffer.getEntries().size() > 0) {
-            // Create channel batch
-            final TransactionResult channelBatchResult = new TransactionResult();
+            return true;
+        });
 
-            // Initialize the executed operations counter (unused), just in case we need to serialize this structure)
-            channelBatchResult.setExecutedOperations(new AtomicInteger(0));
-            channelBatchResult.setEntries(new LinkedList<>());
+        // Start processing
+        request.thenAccept(preparationComplete -> {
+            // Start time profiling
+            final long startTime = System.currentTimeMillis();
 
-            // Copy the entries from the tmp batch buffer
-            tmpBatchBuffer.getEntries().forEach(transactionEntry -> channelBatchResult.getEntries().add(transactionEntry));
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // CREATE TASKS FOR EACH CHANNEL AND EXECUTE THEM
+            for (int i = 0; i < availableChannels; i++) {
+                // Skip channels that have no work to do
+                if (channelsQueues[i] != null && channelsQueues[i].size() > 0) {
+                    // Configure task
+                    final ParallelTransactionTaskConfig config = new ParallelTransactionTaskConfig(finalResults);
+                    config.paidTotal = paidTotal;
+                    config.totalFees = totalFees;
+                    config.totalPayment = totalPayment;
+                    config.remainingPayment = remainingPayment;
+                    config.sourceAccount = source;
+                    config.sourceAccountMasterKey = signer;
+                    config.channelIndex = i;
+                    config.channelAccount = channelAccounts.get(i);
+                    config.channelAccountKey = channelKeys.get(i);
+                    config.progress = channelsProgress[i];
+                    config.errorFlag = channelsErrors[i];
+                    config.idleFlag = channelsIdle[i];
+                    config.errorMessages = new ArrayList<>();
+                    config.batchQueue = channelsQueues[i];
+                    config.outputPath = processingFolderPath;
 
-            // Append to the current channel if it has enough space
-            channelsQueues[currentChannelIndex.get()].offer(channelBatchResult);
-
-            // Final cleanup
-            tmpBatchBuffer.getEntries().clear();
-        }
-
-        // Start time profiling
-        final long startTime = System.currentTimeMillis();
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // CREATE TASKS FOR EACH CHANNEL AND EXECUTE THEM
-        for (int i = 0; i < availableChannels; i++) {
-            // Skip channels that have no work to do
-            if (channelsQueues[i] != null && channelsQueues[i].size() > 0) {
-                // Configure task
-                final ParallelTransactionTaskConfig config = new ParallelTransactionTaskConfig(finalResults);
-                config.paidTotal = paidTotal;
-                config.totalFees = totalFees;
-                config.totalPayment = totalPayment;
-                config.remainingPayment = remainingPayment;
-                config.sourceAccount = source;
-                config.sourceAccountMasterKey = signer;
-                config.channelIndex = i;
-                config.channelAccount = channelAccounts.get(i);
-                config.channelAccountKey = channelKeys.get(i);
-                config.progress = channelsProgress[i];
-                config.errorFlag = channelsErrors[i];
-                config.idleFlag = channelsIdle[i];
-                config.errorMessages = new ArrayList<>();
-                config.batchQueue = channelsQueues[i];
-                config.outputPath = processingFolderPath;
-
-                // Create and run
-                final ParallelTransactionTask task = new ParallelTransactionTask(config);
-                EXECUTOR.execute(task);
-            } else {
-                // Append to empty list
-                emptyChannels.add(i);
-
-                // Set as completed
-                channelsProgress[i].getAndSet(100);
-            }
-        }
-
-        // Monitor the progress in a dedicated thread
-        new Thread(() -> {
-            boolean processing = true;
-
-            while (processing) {
-                // Check for completion
-                boolean completed = true;
-                for (int i = 0; i < availableChannels; i++) {
-                    if (channelsProgress[i].get() != 100) {
-                        completed = false;
-                    }
-                }
-
-                // Update progress
-                Platform.runLater(() -> {
-                    // Refresh progress state
-                    processingOutputTextArea.clear();
-
-                    // Header
-                    processingOutputTextArea.appendText("CHANNEL[#] | BATCH QUEUE | CHANNEL PROGRESS | CHANNEL PROGRESS % | STATUS\n\n");
-
-                    // Update each channel
-                    for (int i = 0; i < availableChannels; i++) {
-                        final int currentProgress = channelsProgress[i].get();
-                        final boolean error = channelsErrors[i].get();
-                        final SpscAtomicArrayQueue<TransactionResult> channelQueue = channelsQueues[i];
-
-                        // Channel status row start
-                        processingOutputTextArea.appendText("Channel[" + (i < 10 ? "0" : "") + i + "] [" + (channelQueue.size() < 10 ? "0" : "") + channelQueue.size() + "] [");
-
-                        if (emptyChannels.contains(i)) {
-                            // Empty channel, fill the progress bar
-                            for (int j = 0; j < 100; j++) {
-                                processingOutputTextArea.appendText("-");
-                            }
-
-                            // State
-                            processingOutputTextArea.appendText("][ " + (currentProgress < 10 ? "0" : "") + currentProgress + "%] [UNUSED]\n");
-                        } else if (channelsIdle[i].get()) {
-                            // Completed
-                            for (int j = 0; j < currentProgress; j++) {
-                                processingOutputTextArea.appendText("#");
-                            }
-
-                            // Remaining
-                            for (int j = 0; j < 100 - currentProgress; j++) {
-                                processingOutputTextArea.appendText(".");
-                            }
-
-                            // State
-                            processingOutputTextArea.appendText("] [" + (currentProgress < 10 ? "0" : "") + currentProgress + "%] [WAITING]" + (error ? "[ERRORS]" : "") + "\n");
-                        } else if (channelsProgress[i].get() < 100) {
-                            // Completed
-                            for (int j = 0; j < currentProgress; j++) {
-                                processingOutputTextArea.appendText("#");
-                            }
-
-                            // Remaining
-                            for (int j = 0; j < 100 - currentProgress; j++) {
-                                processingOutputTextArea.appendText(".");
-                            }
-
-                            // State
-                            processingOutputTextArea.appendText("] [" + (currentProgress < 10 ? "0" : "") + currentProgress + "%] [PROCESSING]" + (error ? "[ERRORS]" : "") + "\n");
-                        } else {
-                            // Completed
-                            for (int j = 0; j < currentProgress; j++) {
-                                processingOutputTextArea.appendText("#");
-                            }
-
-                            // State
-                            processingOutputTextArea.appendText("] [" + (currentProgress < 10 ? "0" : "") + currentProgress + "%] [COMPLETED]" + (error ? "[ERRORS]" : "") + "\n");
-                        }
-                    }
-                });
-
-                // Exit if we completed
-                if (completed) {
-                    // Flag completion, this thread will exit
-                    processing = false;
-
-                    // Execution time
-                    final long stopTime = System.currentTimeMillis();
-                    final long elapsedTime = stopTime - startTime;
-
-                    // Update the paid label in the transaction planner
-                    final int totalTransactionsPaid = operationsCount.get();
-                    Platform.runLater(() -> executedTransactionsLabel.setText(String.valueOf(totalTransactionsPaid)));
-
-                    // Save the transaction results
-                    long elapsedHours = TimeUnit.MILLISECONDS.toHours(elapsedTime) % 24;
-                    long elapsedMinutes = TimeUnit.MILLISECONDS.toMinutes(elapsedTime) % 60;
-                    long elapsedSeconds = TimeUnit.MILLISECONDS.toSeconds(elapsedTime) % 60;
-
-                    synchronized (finalResults) {
-                        // Update result outcome
-                        if (operationsCount.get() == totalEntries && remainingPayment.get() == 0) {
-                            finalResults.setResultOutcome("SUCCESSFULLY EXECUTED in " + elapsedHours + "h " + elapsedMinutes + "m " + elapsedSeconds + "s");
-                        } else {
-                            finalResults.setResultOutcome("PARTIALLY EXECUTED in " + elapsedHours + "h " + elapsedMinutes + "m " + elapsedSeconds + "s");
-                        }
-
-                        saveTransactionResult(finalResults, paidTotal.get(), totalFees.get(), totalPayment.get(), remainingPayment.get(), false);
-                    }
-
-                    // Check if errors occurred during the transaction process
-                    boolean errorsOccurred = false;
-                    for (int i = 0; i < availableChannels; i++) {
-                        if (channelsErrors[i].get()) {
-                            errorsOccurred = true;
-                        }
-                    }
-
-                    // Status update
-                    if (!errorsOccurred) {
-                        Platform.runLater(() -> {
-                            // Append final message
-                            appendMessage("\n[FINISHED] Process completed in (" + elapsedHours + "h " + elapsedMinutes + "m " + elapsedSeconds + "s )\n");
-
-                            // Fill the progress bar and colorize it
-                            processingProgressBar.setProgress(1);
-                            processingProgressBar.getStyleClass().removeAll();
-                            processingProgressBar.getStyleClass().add("green-bar");
-
-                            // Update transaction planner UI
-                            executeTransactionBtn.setText("EXECUTED");
-                            executeTransactionBtn.setDisable(true);
-                            rebuildTransactionPlanBtn.setDisable(true);
-
-                            // Enable close button
-                            closeBtn.setDisable(false);
-                        });
-                    } else {
-                        Platform.runLater(() -> {
-                            // Append final message
-                            appendMessage("\n[FINISHED] Process completed with some errors in (" + elapsedHours + "h " + elapsedMinutes + "m " + elapsedSeconds + "s )\n");
-
-                            // Fill the progress bar and colorize it
-                            processingProgressBar.setProgress(1);
-                            processingProgressBar.getStyleClass().removeAll();
-                            processingProgressBar.getStyleClass().add("red-bar");
-
-                            executeTransactionBtn.setText("EXECUTED WITH ERRORS");
-                            executeTransactionBtn.setTooltip(new Tooltip("The transaction executed with errors, you might want to use the transaction results as an exclusions list and build a new transaction plan!"));
-                            executeTransactionBtn.setDisable(true);
-                            rebuildTransactionPlanBtn.setDisable(false);
-
-                            // Enable close button
-                            closeBtn.setDisable(false);
-                        });
-                    }
+                    // Create and run
+                    final ParallelTransactionTask task = new ParallelTransactionTask(config);
+                    EXECUTOR.execute(task);
                 } else {
-                    // Defer new update in a second
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    // Append to empty list
+                    emptyChannels.add(i);
+
+                    // Set as completed
+                    channelsProgress[i].getAndSet(100);
                 }
             }
-        }).start();
+
+            // Monitor the progress in a dedicated thread
+            new Thread(() -> {
+                boolean processing = true;
+
+                while (processing) {
+                    // Check for completion
+                    boolean completed = true;
+                    for (int i = 0; i < availableChannels; i++) {
+                        if (channelsProgress[i].get() != 100) {
+                            completed = false;
+                        }
+                    }
+
+                    // Update progress
+                    Platform.runLater(() -> {
+                        // Refresh progress state
+                        processingOutputTextArea.clear();
+
+                        // Header
+                        processingOutputTextArea.appendText("CHANNEL[#] | BATCH QUEUE | CHANNEL PROGRESS | CHANNEL PROGRESS % | STATUS\n\n");
+
+                        // Update each channel
+                        for (int i = 0; i < availableChannels; i++) {
+                            final int currentProgress = channelsProgress[i].get();
+                            final boolean error = channelsErrors[i].get();
+                            final SpscAtomicArrayQueue<TransactionResult> channelQueue = channelsQueues[i];
+
+                            // Channel status row start
+                            processingOutputTextArea.appendText("Channel[" + (i < 10 ? "0" : "") + i + "] [" + (channelQueue.size() < 10 ? "0" : "") + channelQueue.size() + "] [");
+
+                            if (emptyChannels.contains(i)) {
+                                // Empty channel, fill the progress bar
+                                for (int j = 0; j < 100; j++) {
+                                    processingOutputTextArea.appendText("-");
+                                }
+
+                                // State
+                                processingOutputTextArea.appendText("][ " + (currentProgress < 10 ? "0" : "") + currentProgress + "%] [UNUSED]\n");
+                            } else if (channelsIdle[i].get()) {
+                                // Completed
+                                for (int j = 0; j < currentProgress; j++) {
+                                    processingOutputTextArea.appendText("#");
+                                }
+
+                                // Remaining
+                                for (int j = 0; j < 100 - currentProgress; j++) {
+                                    processingOutputTextArea.appendText(".");
+                                }
+
+                                // State
+                                processingOutputTextArea.appendText("] [" + (currentProgress < 10 ? "0" : "") + currentProgress + "%] [WAITING]" + (error ? "[ERRORS]" : "") + "\n");
+                            } else if (channelsProgress[i].get() < 100) {
+                                // Completed
+                                for (int j = 0; j < currentProgress; j++) {
+                                    processingOutputTextArea.appendText("#");
+                                }
+
+                                // Remaining
+                                for (int j = 0; j < 100 - currentProgress; j++) {
+                                    processingOutputTextArea.appendText(".");
+                                }
+
+                                // State
+                                processingOutputTextArea.appendText("] [" + (currentProgress < 10 ? "0" : "") + currentProgress + "%] [PROCESSING]" + (error ? "[ERRORS]" : "") + "\n");
+                            } else {
+                                // Completed
+                                for (int j = 0; j < currentProgress; j++) {
+                                    processingOutputTextArea.appendText("#");
+                                }
+
+                                // State
+                                processingOutputTextArea.appendText("] [" + (currentProgress < 10 ? "0" : "") + currentProgress + "%] [COMPLETED]" + (error ? "[ERRORS]" : "") + "\n");
+                            }
+                        }
+                    });
+
+                    // Exit if we completed
+                    if (completed) {
+                        // Flag completion, this thread will exit
+                        processing = false;
+
+                        // Execution time
+                        final long stopTime = System.currentTimeMillis();
+                        final long elapsedTime = stopTime - startTime;
+
+                        // Update the paid label in the transaction planner
+                        final int totalTransactionsPaid = operationsCount.get();
+                        Platform.runLater(() -> executedTransactionsLabel.setText(String.valueOf(totalTransactionsPaid)));
+
+                        // Save the transaction results
+                        long elapsedHours = TimeUnit.MILLISECONDS.toHours(elapsedTime) % 24;
+                        long elapsedMinutes = TimeUnit.MILLISECONDS.toMinutes(elapsedTime) % 60;
+                        long elapsedSeconds = TimeUnit.MILLISECONDS.toSeconds(elapsedTime) % 60;
+
+                        synchronized (finalResults) {
+                            // Update result outcome
+                            if (operationsCount.get() == totalEntries && remainingPayment.get() == 0) {
+                                finalResults.setResultOutcome("SUCCESSFULLY EXECUTED in " + elapsedHours + "h " + elapsedMinutes + "m " + elapsedSeconds + "s");
+                            } else {
+                                finalResults.setResultOutcome("PARTIALLY EXECUTED in " + elapsedHours + "h " + elapsedMinutes + "m " + elapsedSeconds + "s");
+                            }
+
+                            saveTransactionResult(finalResults, paidTotal.get(), totalFees.get(), totalPayment.get(), remainingPayment.get(), false);
+                        }
+
+                        // Check if errors occurred during the transaction process
+                        boolean errorsOccurred = false;
+                        for (int i = 0; i < availableChannels; i++) {
+                            if (channelsErrors[i].get()) {
+                                errorsOccurred = true;
+                            }
+                        }
+
+                        // Status update
+                        if (!errorsOccurred) {
+                            Platform.runLater(() -> {
+                                // Append final message
+                                appendMessage("\n[FINISHED] Process completed in (" + elapsedHours + "h " + elapsedMinutes + "m " + elapsedSeconds + "s )\n");
+
+                                // Fill the progress bar and colorize it
+                                processingProgressBar.setProgress(1);
+                                processingProgressBar.getStyleClass().removeAll();
+                                processingProgressBar.getStyleClass().add("green-bar");
+
+                                // Update transaction planner UI
+                                executeTransactionBtn.setText("EXECUTED");
+                                executeTransactionBtn.setDisable(true);
+                                rebuildTransactionPlanBtn.setDisable(true);
+
+                                // Enable close button
+                                closeBtn.setDisable(false);
+                            });
+                        } else {
+                            Platform.runLater(() -> {
+                                // Append final message
+                                appendMessage("\n[FINISHED] Process completed with some errors in (" + elapsedHours + "h " + elapsedMinutes + "m " + elapsedSeconds + "s )\n");
+
+                                // Fill the progress bar and colorize it
+                                processingProgressBar.setProgress(1);
+                                processingProgressBar.getStyleClass().removeAll();
+                                processingProgressBar.getStyleClass().add("red-bar");
+
+                                executeTransactionBtn.setText("EXECUTED WITH ERRORS");
+                                executeTransactionBtn.setTooltip(new Tooltip("The transaction executed with errors, you might want to use the transaction results as an exclusions list and build a new transaction plan!"));
+                                executeTransactionBtn.setDisable(true);
+                                rebuildTransactionPlanBtn.setDisable(false);
+
+                                // Enable close button
+                                closeBtn.setDisable(false);
+                            });
+                        }
+                    } else {
+                        // Defer new update in a second
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }).start();
+        });
     }
 
     /**
