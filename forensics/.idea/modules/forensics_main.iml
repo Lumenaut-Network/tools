@@ -11,6 +11,6 @@
     <orderEntry type="library" name="Gradle: com.fasterxml.jackson.core:jackson-databind:2.9.3" level="project" />
     <orderEntry type="library" name="Gradle: com.fasterxml.jackson.core:jackson-core:2.9.3" level="project" />
     <orderEntry type="library" name="Gradle: com.fasterxml.jackson.core:jackson-annotations:2.9.3" level="project" />
-    <orderEntry type="library" name="Gradle: stellar-sdk:stellar-sdk:0.3.0" level="project" />
+    <orderEntry type="library" name="Gradle: stellar-sdk:stellar-sdk:0.6.0" level="project" />
   </component>
 </module>

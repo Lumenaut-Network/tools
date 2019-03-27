@@ -11,7 +11,7 @@ buildscript {
     // Extra properties (valid for all projects if defined here)
     ext {
         jacksonVersion = '2.9.3'
-        stellarSdkVersion = '0.3.0'
+        stellarSdkVersion = '0.6.0'
     }
 }
 

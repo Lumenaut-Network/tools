@@ -2,11 +2,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.stellar.sdk.Operation;
+import org.stellar.sdk.PaymentOperation;
+import org.stellar.sdk.Transaction;
+import org.stellar.sdk.xdr.OperationResult;
+import org.stellar.sdk.xdr.PaymentResult;
+import org.stellar.sdk.xdr.TransactionResult;
+import org.stellar.sdk.xdr.XdrDataInputStream;
+import shadow.com.google.common.io.BaseEncoding;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -19,6 +29,20 @@ public class Main {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
+    public static class Entry {
+        public int slot;
+        public String accountId;
+        public long amount;
+        public String result;
+
+        public Entry(int slot, String accountId, long amount, String result) {
+            this.slot = slot;
+            this.accountId = accountId;
+            this.amount = amount;
+            this.result = result;
+        }
+    }
+
     /**
      * Entry point
      *
@@ -26,7 +50,74 @@ public class Main {
      * @throws FileNotFoundException
      */
     public static void main(String[] args) {
+        try {
+            extractTransactionsFromErrorFiles("xdrdata");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    private static void extractTransactionsFromErrorFiles(final String path) throws IOException {
+        final HashMap<String, List<Entry>> entries = new HashMap<>();
+        Files.list(new File(path).toPath()).forEach(path1 -> {
+            final File file = path1.toFile();
+            if (!file.getName().equals("plan.json")) {
+                final JsonNode errorResult;
+                try {
+                    errorResult = MAPPER.readTree(file);
+                } catch (IOException e) {
+                    System.err.println(e.getMessage());
+                    return;
+                }
+
+                final String resultXdr = errorResult.get("resultXdr").asText();
+                TransactionResult transactionResult = null;
+                try {
+                    final BaseEncoding base64Encoding = BaseEncoding.base64();
+                    final byte[] bytes = base64Encoding.decode(resultXdr);
+                    transactionResult = TransactionResult.decode(new XdrDataInputStream(new ByteArrayInputStream(bytes)));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                // Extract operations
+                final String envelopeXdr = errorResult.get("envelopeXdr").asText();
+                try {
+                    // Extract transaction operations
+                    final Transaction transaction = Transaction.fromEnvelopeXdr(envelopeXdr);
+                    final Operation[] ops = transaction.getOperations();
+                    final OperationResult[] opsResults = transactionResult.getResult().getResults();
+
+                    // Create entry
+                    if (!entries.containsKey(file.getName())) {
+                        entries.put(file.getName(), new ArrayList<>());
+                    }
+
+                    // Populate all accounts found
+                    for (int i = 0; i < ops.length; i++) {
+                        final String accountId = ((PaymentOperation) ops[i]).getDestination().getAccountId();
+                        final String amount = ((PaymentOperation) ops[i]).getAmount();
+                        final long stroops = XLMUtils.XLMToStroop(XLMUtils.decimalStringToXLM(amount));
+                        final PaymentResult result = opsResults[i].getTr().getPaymentResult();
+
+                        entries.get(file.getName()).add(new Entry(i, accountId, stroops, result.getDiscriminant().name()));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                System.out.println("# " + file.getName());
+                entries.get(file.getName()).forEach(entry -> {
+                    if (!entry.result.equals("PAYMENT_SUCCESS")) {
+                        System.out.println(entry.accountId + " -> " + entry.result);
+                    }
+                });
+
+                System.out.println();
+            }
+        });
+
+        int breakhere = 0;
     }
 
     /**
