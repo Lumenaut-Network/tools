@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/poolmanager.iml" filepath="$PROJECT_DIR$/.idea/modules/poolmanager.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/poolmanager.iml" filepath="$PROJECT_DIR$/.idea/modules/poolmanager.iml" group="poolmanager" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/poolmanager_main.iml" filepath="$PROJECT_DIR$/.idea/modules/poolmanager_main.iml" group="poolmanager" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/poolmanager_test.iml" filepath="$PROJECT_DIR$/.idea/modules/poolmanager_test.iml" group="poolmanager" />
     </modules>

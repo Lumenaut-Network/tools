@@ -45,38 +45,42 @@
                                             AnchorPane.topAnchor="32.0">
                                     <children>
                                         <Rectangle fx:id="selectedNetworkRect" arcHeight="5.0" arcWidth="5.0"
-                                                   fill="#cdcdcd" height="149.0" layoutX="7.0" layoutY="93.0"
+                                                   fill="#cdcdcd" height="149.0" layoutX="7.0" layoutY="133.0"
                                                    stroke="BLACK" strokeType="INSIDE" width="202.0"
                                                    AnchorPane.leftAnchor="7.0" AnchorPane.rightAnchor="6.0"
-                                                   AnchorPane.topAnchor="93.0"/>
-                                        <Label layoutX="21.0" layoutY="176.0" text="Voters:"
-                                               AnchorPane.leftAnchor="21.0" AnchorPane.topAnchor="176.0"/>
-                                        <Label layoutX="26.0" layoutY="194.0" text="Votes:" AnchorPane.leftAnchor="26.0"
-                                               AnchorPane.topAnchor="194.0"/>
-                                        <Label fx:id="poolDataTotalVotesLabel" layoutX="74.0" layoutY="195.0"
-                                               text="0 XLM" AnchorPane.leftAnchor="74.0" AnchorPane.topAnchor="195.0"/>
-                                        <Label fx:id="poolDataVotersLabel" layoutX="74.0" layoutY="177.0" text="0"
-                                               AnchorPane.leftAnchor="74.0" AnchorPane.topAnchor="177.0"/>
+                                                   AnchorPane.topAnchor="133.0"/>
+                                        <Label layoutX="21.0" layoutY="216.0" text="Voters:"
+                                               AnchorPane.leftAnchor="21.0" AnchorPane.topAnchor="216.0"/>
+                                        <Label layoutX="26.0" layoutY="234.0" text="Votes:" AnchorPane.leftAnchor="26.0"
+                                               AnchorPane.topAnchor="234.0"/>
+                                        <Label fx:id="poolDataTotalVotesLabel" layoutX="74.0" layoutY="235.0"
+                                               text="0 XLM" AnchorPane.leftAnchor="74.0" AnchorPane.topAnchor="235.0"/>
+                                        <Label fx:id="poolDataVotersLabel" layoutX="74.0" layoutY="217.0" text="0"
+                                               AnchorPane.leftAnchor="74.0" AnchorPane.topAnchor="217.0"/>
                                         <Button fx:id="getHorizonDataBtn" layoutX="5.0" layoutY="4.0"
                                                 mnemonicParsing="false" text="FETCH DATA" AnchorPane.leftAnchor="5.0"
                                                 AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="4.0"/>
-                                        <Label fx:id="poolDataBalanceLabel" layoutX="74.0" layoutY="213.0" text="0 XLM"
-                                               AnchorPane.leftAnchor="74.0" AnchorPane.topAnchor="213.0"/>
+                                        <Label fx:id="poolDataBalanceLabel" layoutX="74.0" layoutY="253.0" text="0 XLM"
+                                               AnchorPane.leftAnchor="74.0" AnchorPane.topAnchor="253.0"/>
                                         <Label fx:id="selectedNetworkLabel" alignment="CENTER" layoutX="13.0"
-                                               layoutY="108.0" prefHeight="35.0" prefWidth="190.0" text="LIVE NETWORK"
+                                               layoutY="148.0" prefHeight="35.0" prefWidth="190.0" text="LIVE NETWORK"
                                                textAlignment="CENTER" AnchorPane.leftAnchor="13.0"
-                                               AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="108.0">
+                                               AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="148.0">
                                             <font>
                                                 <Font size="18.0"/>
                                             </font>
                                         </Label>
-                                        <Button fx:id="buildTransactionBtn" disable="true" layoutX="5.0" layoutY="34.0"
+                                        <Button fx:id="buildTransactionBtn" disable="true" layoutX="5.0" layoutY="74.0"
                                                 mnemonicParsing="false" prefHeight="53.0" prefWidth="174.0"
                                                 stylesheets="@inflationManagerMain.css" text="BUILD TRANSACTION PLAN"
                                                 AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0"
-                                                AnchorPane.topAnchor="34.0"/>
-                                        <Label layoutX="16.0" layoutY="212.0" text="Balance:"
-                                               AnchorPane.leftAnchor="16.0" AnchorPane.topAnchor="212.0"/>
+                                                AnchorPane.topAnchor="74.0"/>
+                                        <Label layoutX="16.0" layoutY="252.0" text="Balance:"
+                                               AnchorPane.leftAnchor="16.0" AnchorPane.topAnchor="252.0"/>
+                                        <Button fx:id="importDataFromPlanBtn" layoutX="5.0" layoutY="34.0"
+                                                mnemonicParsing="false" prefHeight="25.0" prefWidth="202.0"
+                                                text="IMPORT DATA FROM PLAN" AnchorPane.leftAnchor="5.0"
+                                                AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="34.0"/>
                                     </children>
                                 </AnchorPane>
                                 <Label layoutX="14.0" layoutY="9.0" text="Pool Address:" AnchorPane.leftAnchor="14.0"

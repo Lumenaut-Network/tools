@@ -479,9 +479,9 @@ public class ProcessingController {
         final ArrayList<String> channelKeys = StellarGateway.getChannelKeys();
 
         // Channels queues init
-        final SpscAtomicArrayQueue<TransactionResult>[] channelsQueues = new SpscAtomicArrayQueue[availableChannels];
+        final ArrayList<SpscAtomicArrayQueue<TransactionResult>> channelsQueues = new ArrayList<>(availableChannels);
         for (int i = 0; i < availableChannels; i++) {
-            channelsQueues[i] = new SpscAtomicArrayQueue<>(maxBatchesPerChannel);
+            channelsQueues.add(new SpscAtomicArrayQueue<>(maxBatchesPerChannel));
         }
 
         // Channels progress init
@@ -564,7 +564,7 @@ public class ProcessingController {
                     tmpBatchBuffer.getEntries().forEach(transactionEntry -> channelBatchResult.getEntries().add(transactionEntry));
 
                     // Append to the next available channel
-                    channelsQueues[currentChannelIndex.getAndIncrement()].offer(channelBatchResult);
+                    channelsQueues.get(currentChannelIndex.getAndIncrement()).offer(channelBatchResult);
 
                     // Loop back if we moved past the last channel
                     if (currentChannelIndex.get() == availableChannels) {
@@ -605,7 +605,7 @@ public class ProcessingController {
                 tmpBatchBuffer.getEntries().forEach(transactionEntry -> channelBatchResult.getEntries().add(transactionEntry));
 
                 // Append to the current channel if it has enough space
-                channelsQueues[currentChannelIndex.get()].offer(channelBatchResult);
+                channelsQueues.get(currentChannelIndex.get()).offer(channelBatchResult);
 
                 // Final cleanup
                 tmpBatchBuffer.getEntries().clear();
@@ -623,7 +623,7 @@ public class ProcessingController {
             // CREATE TASKS FOR EACH CHANNEL AND EXECUTE THEM
             for (int i = 0; i < availableChannels; i++) {
                 // Skip channels that have no work to do
-                if (channelsQueues[i] != null && channelsQueues[i].size() > 0) {
+                if (channelsQueues.get(i) != null && channelsQueues.get(i).size() > 0) {
                     // Configure task
                     final ParallelTransactionTaskConfig config = new ParallelTransactionTaskConfig(finalResults);
                     config.paidTotal = paidTotal;
@@ -639,7 +639,7 @@ public class ProcessingController {
                     config.errorFlag = channelsErrors[i];
                     config.idleFlag = channelsIdle[i];
                     config.errorMessages = new ArrayList<>();
-                    config.batchQueue = channelsQueues[i];
+                    config.batchQueue = channelsQueues.get(i);
                     config.outputPath = processingFolderPath;
 
                     // Create and run
@@ -679,7 +679,7 @@ public class ProcessingController {
                         for (int i = 0; i < availableChannels; i++) {
                             final int currentProgress = channelsProgress[i].get();
                             final boolean error = channelsErrors[i].get();
-                            final SpscAtomicArrayQueue<TransactionResult> channelQueue = channelsQueues[i];
+                            final SpscAtomicArrayQueue<TransactionResult> channelQueue = channelsQueues.get(i);
 
                             // Channel status row start
                             processingOutputTextArea.appendText("Channel[" + (i < 10 ? "0" : "") + i + "] [" + (channelQueue.size() < 10 ? "0" : "") + channelQueue.size() + "] [");

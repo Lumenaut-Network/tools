@@ -198,25 +198,30 @@ public class TransactionsController {
 
         inflationAmountTextField.setOnKeyPressed(keyEvent -> {
             if (keyEvent.getCode().equals(KeyCode.ENTER)) {
-                validateAmountToPay();
+                validateInputAmountToPay();
             }
         });
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // REBUILD PLAN HANDLER
         rebuildTransactionPlanBtn.setOnAction(event -> {
-            // Don't even attempt to build the plan if the amount to pay is not valid
-            if (!validateAmountToPay()) {
+            // Update textarea
+            transactionPlanTextArea.clear();
+            transactionPlanTextArea.appendText("Building transactions plan... ");
+
+            if (!validateInputAmountToPay()) {
                 planFailed();
 
                 return;
             }
 
-            // Update textarea
-            transactionPlanTextArea.clear();
-            transactionPlanTextArea.appendText("Building transactions plan... ");
-
             if (buildTransactionPlan()) {
+                if (!validateAmountToPay()) {
+                    planFailed();
+
+                    return;
+                }
+
                 planningSuccessful(false);
             } else {
                 planFailed();
@@ -632,11 +637,6 @@ public class TransactionsController {
             } else {
                 showError("Invalid inflation amount: " + inflationAmountString);
 
-                return false;
-            }
-
-            // If the pool's balance is not enough to cover the payment, bail out
-            if (inflationAmount > XLMUtils.XLMToStroop(currentPoolBalance)) {
                 return false;
             }
 
@@ -1156,36 +1156,43 @@ public class TransactionsController {
     }
 
     /**
+     * Validate the input amount specified by the user
+     *
+     * @return
+     */
+    private boolean validateInputAmountToPay() {
+        // Check that the amount specified can be parsed, otherwise fail
+        final String inflationAmountString = inflationAmountTextField.getText();
+        if (!XLMUtils.isPositiveDecimalFormat(inflationAmountString)) {
+            showError("Invalid payment amount. Please make sure you enter a positive value in decimal format (1234.1234567). The value must be expressed in XLM, not Stroops!");
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Validate the currently set amount to pay
      */
     private boolean validateAmountToPay() {
-        final String amountText = inflationAmountTextField.getText();
+        if (currentPlan.getTotalPayouts() == 0) {
+            showError("The plan that you built has nothing to pay, if you specified exclusions it is possible that everyone has been paid already");
 
-        if (amountText != null && !amountText.isEmpty()) {
-            // Check that the amount specified can be parsed, otherwise fail
-            final String inflationAmountString = inflationAmountTextField.getText();
-            long inflationAmount;
-            if (XLMUtils.isPositiveDecimalFormat(inflationAmountString)) {
-                inflationAmount = XLMUtils.XLMToStroop(XLMUtils.decimalStringToXLM(inflationAmountString));
-            } else {
-                showError("Invalid payment amount. Please make sure you enter a positive value in decimal format (1234.1234567). The value must be expressed in XLM, not Stroops!");
-
-                return false;
-            }
-
-            // If the pool's balance is not enough to cover the payment, fail
-            if (inflationAmount > XLMUtils.XLMToStroop(currentPoolBalance)) {
-                showError("The pool does not have enough balance to pay the inflation amount you specified. "
-                          + "Pool balance: " + XLMUtils.formatBalanceFullPrecision(currentPoolBalance) + " XLM, "
-                          + "Inflation payment requires: " + XLMUtils.formatBalanceFullPrecision(inflationAmount) + " XLM");
-
-                return false;
-            }
-
-            // All checks passed
-            return true;
+            return false;
         }
 
+
+        // If the pool's balance is not enough to cover the payment, fail
+        if (currentPlan.getTotalPayouts() > XLMUtils.XLMToStroop(currentPoolBalance)) {
+            showError("The pool does not have enough balance to pay the inflation amount you specified.\n\n"
+                      + "Pool balance: " + XLMUtils.formatBalanceFullPrecision(currentPoolBalance) + " XLM\n"
+                      + "Payment requires (excluding fees): " + XLMUtils.formatBalanceFullPrecision(currentPlan.getTotalPayouts()) + " XLM");
+
+            return false;
+        }
+
+        // All checks passed
         return true;
     }
 

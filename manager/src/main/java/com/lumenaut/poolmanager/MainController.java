@@ -1,5 +1,7 @@
 package com.lumenaut.poolmanager;
 
+import com.lumenaut.poolmanager.DataFormats.TransactionPlan;
+import com.lumenaut.poolmanager.DataFormats.TransactionPlanEntry;
 import com.lumenaut.poolmanager.DataFormats.VoterDataEntry;
 import com.lumenaut.poolmanager.DataFormats.VotersData;
 import com.lumenaut.poolmanager.gateways.HorizonGateway;
@@ -13,15 +15,18 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.lumenaut.poolmanager.DataFormats.OBJECT_MAPPER;
 import static com.lumenaut.poolmanager.Settings.*;
 import static com.lumenaut.poolmanager.UIUtils.showError;
 
@@ -57,6 +62,9 @@ public class MainController {
 
     @FXML
     private Button getHorizonDataBtn;
+
+    @FXML
+    private Button importDataFromPlanBtn;
 
     @FXML
     private Button buildTransactionBtn;
@@ -158,6 +166,7 @@ public class MainController {
 
         // Init tooltips
         getHorizonDataBtn.setTooltip(new Tooltip("Retrieve voters data, pool balance and donations data using\n the specified Horizon database connection."));
+        importDataFromPlanBtn.setTooltip(new Tooltip("Import voters data and pool balance from a transaction plan (Required to execute exclusions on a partial payment run)"));
 
         // Add all buttons that should react to the application "busy" state
         statefulButtons.add(getHorizonDataBtn);
@@ -176,6 +185,8 @@ public class MainController {
         // BUTTON HANDLERS
 
         getHorizonDataBtn.setOnAction(event -> fetchHorizonData());
+        importDataFromPlanBtn.setOnAction(event -> importDataFromPlan());
+
         buildTransactionBtn.setOnAction(event -> {
             if (currentVotersData != null && currentVotersData.getEntries().size() > 0 && currentVotersData.getBalance() > 0L) {
                 openTransactionBuilderWindow();
@@ -238,7 +249,6 @@ public class MainController {
         if (!initHorizonDatabaseConnection()) {
             return;
         }
-
 
         // Get the current network of the horizon node
         boolean horizonTestNetwork;
@@ -385,6 +395,193 @@ public class MainController {
                 });
             });
         }
+    }
+
+    /**
+     * Import data from transaction plan
+     */
+    private void importDataFromPlan() {
+        // Initialize horizon manager
+        if (!initHorizonDatabaseConnection()) {
+            return;
+        }
+
+        // Get the current network of the horizon node
+        boolean horizonTestNetwork;
+        try {
+            horizonTestNetwork = horizonGateway.isTestNetwork();
+        } catch (Exception e) {
+            showError("Cannot determine whether the horizon node is on the test network: " + e.getMessage());
+            return;
+        }
+
+        // Check if the networks match
+        switch (SETTING_OPERATIONS_NETWORK) {
+            case "TEST":
+                if (!horizonTestNetwork) {
+                    showError("The horizon node specified seems to be connected to the LIVE network, you are working on the TEST network. Change your settings and try again.");
+                    return;
+                }
+
+                break;
+            case "LIVE":
+                if (horizonTestNetwork) {
+                    showError("The horizon node specified seems to be connected to the TEST network, you are working on the LIVE network. Change your settings and try again.");
+                    return;
+                }
+
+                break;
+        }
+
+        // Show file picker
+        final FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Import saved transaction plan");
+        fileChooser.getExtensionFilters().addAll(
+        new FileChooser.ExtensionFilter("JSON", "*.json")
+        );
+
+        final File file = fileChooser.showOpenDialog(primaryStage.getScene().getWindow());
+        final TransactionPlan importedPlan;
+        try {
+            importedPlan = OBJECT_MAPPER.readValue(file, TransactionPlan.class);
+        } catch (Exception e) {
+            showError("The selected file does not contain a valid transaction plan. Error: " + e.getMessage());
+
+            return;
+        }
+
+        // Get the target pool key
+        final String poolAddress = poolAddressTextField.getText();
+
+        // Check if we have an address
+        if (poolAddress == null || poolAddress.isEmpty()) {
+            showError("You must specify the inflation pool's address below");
+
+            return;
+        }
+
+        // Clear existing data
+        inflationPoolDataTextArea.clear();
+        poolDataBalanceLabel.setText("0 XLM");
+        if (currentVotersData != null) {
+            currentVotersData.reset();
+        }
+
+        resetPoolCounters();
+
+        // Disable buttons and start spinner
+        setBusyState(true);
+
+        // Notify user
+        inflationPoolDataTextArea.clear();
+
+        // Build and submit async task
+        final CompletableFuture<VotersData> request = CompletableFuture.supplyAsync(() -> {
+            // Create voters data
+            final VotersData votersData = new VotersData();
+            votersData.setEntries(new ArrayList<>());
+            votersData.setInflationdest(poolAddress);
+
+            try {
+                // Retrieve current pool balance
+                votersData.setBalance(horizonGateway.getBalance(poolAddress));
+
+                // Initialize payment channels if required
+                if (SETTING_PARALLEL_CHANNELS_ENABLED) {
+                    Platform.runLater(() -> inflationPoolDataTextArea.appendText("Verifying payment channels...\n"));
+                    StellarGateway.initParallelSubmission(inflationPoolDataTextArea);
+
+                    // Check if the channels were initialized
+                    if (StellarGateway.getChannelAccounts() == null) {
+                        Platform.runLater(() -> inflationPoolDataTextArea.appendText("FAILED: No channels were initialized for parallel submission!\n\n"));
+
+                        // Reset current voters data
+                        currentVotersData = null;
+                        return null;
+                    }
+
+                    // Check if at least 1 channel was initialized
+                    final int validChannelsNum = StellarGateway.getChannelAccounts().size();
+                    if (validChannelsNum > 0) {
+                        Platform.runLater(() -> inflationPoolDataTextArea.appendText("SUCCESS: Initialized [" + validChannelsNum + "] valid channels for parallel submission!\n\n"));
+                    } else {
+                        Platform.runLater(() -> inflationPoolDataTextArea.appendText("FAILED: No channels were initialized for parallel submission!\n\n"));
+
+                        // Reset current voters data
+                        currentVotersData = null;
+                        return null;
+                    }
+                }
+
+                // Notify user that data fetch is starting
+                Platform.runLater(() -> inflationPoolDataTextArea.appendText("Importing data..."));
+                for (TransactionPlanEntry entry : importedPlan.getEntries()) {
+                    final VoterDataEntry voterDataEntry = new VoterDataEntry();
+                    voterDataEntry.setAccount(entry.getDestination());
+                    voterDataEntry.setBalance(entry.getRecordedBalance());
+                    voterDataEntry.setData(null);
+
+                    votersData.getEntries().add(voterDataEntry);
+                }
+
+                // Update the current voters data
+                currentVotersData = votersData;
+            } catch (Exception ignored) {
+                // Fetch has failed
+                currentVotersData = null;
+            }
+
+            // Return
+            return currentVotersData;
+        });
+
+        // Process task completion
+        request.thenAccept(votersData -> {
+            // Stop if we're meant to use payment channels but none have been successfully initialized
+            if (SETTING_PARALLEL_CHANNELS_ENABLED && (StellarGateway.getChannelAccounts() == null || StellarGateway.getChannelAccounts().size() == 0)) {
+                Platform.runLater(() -> {
+                    // Re-enable buttons and update counters
+                    setBusyState(false);
+                    resetPoolCounters();
+
+                    // Manually disable the transaction build button, we have no data!
+                    buildTransactionBtn.setDisable(true);
+
+                    // Notify user
+                    showError("None of the payment channels provided in the config can be used, either disable parallel submissions or provide valid channels");
+                });
+
+                return;
+            }
+
+
+            // Check if we have voters data
+            if (votersData == null) {
+                Platform.runLater(() -> {
+                    // Re-enable buttons and update counters
+                    setBusyState(false);
+                    resetPoolCounters();
+
+                    // Manually disable the transaction build button, we have no data!
+                    buildTransactionBtn.setDisable(true);
+
+                    // Notify user
+                    showError("The horizon database does not contain any data for the specified address");
+                });
+
+                return;
+            }
+
+            // Cancel applicationBusy state
+            Platform.runLater(() -> {
+                // Re-enable buttons and update counters
+                setBusyState(false);
+                refreshPoolCounters();
+
+                // Notify user
+                inflationPoolDataTextArea.appendText(" DONE!\nREADY TO BUILD!");
+            });
+        });
     }
 
     /**

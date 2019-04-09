@@ -105,7 +105,7 @@
                    promptText="Signing Key" AnchorPane.bottomAnchor="91.0" AnchorPane.leftAnchor="695.0"
                    AnchorPane.rightAnchor="5.0"/>
         <TextField fx:id="inflationAmountTextField" layoutX="695.0" layoutY="621.0" prefHeight="25.0" prefWidth="200.0"
-                   promptText="Inflation amount" AnchorPane.bottomAnchor="60.0" AnchorPane.leftAnchor="695.0"
+                   promptText="Total Inflation amount" AnchorPane.bottomAnchor="60.0" AnchorPane.leftAnchor="695.0"
                    AnchorPane.rightAnchor="5.0"/>
         <Label layoutX="455.0" layoutY="595.0" text="Voters Payout:" AnchorPane.bottomAnchor="94.0"
                AnchorPane.leftAnchor="455.0"/>
