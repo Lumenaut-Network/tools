@@ -17,7 +17,7 @@ buildscript {
         stellarSdkVersion = '0.7'
         jacksonVersion = '2.9.3'
         pgsqlDriverVersion = '42.1.4'
-        jctoolsVersion = '2.1.1'
+        jctoolsVersion = '2.1.2'
     }
 
     // Repositories for build scripts
