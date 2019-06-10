@@ -79,8 +79,14 @@
                AnchorPane.topAnchor="51.0"/>
         <TextField fx:id="horizonLive" layoutX="492.0" layoutY="47.0" prefHeight="25.0" prefWidth="194.0"
                    AnchorPane.leftAnchor="492.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="47.0"/>
-        <Label layoutX="18.0" layoutY="295.0" text="Validate accounts before payment:"/>
-        <CheckBox fx:id="checkboxValidateAccounts" layoutX="210.0" layoutY="295.0" mnemonicParsing="false"
-                  text="Enabled"/>
+        <Label layoutX="18.0" layoutY="325.0" text="Validate accounts before payment:" AnchorPane.leftAnchor="18.0"
+               AnchorPane.topAnchor="325.0"/>
+        <CheckBox fx:id="checkboxValidateAccounts" layoutX="210.0" layoutY="325.0" mnemonicParsing="false"
+                  text="Enabled" AnchorPane.leftAnchor="210.0" AnchorPane.topAnchor="325.0"/>
+        <Label layoutX="54.0" layoutY="299.0" text="Operations per Transaction:" AnchorPane.leftAnchor="54.0"
+               AnchorPane.topAnchor="299.0"/>
+        <TextField fx:id="opsPerTransactionTextField" layoutX="210.0" layoutY="295.0" prefHeight="25.0"
+                   prefWidth="475.0" AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="15.0"
+                   AnchorPane.topAnchor="295.0"/>
     </children>
 </AnchorPane>

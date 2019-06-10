@@ -79,6 +79,9 @@ public class SettingsController {
     private CheckBox checkboxParallelChannels;
 
     @FXML
+    private TextField opsPerTransactionTextField;
+
+    @FXML
     private CheckBox checkboxValidateAccounts;
 
     //endregion
@@ -194,6 +197,9 @@ public class SettingsController {
         // Handle checkbox toggle for the parallel channels
         checkboxParallelChannels.setOnAction(event -> SETTING_PARALLEL_CHANNELS_ENABLED = checkboxParallelChannels.isSelected());
 
+        // Ops per batch
+        opsPerTransactionTextField.setText(String.valueOf(SETTING_OPERATIONS_PER_TRANSACTION_BATCH));
+
         // Handle checkbox toggle for account validation
         checkboxValidateAccounts.setOnAction(event -> SETTING_VALIDATE_ACCOUNTS_BEFORE_PAYMENT = checkboxValidateAccounts.isSelected());
     }
@@ -237,6 +243,15 @@ public class SettingsController {
 
         // Channels
         SETTING_PARALLEL_CHANNELS_ENABLED = checkboxParallelChannels.isSelected();
+
+        final int currentOpsPerBatch = Integer.parseInt(opsPerTransactionTextField.getText());
+        if (currentOpsPerBatch > 100) {
+            SETTING_OPERATIONS_PER_TRANSACTION_BATCH = 100;
+            opsPerTransactionTextField.setText("100");
+        } else {
+            SETTING_OPERATIONS_PER_TRANSACTION_BATCH = currentOpsPerBatch;
+        }
+
         SETTING_VALIDATE_ACCOUNTS_BEFORE_PAYMENT = checkboxValidateAccounts.isSelected();
 
         // Trigger settings save

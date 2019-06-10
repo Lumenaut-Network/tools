@@ -45,8 +45,8 @@ public class Settings {
     public static String SETTING_FEDERATION_NETWORK_INFLATION_URL = "";
 
     public static String SETTING_MEMO = "";
-    public static int SETTING_FEE = 100;
-    public static int SETTING_OPERATIONS_PER_TRANSACTION_BATCH = 100;
+    public static int SETTING_FEE = 100000;
+    public static int SETTING_OPERATIONS_PER_TRANSACTION_BATCH = 25;
     public static String SETTING_DONATION_DATANAME_PREFIX = "";
 
     // Payment Channels
@@ -125,6 +125,7 @@ public class Settings {
 
             // Channels
             SETTING_PARALLEL_CHANNELS_ENABLED = Boolean.parseBoolean(PROPERTIES.getProperty("useParallelChannels", "false"));
+            SETTING_OPERATIONS_PER_TRANSACTION_BATCH = Integer.parseInt(PROPERTIES.getProperty("operationsPerTransactionBatch")) > 100 ? 100 : Integer.parseInt(PROPERTIES.getProperty("operationsPerTransactionBatch"));
             SETTING_VALIDATE_ACCOUNTS_BEFORE_PAYMENT = Boolean.parseBoolean(PROPERTIES.getProperty("validateChannelsBeforePayment", "false"));
         } catch (Exception e) {
             // Init defaults (ONLY EXECUTED WHEN the "settings ini file doesn't exist)
@@ -154,6 +155,14 @@ public class Settings {
             SETTING_HORIZON_DB_LIVE_PASS = PROPERTIES.getProperty("horizonDbLivePass", "");
 
             SETTING_PARALLEL_CHANNELS_ENABLED = Boolean.parseBoolean(PROPERTIES.getProperty("useParallelChannels", "false"));
+
+            // Try to parse the ops per transaction, or default to 100
+            try {
+                SETTING_OPERATIONS_PER_TRANSACTION_BATCH = Integer.parseInt(PROPERTIES.getProperty("operationsPerTransactionBatch", "100"));
+            } catch (NumberFormatException ne) {
+                SETTING_OPERATIONS_PER_TRANSACTION_BATCH = 100;
+            }
+
             SETTING_VALIDATE_ACCOUNTS_BEFORE_PAYMENT = Boolean.parseBoolean(PROPERTIES.getProperty("validateChannelsBeforePayment", "false"));
 
             // Save defaults
@@ -189,6 +198,7 @@ public class Settings {
 
         // Channels
         PROPERTIES.setProperty("useParallelChannels", String.valueOf(SETTING_PARALLEL_CHANNELS_ENABLED));
+        PROPERTIES.setProperty("operationsPerTransactionBatch", String.valueOf(SETTING_OPERATIONS_PER_TRANSACTION_BATCH));
         PROPERTIES.setProperty("validateChannelsBeforePayment", String.valueOf(SETTING_VALIDATE_ACCOUNTS_BEFORE_PAYMENT));
 
         // Store
