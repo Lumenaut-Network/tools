@@ -529,13 +529,15 @@ public class ProcessingController {
             final int total = transactionPlan.getEntries().size();
             for (TransactionPlanEntry entry : transactionPlan.getEntries()) {
                 // Check if the account is still valid
-                try {
-                    server.accounts().account(KeyPair.fromAccountId(entry.getDestination()));
-                } catch (Exception e) {
-                    validationFailures.add("[NOTICE] Account [" + entry.getDestination() + "] validation error, excluding from payments.\n");
-                    currentEntry.getAndIncrement();
+                if (SETTING_VALIDATE_ACCOUNTS_BEFORE_PAYMENT) {
+                    try {
+                        server.accounts().account(KeyPair.fromAccountId(entry.getDestination()));
+                    } catch (Exception e) {
+                        validationFailures.add("[NOTICE] Account [" + entry.getDestination() + "] validation error, excluding from payments.\n");
+                        currentEntry.getAndIncrement();
 
-                    continue;
+                        continue;
+                    }
                 }
 
                 // Create new entry for the temporary result (which we're using as a buffer for batches)

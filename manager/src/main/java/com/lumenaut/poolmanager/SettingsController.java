@@ -78,6 +78,9 @@ public class SettingsController {
     @FXML
     private CheckBox checkboxParallelChannels;
 
+    @FXML
+    private CheckBox checkboxValidateAccounts;
+
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -159,6 +162,9 @@ public class SettingsController {
         // Channels
         checkboxParallelChannels.setSelected(SETTING_PARALLEL_CHANNELS_ENABLED);
 
+        // Account validation
+        checkboxValidateAccounts.setSelected(SETTING_VALIDATE_ACCOUNTS_BEFORE_PAYMENT);
+
         // Handle save & closing
         cancelBtn.setOnAction(event -> cancelBtn.getScene().getWindow().hide());
         saveBtn.setOnAction(event -> saveSettings());
@@ -187,6 +193,9 @@ public class SettingsController {
 
         // Handle checkbox toggle for the parallel channels
         checkboxParallelChannels.setOnAction(event -> SETTING_PARALLEL_CHANNELS_ENABLED = checkboxParallelChannels.isSelected());
+
+        // Handle checkbox toggle for account validation
+        checkboxValidateAccounts.setOnAction(event -> SETTING_VALIDATE_ACCOUNTS_BEFORE_PAYMENT = checkboxValidateAccounts.isSelected());
     }
 
     /**
@@ -228,6 +237,7 @@ public class SettingsController {
 
         // Channels
         SETTING_PARALLEL_CHANNELS_ENABLED = checkboxParallelChannels.isSelected();
+        SETTING_VALIDATE_ACCOUNTS_BEFORE_PAYMENT = checkboxValidateAccounts.isSelected();
 
         // Trigger settings save
         try {

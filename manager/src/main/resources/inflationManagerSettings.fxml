@@ -54,7 +54,7 @@
                AnchorPane.topAnchor="160.0"/>
         <Separator layoutY="261.0" prefHeight="3.0" prefWidth="659.0" AnchorPane.leftAnchor="0.0"
                    AnchorPane.rightAnchor="0.0"/>
-        <Label layoutX="32.0" layoutY="274.0" text="Parallel Transaction Submission" AnchorPane.leftAnchor="32.0"
+        <Label layoutX="32.0" layoutY="274.0" text="Parallel Transaction Submission:" AnchorPane.leftAnchor="32.0"
                AnchorPane.topAnchor="274.0"/>
         <CheckBox fx:id="checkboxParallelChannels" layoutX="210.0" layoutY="274.0" mnemonicParsing="false"
                   text="Enabled" AnchorPane.leftAnchor="210.0" AnchorPane.topAnchor="274.0"/>
@@ -79,5 +79,8 @@
                AnchorPane.topAnchor="51.0"/>
         <TextField fx:id="horizonLive" layoutX="492.0" layoutY="47.0" prefHeight="25.0" prefWidth="194.0"
                    AnchorPane.leftAnchor="492.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="47.0"/>
+        <Label layoutX="18.0" layoutY="295.0" text="Validate accounts before payment:"/>
+        <CheckBox fx:id="checkboxValidateAccounts" layoutX="210.0" layoutY="295.0" mnemonicParsing="false"
+                  text="Enabled"/>
     </children>
 </AnchorPane>

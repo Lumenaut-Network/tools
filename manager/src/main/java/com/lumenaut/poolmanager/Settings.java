@@ -52,8 +52,11 @@ public class Settings {
     // Payment Channels
     public static boolean SETTING_PARALLEL_CHANNELS_ENABLED = false;
 
+    // Account validation
+    public static boolean SETTING_VALIDATE_ACCOUNTS_BEFORE_PAYMENT = false;
+
     // Non persistent settings
-    public static RoundingMode ROUNDING_MODE = RoundingMode.HALF_DOWN;
+    public static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_DOWN;
 
     //endregion
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -122,6 +125,7 @@ public class Settings {
 
             // Channels
             SETTING_PARALLEL_CHANNELS_ENABLED = Boolean.parseBoolean(PROPERTIES.getProperty("useParallelChannels", "false"));
+            SETTING_VALIDATE_ACCOUNTS_BEFORE_PAYMENT = Boolean.parseBoolean(PROPERTIES.getProperty("validateChannelsBeforePayment", "false"));
         } catch (Exception e) {
             // Init defaults (ONLY EXECUTED WHEN the "settings ini file doesn't exist)
             SETTING_OPERATIONS_NETWORK = PROPERTIES.getProperty("operationsNetwork", "TEST");
@@ -150,6 +154,7 @@ public class Settings {
             SETTING_HORIZON_DB_LIVE_PASS = PROPERTIES.getProperty("horizonDbLivePass", "");
 
             SETTING_PARALLEL_CHANNELS_ENABLED = Boolean.parseBoolean(PROPERTIES.getProperty("useParallelChannels", "false"));
+            SETTING_VALIDATE_ACCOUNTS_BEFORE_PAYMENT = Boolean.parseBoolean(PROPERTIES.getProperty("validateChannelsBeforePayment", "false"));
 
             // Save defaults
             saveSettings();
@@ -184,6 +189,7 @@ public class Settings {
 
         // Channels
         PROPERTIES.setProperty("useParallelChannels", String.valueOf(SETTING_PARALLEL_CHANNELS_ENABLED));
+        PROPERTIES.setProperty("validateChannelsBeforePayment", String.valueOf(SETTING_VALIDATE_ACCOUNTS_BEFORE_PAYMENT));
 
         // Store
         PROPERTIES.store(new FileOutputStream("data/settings.ini"), "Settings");
