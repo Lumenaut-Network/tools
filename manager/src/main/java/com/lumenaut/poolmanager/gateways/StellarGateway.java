@@ -292,7 +292,7 @@ public class StellarGateway {
         }
 
         // Prepare a new transaction builder for the pool account
-        final Builder transactionBuilder = new Transaction.Builder(sourceAccountResponse);
+        final Builder transactionBuilder = new Transaction.Builder(sourceAccountResponse, SETTING_OPERATIONS_NETWORK.equals("LIVE") ? Network.PUBLIC : Network.TESTNET);
 
         // Add memo to the transaction
         transactionBuilder.addMemo(Memo.text(Settings.SETTING_MEMO));
@@ -463,7 +463,7 @@ public class StellarGateway {
         }
 
         // Prepare a new transaction builder for the channel
-        final Builder transactionBuilder = new Transaction.Builder(channelAccountResponse);
+        final Builder transactionBuilder = new Transaction.Builder(channelAccountResponse, SETTING_OPERATIONS_NETWORK.equals("LIVE") ? Network.PUBLIC : Network.TESTNET);
 
         // Add memo to the transaction
         transactionBuilder.addMemo(Memo.text(Settings.SETTING_MEMO));

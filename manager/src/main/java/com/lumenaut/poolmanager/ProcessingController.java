@@ -8,7 +8,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import org.jctools.queues.atomic.SpscAtomicArrayQueue;
 import org.stellar.sdk.KeyPair;
-import org.stellar.sdk.Network;
 import org.stellar.sdk.Server;
 import org.stellar.sdk.responses.SubmitTransactionResponse.Extras.ResultCodes;
 
@@ -160,16 +159,6 @@ public class ProcessingController {
         final CompletableFuture<Boolean> processing = CompletableFuture.supplyAsync(() -> {
             ////////////////////////////////////////////////////////////////////////////////////////////////////
             // INIT
-
-            // Init network to be used
-            switch (SETTING_OPERATIONS_NETWORK) {
-                case "LIVE":
-                    Network.usePublicNetwork();
-                    break;
-                case "TEST":
-                    Network.useTestNetwork();
-                    break;
-            }
 
             // Build server object
             final Server server = new Server(SETTING_OPERATIONS_NETWORK.equals("LIVE") ? SETTING_HORIZON_LIVE_NETWORK : SETTING_HORIZON_TEST_NETWORK);
@@ -430,16 +419,6 @@ public class ProcessingController {
         // Check if we have enough channels
         if (availableChannels < 2) {
             appendMessage("[ERROR] You need to setup at least 2 valid payment channels to process parallel transactions");
-        }
-
-        // Init network to be used
-        switch (SETTING_OPERATIONS_NETWORK) {
-            case "LIVE":
-                Network.usePublicNetwork();
-                break;
-            case "TEST":
-                Network.useTestNetwork();
-                break;
         }
 
         // Build server object for accounts checking

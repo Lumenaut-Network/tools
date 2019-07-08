@@ -9,8 +9,8 @@ import com.lumenaut.poolmanager.DataFormats.TransactionResultEntry;
 import com.lumenaut.poolmanager.gateways.StellarGateway;
 import javafx.application.Platform;
 import org.stellar.sdk.KeyPair;
-import org.stellar.sdk.Network;
 import org.stellar.sdk.Server;
+import shadow.com.google.common.base.Optional;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -81,16 +81,6 @@ public class ParallelTransactionTask implements Runnable {
             config.progress.getAndSet(100);
 
             return;
-        }
-
-        // Init network to be used
-        switch (SETTING_OPERATIONS_NETWORK) {
-            case "LIVE":
-                Network.usePublicNetwork();
-                break;
-            case "TEST":
-                Network.useTestNetwork();
-                break;
         }
 
         // Build server object
@@ -214,8 +204,8 @@ public class ParallelTransactionTask implements Runnable {
         // Append transaction data
         if (batchResponse.transactionResponse != null) {
             // Gather data, if available
-            String envelopeXdr = null;
-            String resultXdr = null;
+            Optional<String> envelopeXdr = null;
+            Optional<String> resultXdr = null;
             Long ledger = null;
 
             try {
@@ -226,8 +216,8 @@ public class ParallelTransactionTask implements Runnable {
             }
 
             rootNode.put("ledger", ledger);
-            rootNode.put("envelopeXdr", envelopeXdr);
-            rootNode.put("resultXdr", resultXdr);
+            rootNode.put("envelopeXdr", envelopeXdr != null && envelopeXdr.isPresent() ? envelopeXdr.get() : null);
+            rootNode.put("resultXdr", resultXdr != null && resultXdr.isPresent() ? resultXdr.get() : null);
 
             // If the transaction failed try to get the extra data for it
             // !!! IMPORTANT !!! Any of the response data fields can be null, attempt secure extraction

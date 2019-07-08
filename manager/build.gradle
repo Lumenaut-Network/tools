@@ -14,7 +14,7 @@ buildscript {
     ext {
         junitPlatformVersion = '1.0.2'
         junitJupiterVersion = '5.0.2'
-        stellarSdkVersion = '0.7'
+        stellarSdkVersion = '0.8.1'
         jacksonVersion = '2.9.3'
         pgsqlDriverVersion = '42.1.4'
         jctoolsVersion = '2.1.2'
