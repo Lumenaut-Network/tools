@@ -21,9 +21,6 @@ public class Settings {
     // don't worry if your CPU doesn't an equal amount of cores, your kernel's scheduler will manage just fine.
     public static final int MAX_THREADS = 50;
 
-    // Minimum valid account balance accepted to receive inflation (in stroops)
-    public static final long MIN_ACCOUNT_BALANCE = 25_000_000L;
-
     // Properties instance
     private static final Properties PROPERTIES = new Properties();
 

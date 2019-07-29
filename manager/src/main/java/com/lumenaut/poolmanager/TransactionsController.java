@@ -724,15 +724,6 @@ public class TransactionsController {
                 // Get the recorded balance for this voter
                 final Long recordedVoterBalance = votesAndBalances.get(voterAccount);
 
-                // Exclude voters with balances below the minimum threshold
-                if (recordedVoterBalance == null || recordedVoterBalance < MIN_ACCOUNT_BALANCE) {
-                    numExcluded.getAndIncrement();
-                    excludedLowBalancePayments.getAndIncrement();
-
-                    // Return immediately without appending the entry
-                    return;
-                }
-
                 // Create new entry node
                 final TransactionPlanEntry voterPaymentEntry = new TransactionPlanEntry();
                 voterPaymentEntry.setRecordedBalance(recordedVoterBalance);
@@ -890,7 +881,7 @@ public class TransactionsController {
 
             // Notify of low balance exclusions
             if (excludedLowBalancePayments.get() > 0) {
-                showInfo(excludedLowBalancePayments.get() + " accounts have been excluded from the distribution because their balance was below the configured threshold of " + XLMUtils.formatBalance(MIN_ACCOUNT_BALANCE) + " XLM");
+                showInfo(excludedLowBalancePayments.get() + " accounts have been excluded from the distribution because their balance was below the minimum network threshold of 100XLM");
             }
 
             // Notify of pool donations

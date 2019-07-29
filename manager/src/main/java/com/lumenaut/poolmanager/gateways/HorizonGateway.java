@@ -208,8 +208,9 @@ public class HorizonGateway {
         final HashMap<String, HashMap<String, String>> donationsData = getVotersCustomData(inflationDestination, "lumenaut.net donation%");
         final long poolBalance = getBalance(inflationDestination);
 
-        // Prepared statement
-        final PreparedStatement inflationStm = conn.prepareStatement("SELECT * FROM core.public.accounts WHERE inflationdest = ? ORDER BY balance DESC");
+        // Stellar core's inflation implementation does not include accounts holding less than 100XLM in their balance, neither should we
+        final PreparedStatement inflationStm = conn.prepareStatement("SELECT * FROM core.public.accounts WHERE inflationdest = ? AND balance >= 1000000000 ORDER BY balance DESC;");
+
         // Fetch in batches of 100 records
         inflationStm.setFetchSize(100);
         inflationStm.setString(1, inflationDestination);
@@ -279,7 +280,7 @@ public class HorizonGateway {
     public HashMap<String, HashMap<String, String>> getVotersCustomData(final String inflationDestination, final String... dataNames) throws SQLException {
         // Build the query
         sb.setLength(0);
-        sb.append("SELECT * FROM core.public.accounts LEFT JOIN core.public.accountdata ON accountdata.accountid = accounts.accountid WHERE inflationdest = ?");
+        sb.append("SELECT * FROM core.public.accounts LEFT JOIN core.public.accountdata ON accountdata.accountid = accounts.accountid WHERE inflationdest = ? AND balance >= 1000000000");
 
         if (dataNames.length > 1) {
             sb.append(" AND (");
