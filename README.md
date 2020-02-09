@@ -1,3 +1,6 @@
+# Status
+This project is **>>> not actively developed <<<** anymore since the inflation mechanism within stellar has been disabled.
+
 # Tools
 This repository contains various tools that help in the management process of a Stellar Inflation Pool.
 
